@@ -1,0 +1,16 @@
+{
+  "name": "CLEAN — Magvlyn ERP",
+  "short_name": "CLEAN",
+  "description": "Clear, Lean, Easy, Automated, Navigable — ERP for sachet water production",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#012256",
+  "theme_color": "#012256",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
