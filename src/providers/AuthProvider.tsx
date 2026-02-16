@@ -4,6 +4,44 @@ import api from "@/lib/api";
 import type { User, Team, AuthResponse, AuthState } from "@/types/auth";
 import { toast } from "sonner";
 
+const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+
+const DEMO_DATA: AuthResponse = {
+  token: "demo-token",
+  user: { id: 1, name: "Demo User", email: "demo@magvlyn.com" },
+  teams: [
+    {
+      id: 1,
+      name: "Magvlyn HQ",
+      role: "admin",
+      permissions: [
+        "dashboard.view",
+        "master-data.view",
+        "inventory.view",
+        "production.view",
+        "sales.view",
+        "finance.view",
+        "franchise.manage",
+        "reports.view",
+        "settings.view",
+      ],
+    },
+    {
+      id: 2,
+      name: "Franchise – Lagos",
+      role: "manager",
+      permissions: [
+        "dashboard.view",
+        "inventory.view",
+        "production.view",
+        "sales.view",
+        "reports.view",
+      ],
+    },
+  ],
+  current_team_id: 1,
+};
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -39,6 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Session bootstrap
   useEffect(() => {
+    if (DEMO_MODE) {
+      // Auto-login in demo mode
+      setAuth(DEMO_DATA);
+      return;
+    }
     const token = localStorage.getItem("clean-token");
     if (!token) {
       setState((s) => ({ ...s, isLoading: false }));
@@ -48,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .get("/auth/me")
       .then((res) => {
         const data = res.data as AuthResponse;
-        // Keep existing token since /me may not return one
         const currentTeam = data.teams.find((t) => t.id === data.current_team_id);
         setState({
           user: data.user,
@@ -68,6 +110,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (DEMO_MODE) {
+      setAuth(DEMO_DATA);
+      toast.success("Logged in (Demo Mode)");
+      return;
+    }
     const res = await api.post("/auth/login", { email, password });
     setAuth(res.data);
   };
@@ -88,6 +135,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchTeam = async (teamId: number) => {
     setState((s) => ({ ...s, isLoading: true }));
     try {
+      if (DEMO_MODE) {
+        const team = DEMO_DATA.teams.find((t) => t.id === teamId);
+        localStorage.setItem("clean-team-id", String(teamId));
+        setState((s) => ({
+          ...s,
+          currentTeamId: teamId,
+          permissions: team?.permissions || [],
+          isLoading: false,
+        }));
+        toast.success("Team switched successfully");
+        return;
+      }
       const res = await api.post("/auth/switch-team", { team_id: teamId });
       const { current_team_id, permissions } = res.data;
       localStorage.setItem("clean-team-id", String(current_team_id));
