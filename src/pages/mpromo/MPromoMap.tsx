@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
+// Clustering placeholder — react-leaflet-cluster removed due to React 18 incompatibility
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -137,16 +137,14 @@ export default function MPromoMap() {
           <MapContainer center={[6.5244, 3.3792]} zoom={11} className="h-full w-full">
             <TileLayer url={tileUrl} attribution='&copy; OpenStreetMap' />
             <MapEventHandler onMoveEnd={loadPartners} />
-            <MarkerClusterGroup chunkedLoading>
-              {partners.map((p) => (
-                <Marker
-                  key={p.id}
-                  position={[p.latitude, p.longitude]}
-                  icon={p.type === "CHILLER" ? chillerIcon : iceWaterIcon}
-                  eventHandlers={{ click: () => setSelectedPartner(p) }}
-                />
-              ))}
-            </MarkerClusterGroup>
+            {partners.map((p) => (
+              <Marker
+                key={p.id}
+                position={[p.latitude, p.longitude]}
+                icon={p.type === "CHILLER" ? chillerIcon : iceWaterIcon}
+                eventHandlers={{ click: () => setSelectedPartner(p) }}
+              />
+            ))}
           </MapContainer>
         </div>
 
