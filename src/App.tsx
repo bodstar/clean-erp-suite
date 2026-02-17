@@ -26,6 +26,7 @@ import NotFound from "@/pages/NotFound";
 
 import MPromoOverview from "@/pages/mpromo/MPromoOverview";
 import MPromoPartners from "@/pages/mpromo/MPromoPartners";
+import MPromoPartnerCreate from "@/pages/mpromo/MPromoPartnerCreate";
 import MPromoCampaigns from "@/pages/mpromo/MPromoCampaigns";
 import MPromoCampaignCreate from "@/pages/mpromo/MPromoCampaignCreate";
 import MPromoCampaignDetail from "@/pages/mpromo/MPromoCampaignDetail";
@@ -71,6 +72,7 @@ const App = () => (
                   <Route index element={<Navigate to="/mpromo/overview" replace />} />
                   <Route path="overview" element={<MPromoOverview />} />
                   <Route path="partners" element={<MPromoPartners />} />
+                  <Route path="partners/new" element={<MPromoPartnerCreate />} />
                   <Route path="partners/:id" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading...</div>}><MPromoPartnerDetail /></Suspense>} />
                   <Route path="campaigns" element={<MPromoCampaigns />} />
                   <Route path="campaigns/new" element={<MPromoCampaignCreate />} />
