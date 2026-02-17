@@ -180,7 +180,7 @@ export default function MPromoMap() {
         {/* Map */}
         <div
           ref={mapContainerRef}
-          className="rounded-lg border border-border overflow-hidden h-[500px]"
+          className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
 
         {/* Side panel */}
