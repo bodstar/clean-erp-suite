@@ -2,6 +2,19 @@ import { useLocation, Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 import { navigationItems } from "@/config/navigation";
 
+const labelOverrides: Record<string, string> = {
+  "/mpromo": "M-Promo",
+  "/mpromo/overview": "Overview",
+  "/mpromo/partners": "Partners",
+  "/mpromo/campaigns": "Campaigns",
+  "/mpromo/codes": "Codes",
+  "/mpromo/redemptions": "Redemptions",
+  "/mpromo/payouts": "Payouts",
+  "/mpromo/orders": "Orders",
+  "/mpromo/map": "Map",
+  "/mpromo/geo-queue": "Geo Queue",
+};
+
 export function Breadcrumbs() {
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
@@ -9,7 +22,10 @@ export function Breadcrumbs() {
   const crumbs = segments.map((segment, index) => {
     const path = "/" + segments.slice(0, index + 1).join("/");
     const navItem = navigationItems.find((item) => item.path === path);
-    const label = navItem?.label || segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const label =
+      labelOverrides[path] ||
+      navItem?.label ||
+      segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     return { label, path };
   });
 
