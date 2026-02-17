@@ -62,7 +62,7 @@ export function DataTable<T extends Record<string, unknown> | object>({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full sm:flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
@@ -72,7 +72,7 @@ export function DataTable<T extends Record<string, unknown> | object>({
           />
         </div>
         {filters}
-        {headerActions && <div className="ml-auto flex gap-2">{headerActions}</div>}
+        {headerActions && <div className="sm:ml-auto flex gap-2 flex-wrap">{headerActions}</div>}
       </div>
 
       {/* Table */}

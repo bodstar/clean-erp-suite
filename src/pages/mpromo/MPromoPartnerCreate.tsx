@@ -246,7 +246,7 @@ export default function MPromoPartnerCreate() {
               ) : (
                 <p className="text-sm text-muted-foreground">No location set yet</p>
               )}
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3">
                 <Button type="button" variant="outline" size="sm" onClick={handleCaptureLocation}>
                   <LocateFixed className="h-4 w-4 mr-1.5" /> Use my current location
                 </Button>
