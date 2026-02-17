@@ -124,14 +124,14 @@ export default function MPromoPartners() {
         }
         headerActions={
           canManage ? (
-            <>
+            <div className="flex flex-wrap gap-2">
               <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
                 <Plus className="h-4 w-4" /> Add Partner
               </Button>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Upload className="h-4 w-4" /> Import CSV
               </Button>
-            </>
+            </div>
           ) : undefined
         }
       />

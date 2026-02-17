@@ -27,9 +27,9 @@ export function ScopeSelector() {
   ];
 
   return (
-    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
+    <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
       <span className="text-xs font-medium text-muted-foreground mr-1">Scope:</span>
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1">
         {modes.filter((m) => m.show).map((m) => (
           <Button
             key={m.value}

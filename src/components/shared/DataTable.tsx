@@ -76,8 +76,8 @@ export function DataTable<T extends Record<string, unknown> | object>({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
+      <div className="rounded-lg border border-border overflow-x-auto">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow className="bg-muted/50">
               {columns.map((col) => (
