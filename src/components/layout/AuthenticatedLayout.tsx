@@ -9,8 +9,10 @@ export function AuthenticatedLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <TopBar />
-        <Breadcrumbs />
+        <div className="sticky top-0 z-30 bg-background">
+          <TopBar />
+          <Breadcrumbs />
+        </div>
         <main className="flex-1 overflow-auto p-3 sm:p-6">
           <Outlet />
         </main>
