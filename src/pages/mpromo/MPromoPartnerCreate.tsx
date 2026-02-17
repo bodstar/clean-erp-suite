@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, LocateFixed, MapPin } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +46,48 @@ const partnerSchema = z.object({
 });
 
 type PartnerFormValues = z.infer<typeof partnerSchema>;
+
+function LocationPreviewMap({ latitude, longitude }: { latitude: number; longitude: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+
+    const map = L.map(containerRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+    }).setView([latitude, longitude], 15);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    L.marker([latitude, longitude]).addTo(map);
+
+    mapRef.current = map;
+    setTimeout(() => map.invalidateSize(), 50);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [latitude, longitude]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="h-[180px] w-full rounded-md overflow-hidden border border-border"
+    />
+  );
+}
 
 export default function MPromoPartnerCreate() {
   const navigate = useNavigate();
@@ -191,11 +235,14 @@ export default function MPromoPartnerCreate() {
                 <MapPin className="h-4 w-4" /> Geolocation (optional)
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               {coords ? (
-                <p className="text-sm text-foreground">
-                  Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}
-                </p>
+                <>
+                  <LocationPreviewMap latitude={coords.latitude} longitude={coords.longitude} />
+                  <p className="text-sm text-foreground">
+                    Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}
+                  </p>
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground">No location set yet</p>
               )}
