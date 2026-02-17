@@ -115,6 +115,7 @@ export default function MPromoPartnerCreate() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-semibold">Partner Details</CardTitle>
+              <p className="text-xs text-destructive mt-1">* required</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -122,7 +123,7 @@ export default function MPromoPartnerCreate() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Name <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Kwame's Chiller Spot" {...field} />
                     </FormControl>
@@ -136,7 +137,7 @@ export default function MPromoPartnerCreate() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Phone Number <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. +233 24 123 4567" {...field} />
                     </FormControl>
@@ -150,7 +151,7 @@ export default function MPromoPartnerCreate() {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Partner Type</FormLabel>
+                    <FormLabel>Partner Type <span className="text-destructive">*</span></FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -172,7 +173,7 @@ export default function MPromoPartnerCreate() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Location <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Accra, Osu Market" {...field} />
                     </FormControl>
