@@ -66,7 +66,7 @@ export default function MPromoMap() {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = L.map(mapContainerRef.current).setView([6.5244, 3.3792], 11);
+    const map = L.map(mapContainerRef.current).setView([5.6037, -0.1870], 12);
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(map);
     markersRef.current.addTo(map);
     mapRef.current = map;
