@@ -12,13 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-// Clustering placeholder — react-leaflet-cluster removed due to React 18 incompatibility
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "@/providers/ThemeProvider";
 import { getMapPartners } from "@/lib/api/mpromo";
-import type { MapPartner, PartnerType } from "@/types/mpromo";
+import type { MapPartner } from "@/types/mpromo";
 import { Link } from "react-router-dom";
 import { Eye, ShoppingCart, Receipt } from "lucide-react";
 
@@ -44,16 +42,12 @@ const iceWaterIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-function MapEventHandler({ onMoveEnd }: { onMoveEnd: (bounds: L.LatLngBounds, zoom: number) => void }) {
-  const map = useMapEvents({
-    moveend: () => onMoveEnd(map.getBounds(), map.getZoom()),
-    zoomend: () => onMoveEnd(map.getBounds(), map.getZoom()),
-  });
-  return null;
-}
-
 export default function MPromoMap() {
   const { theme } = useTheme();
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<L.LayerGroup>(L.layerGroup());
+
   const [partners, setPartners] = useState<MapPartner[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<MapPartner | null>(null);
@@ -67,6 +61,32 @@ export default function MPromoMap() {
   const tileUrl = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
     : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current).setView([6.5244, 3.3792], 11);
+    L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(map);
+    markersRef.current.addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Update tile layer on theme change
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) {
+        mapRef.current!.removeLayer(layer);
+      }
+    });
+    L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(mapRef.current);
+  }, [tileUrl]);
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -93,6 +113,31 @@ export default function MPromoMap() {
     },
     [typeFilter, statusFilter, search]
   );
+
+  // Bind map events
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const handler = () => loadPartners(map.getBounds(), map.getZoom());
+    map.on("moveend", handler);
+    map.on("zoomend", handler);
+    return () => {
+      map.off("moveend", handler);
+      map.off("zoomend", handler);
+    };
+  }, [loadPartners]);
+
+  // Update markers
+  useEffect(() => {
+    markersRef.current.clearLayers();
+    partners.forEach((p) => {
+      const marker = L.marker([p.latitude, p.longitude], {
+        icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
+      });
+      marker.on("click", () => setSelectedPartner(p));
+      markersRef.current.addLayer(marker);
+    });
+  }, [partners]);
 
   return (
     <div className="space-y-4">
@@ -133,20 +178,10 @@ export default function MPromoMap() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* Map */}
-        <div className="rounded-lg border border-border overflow-hidden h-[500px]">
-          <MapContainer center={[6.5244, 3.3792]} zoom={11} className="h-full w-full">
-            <TileLayer url={tileUrl} attribution='&copy; OpenStreetMap' />
-            <MapEventHandler onMoveEnd={loadPartners} />
-            {partners.map((p) => (
-              <Marker
-                key={p.id}
-                position={[p.latitude, p.longitude]}
-                icon={p.type === "CHILLER" ? chillerIcon : iceWaterIcon}
-                eventHandlers={{ click: () => setSelectedPartner(p) }}
-              />
-            ))}
-          </MapContainer>
-        </div>
+        <div
+          ref={mapContainerRef}
+          className="rounded-lg border border-border overflow-hidden h-[500px]"
+        />
 
         {/* Side panel */}
         <Card className="h-[500px] overflow-auto">

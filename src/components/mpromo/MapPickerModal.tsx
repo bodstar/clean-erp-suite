@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -18,19 +17,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
-
-function ClickHandler({
-  onSelect,
-}: {
-  onSelect: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      onSelect(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
 
 interface MapPickerModalProps {
   open: boolean;
@@ -50,11 +36,59 @@ export function MapPickerModal({
   const [position, setPosition] = useState<[number, number] | null>(
     initialLat && initialLng ? [initialLat, initialLng] : null
   );
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (open && initialLat && initialLng) {
       setPosition([initialLat, initialLng]);
     }
+  }, [open, initialLat, initialLng]);
+
+  // Initialize map when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    // Small delay to ensure the dialog DOM is rendered
+    const timer = setTimeout(() => {
+      if (!mapContainerRef.current || mapRef.current) return;
+
+      const map = L.map(mapContainerRef.current).setView([initialLat, initialLng], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap",
+      }).addTo(map);
+
+      // Add initial marker if position exists
+      if (initialLat && initialLng) {
+        markerRef.current = L.marker([initialLat, initialLng]).addTo(map);
+      }
+
+      map.on("click", (e: L.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng;
+        setPosition([lat, lng]);
+
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        } else {
+          markerRef.current = L.marker([lat, lng]).addTo(map);
+        }
+      });
+
+      mapRef.current = map;
+
+      // Force a resize after the dialog animation completes
+      setTimeout(() => map.invalidateSize(), 100);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
   }, [open, initialLat, initialLng]);
 
   return (
@@ -63,22 +97,10 @@ export function MapPickerModal({
         <DialogHeader>
           <DialogTitle>Pick Location on Map</DialogTitle>
         </DialogHeader>
-        <div className="h-[350px] rounded-md overflow-hidden border border-border">
-          <MapContainer
-            center={[initialLat, initialLng]}
-            zoom={12}
-            className="h-full w-full"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ClickHandler
-              onSelect={(lat, lng) => setPosition([lat, lng])}
-            />
-            {position && <Marker position={position} />}
-          </MapContainer>
-        </div>
+        <div
+          ref={mapContainerRef}
+          className="h-[350px] rounded-md overflow-hidden border border-border"
+        />
         {position && (
           <p className="text-xs text-muted-foreground">
             Lat: {position[0].toFixed(6)}, Lng: {position[1].toFixed(6)}
