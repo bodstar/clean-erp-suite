@@ -84,7 +84,7 @@ function LocationPreviewMap({ latitude, longitude }: { latitude: number; longitu
   return (
     <div
       ref={containerRef}
-      className="h-[180px] w-full rounded-md overflow-hidden border border-border"
+      className="h-[180px] w-full rounded-md overflow-hidden border border-border relative z-0"
     />
   );
 }
