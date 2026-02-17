@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +26,6 @@ import NotFound from "@/pages/NotFound";
 
 import MPromoOverview from "@/pages/mpromo/MPromoOverview";
 import MPromoPartners from "@/pages/mpromo/MPromoPartners";
-import MPromoPartnerDetail from "@/pages/mpromo/MPromoPartnerDetail";
 import MPromoCampaigns from "@/pages/mpromo/MPromoCampaigns";
 import MPromoCampaignCreate from "@/pages/mpromo/MPromoCampaignCreate";
 import MPromoCampaignDetail from "@/pages/mpromo/MPromoCampaignDetail";
@@ -33,9 +33,11 @@ import MPromoCodes from "@/pages/mpromo/MPromoCodes";
 import MPromoRedemptions from "@/pages/mpromo/MPromoRedemptions";
 import MPromoPayouts from "@/pages/mpromo/MPromoPayouts";
 import MPromoOrders from "@/pages/mpromo/MPromoOrders";
-import MPromoMap from "@/pages/mpromo/MPromoMap";
-import MPromoGeoQueue from "@/pages/mpromo/MPromoGeoQueue";
 
+// Lazy-load leaflet-dependent pages to prevent react-leaflet context crash
+const MPromoPartnerDetail = lazy(() => import("@/pages/mpromo/MPromoPartnerDetail"));
+const MPromoMap = lazy(() => import("@/pages/mpromo/MPromoMap"));
+const MPromoGeoQueue = lazy(() => import("@/pages/mpromo/MPromoGeoQueue"));
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -69,7 +71,7 @@ const App = () => (
                   <Route index element={<Navigate to="/mpromo/overview" replace />} />
                   <Route path="overview" element={<MPromoOverview />} />
                   <Route path="partners" element={<MPromoPartners />} />
-                  <Route path="partners/:id" element={<MPromoPartnerDetail />} />
+                  <Route path="partners/:id" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading...</div>}><MPromoPartnerDetail /></Suspense>} />
                   <Route path="campaigns" element={<MPromoCampaigns />} />
                   <Route path="campaigns/new" element={<MPromoCampaignCreate />} />
                   <Route path="campaigns/:id" element={<MPromoCampaignDetail />} />
@@ -77,8 +79,8 @@ const App = () => (
                   <Route path="redemptions" element={<MPromoRedemptions />} />
                   <Route path="payouts" element={<MPromoPayouts />} />
                   <Route path="orders" element={<MPromoOrders />} />
-                  <Route path="map" element={<MPromoMap />} />
-                  <Route path="geo-queue" element={<MPromoGeoQueue />} />
+                  <Route path="map" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading map...</div>}><MPromoMap /></Suspense>} />
+                  <Route path="geo-queue" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading...</div>}><MPromoGeoQueue /></Suspense>} />
                 </Route>
               </Route>
 
