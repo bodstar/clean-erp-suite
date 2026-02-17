@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute, PublicRoute } from "@/components/auth/RouteGuards";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
+import { MPromoLayout } from "@/components/mpromo/MPromoLayout";
 
 import LoginPage from "@/pages/Login";
 import ForgotPasswordPage from "@/pages/ForgotPassword";
@@ -21,6 +22,19 @@ import FranchisePage from "@/pages/Franchise";
 import ReportsPage from "@/pages/Reports";
 import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "@/pages/NotFound";
+
+import MPromoOverview from "@/pages/mpromo/MPromoOverview";
+import MPromoPartners from "@/pages/mpromo/MPromoPartners";
+import MPromoPartnerDetail from "@/pages/mpromo/MPromoPartnerDetail";
+import MPromoCampaigns from "@/pages/mpromo/MPromoCampaigns";
+import MPromoCampaignCreate from "@/pages/mpromo/MPromoCampaignCreate";
+import MPromoCampaignDetail from "@/pages/mpromo/MPromoCampaignDetail";
+import MPromoCodes from "@/pages/mpromo/MPromoCodes";
+import MPromoRedemptions from "@/pages/mpromo/MPromoRedemptions";
+import MPromoPayouts from "@/pages/mpromo/MPromoPayouts";
+import MPromoOrders from "@/pages/mpromo/MPromoOrders";
+import MPromoMap from "@/pages/mpromo/MPromoMap";
+import MPromoGeoQueue from "@/pages/mpromo/MPromoGeoQueue";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +63,23 @@ const App = () => (
                 <Route path="/franchise" element={<FranchisePage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+
+                {/* M-Promo module */}
+                <Route path="/mpromo" element={<MPromoLayout />}>
+                  <Route index element={<Navigate to="/mpromo/overview" replace />} />
+                  <Route path="overview" element={<MPromoOverview />} />
+                  <Route path="partners" element={<MPromoPartners />} />
+                  <Route path="partners/:id" element={<MPromoPartnerDetail />} />
+                  <Route path="campaigns" element={<MPromoCampaigns />} />
+                  <Route path="campaigns/new" element={<MPromoCampaignCreate />} />
+                  <Route path="campaigns/:id" element={<MPromoCampaignDetail />} />
+                  <Route path="codes" element={<MPromoCodes />} />
+                  <Route path="redemptions" element={<MPromoRedemptions />} />
+                  <Route path="payouts" element={<MPromoPayouts />} />
+                  <Route path="orders" element={<MPromoOrders />} />
+                  <Route path="map" element={<MPromoMap />} />
+                  <Route path="geo-queue" element={<MPromoGeoQueue />} />
+                </Route>
               </Route>
 
               {/* Redirects & fallback */}
