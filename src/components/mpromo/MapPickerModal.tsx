@@ -30,8 +30,8 @@ export function MapPickerModal({
   open,
   onClose,
   onConfirm,
-  initialLat = 6.5244,
-  initialLng = 3.3792,
+  initialLat = 5.6037,
+  initialLng = -0.187,
 }: MapPickerModalProps) {
   const [position, setPosition] = useState<[number, number] | null>(
     initialLat && initialLng ? [initialLat, initialLng] : null
