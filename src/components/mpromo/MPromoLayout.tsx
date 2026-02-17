@@ -38,7 +38,7 @@ export function MPromoLayout() {
     <MPromoScopeProvider>
       <div className="space-y-4">
         <ScopeSelector />
-        <nav className="flex gap-1 overflow-x-auto pb-1 border-b border-border">
+        <nav className="flex gap-1 overflow-x-auto pb-1 border-b border-border -mx-3 px-3 sm:mx-0 sm:px-0">
           {visibleTabs.map((tab) => (
             <NavLink
               key={tab.path}
