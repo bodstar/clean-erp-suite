@@ -9,7 +9,7 @@ export function AuthenticatedLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <div className="sticky top-0 z-30 bg-background">
+        <div className="sticky top-0 z-20 bg-background">
           <TopBar />
           <Breadcrumbs />
         </div>
