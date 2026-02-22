@@ -8,12 +8,12 @@ export function AuthenticatedLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <div className="sticky top-0 z-20 bg-background">
           <TopBar />
           <Breadcrumbs />
         </div>
-        <main className="flex-1 overflow-auto p-3 sm:p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6">
           <Outlet />
         </main>
       </SidebarInset>
