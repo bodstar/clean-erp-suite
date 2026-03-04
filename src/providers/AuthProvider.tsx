@@ -37,7 +37,7 @@ const DEMO_DATA: AuthResponse = {
     },
     {
       id: 2,
-      name: "Franchise – Lagos",
+      name: "Franchise – Accra Central",
       role: "manager",
       permissions: [
         "dashboard.view",
