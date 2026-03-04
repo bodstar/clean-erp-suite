@@ -1,28 +1,20 @@
 
 
-## Relocate Demo Data from Lagos to Accra
+## Replace Redemptions Trend Placeholder with Recharts Line Chart
 
-The demo data currently has about half of the partners located in Lagos, Nigeria with Nigerian phone numbers and Lagos GPS coordinates. Since the app launches in Ghana (Accra first), all demo data needs to be Ghana-focused.
+**File: `src/pages/mpromo/MPromoOverview.tsx`**
 
-### Changes (single file: `src/lib/demo/mpromo-data.ts`)
+### Changes
 
-**Partners** -- Replace all 6 Lagos-based partners with Accra-area locations and Ghanaian names/phones:
-- id 3: "Emeka Cold Drinks" (Ikeja, Lagos) → Ghanaian name, location like "Cantonments, Accra", GPS ~5.56, -0.17, phone +233...
-- id 4: "Fatima Pure Water" (Lekki, Lagos) → location like "East Legon, Accra", GPS ~5.64, -0.16
-- id 6: "Blessing Ice Point" (Surulere, Lagos) → "Dansoman, Accra", GPS ~5.55, -0.26
-- id 8: "Chidi Cooler Station" (Victoria Island, Lagos) → "Airport Residential, Accra", GPS ~5.60, -0.18
-- id 10: "Tunde Refresh Corner" (Yaba, Lagos) → "Achimota, Accra", GPS ~5.63, -0.23
-- id 12: "Ngozi Drinks Depot" (Ajah, Lagos) → "Spintex, Accra", GPS ~5.63, -0.10
+1. **Add imports**: `getRedemptions` from API, `ChartContainer`, `ChartTooltip`, `ChartTooltipContent` from chart UI, and `LineChart`, `Line`, `CartesianGrid`, `XAxis`, `YAxis` from recharts.
 
-All Nigerian phone numbers (+234...) become Ghanaian (+233...).
+2. **Add state + effect**: New `trendData` state (`{ label: string; count: number }[]`) and `trendLoading` boolean. Second `useEffect` on `[scope]` that calls `getRedemptions({ page: 1, page_size: 500 }, scope)`, groups results by day, and builds a 14-day array (oldest→newest) with zero-filled gaps.
 
-**Teams** -- Replace "Lagos Central" (team_id 2) with "Tema/East Accra" across campaigns, orders, and overview data.
+3. **Replace the placeholder card content** (lines ~145-150) with:
+   - Loading: `<Skeleton className="h-48 w-full" />`
+   - Otherwise: `<ChartContainer>` wrapping a `<LineChart>` with `XAxis dataKey="label"`, `YAxis`, `CartesianGrid`, `ChartTooltip`, and a single `<Line dataKey="count">`. Chart config uses a single `count` key with `hsl(var(--primary))` color.
 
-**Map Partners** -- Update the same 6 partners with Accra GPS coordinates and Ghanaian details.
+4. **Date grouping logic**: Use `new Date()` to build last 14 days array, format labels with `toLocaleDateString(undefined, { month: "short", day: "numeric" })`, match redemption dates by `YYYY-MM-DD` prefix.
 
-**Redemptions, Payouts, Codes, Orders** -- Update partner names/phones to match the renamed partners. Update team_name references from "Lagos Central" to "Tema/East Accra".
-
-**Overview** -- Update any partner names in top_chillers/top_ice_water_sellers and recent_activity descriptions.
-
-No structural or API changes needed -- only data values in `src/lib/demo/mpromo-data.ts`.
+No layout, structural, or dependency changes needed. Single file edit.
 
