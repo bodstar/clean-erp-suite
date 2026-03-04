@@ -17,6 +17,8 @@ export interface Partner {
   latitude?: number | null;
   longitude?: number | null;
   geolocation_captured_at?: string | null;
+  team_id?: number;
+  team_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -119,6 +121,8 @@ export interface MapPartner {
   orders_amount: number;
   pending_payouts_count: number;
   pending_payouts_amount: number;
+  team_id?: number;
+  team_name?: string;
 }
 
 export type ScopeMode = "current" | "all" | "target";

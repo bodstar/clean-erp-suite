@@ -50,6 +50,22 @@ const DEMO_DATA: AuthResponse = {
         "mpromo.orders.view",
       ],
     },
+    {
+      id: 3,
+      name: "Franchise – Kumasi",
+      role: "manager",
+      permissions: [
+        "dashboard.view",
+        "inventory.view",
+        "production.view",
+        "sales.view",
+        "reports.view",
+        "mpromo.view",
+        "mpromo.partners.manage",
+        "mpromo.redemptions.view",
+        "mpromo.orders.view",
+      ],
+    },
   ],
   current_team_id: 1,
 };
