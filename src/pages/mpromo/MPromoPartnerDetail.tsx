@@ -9,11 +9,18 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
 import { useAuth } from "@/providers/AuthProvider";
-import { getPartner, updatePartnerGeolocation } from "@/lib/api/mpromo";
+import { getPartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders } from "@/lib/api/mpromo";
 import type { Partner, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+interface ActivityItem {
+  id: string;
+  type: "redemption" | "order";
+  description: string;
+  time: string;
+}
 
 export default function MPromoPartnerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -24,12 +31,41 @@ export default function MPromoPartnerDetail() {
   const [partner, setPartner] = useState<Partner | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapOpen, setMapOpen] = useState(false);
+  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [orders, setOrders] = useState<MPromoOrder[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
     if (!id) return;
+    const partnerId = Number(id);
     setIsLoading(true);
-    getPartner(Number(id))
-      .then(setPartner)
+    Promise.all([
+      getPartner(partnerId),
+      getPartnerRedemptions(partnerId),
+      getPartnerOrders(partnerId),
+    ])
+      .then(([p, reds, ords]) => {
+        setPartner(p);
+        setRedemptions(reds.data);
+        setOrders(ords.data);
+
+        // Build activity timeline from redemptions + orders, sorted by date desc
+        const items: ActivityItem[] = [
+          ...reds.data.map((r) => ({
+            id: `red-${r.id}`,
+            type: "redemption" as const,
+            description: `Redeemed GH₵${r.amount.toLocaleString()} from "${r.campaign_name}"`,
+            time: r.date,
+          })),
+          ...ords.data.map((o) => ({
+            id: `ord-${o.id}`,
+            type: "order" as const,
+            description: `Order ${o.order_no} — GH₵${o.total.toLocaleString()} (${o.status})`,
+            time: o.date,
+          })),
+        ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+        setActivity(items);
+      })
       .catch(() => setPartner(null))
       .finally(() => setIsLoading(false));
   }, [id]);
@@ -163,16 +199,30 @@ export default function MPromoPartnerDetail() {
         </TabsList>
         <TabsContent value="activity" className="mt-4">
           <Card>
-            <CardContent className="p-6 text-sm text-muted-foreground">
-              Activity timeline will appear here when connected to the API.
+            <CardContent className="p-6">
+              {activity.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No activity yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {activity.map((a) => (
+                    <div key={a.id} className="flex items-start gap-3">
+                      <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${a.type === "redemption" ? "bg-primary" : "bg-accent-foreground"}`} />
+                      <div className="min-w-0">
+                        <p className="text-sm text-foreground">{a.description}</p>
+                        <p className="text-xs text-muted-foreground">{a.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="redemptions" className="mt-4">
-          <DataTable columns={redemptionCols} data={[]} emptyMessage="No redemptions yet." />
+          <DataTable columns={redemptionCols} data={redemptions} emptyMessage="No redemptions yet." />
         </TabsContent>
         <TabsContent value="orders" className="mt-4">
-          <DataTable columns={orderCols} data={[]} emptyMessage="No orders yet." />
+          <DataTable columns={orderCols} data={orders} emptyMessage="No orders yet." />
         </TabsContent>
       </Tabs>
 
