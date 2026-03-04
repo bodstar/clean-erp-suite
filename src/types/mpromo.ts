@@ -100,7 +100,7 @@ export interface MPromoOverview {
   orders_today: number;
   top_chillers: { id: number; name: string; value: number }[];
   top_ice_water_sellers: { id: number; name: string; value: number }[];
-  recent_activity: { id: number; type: "redemption" | "order"; description: string; time: string }[];
+  recent_activity: { id: number; type: "redemption" | "order"; description: string; time: string; partner_id?: number; partner_name?: string }[];
 }
 
 export interface MapPartner {

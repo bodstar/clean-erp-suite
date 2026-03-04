@@ -132,10 +132,10 @@ export const demoOverview: MPromoOverview = {
     { id: 4, name: "Efua Pure Water", value: 3600 },
   ],
   recent_activity: [
-    { id: 1, type: "redemption", description: "Kwame Asante Chiller Hub redeemed GH₵1,200 from Q1 Volume Push", time: fmtTime(subHours(now, 2)) },
-    { id: 2, type: "order", description: "New order ORD-MP-0001 from Kwame Asante Chiller Hub — GH₵45,000", time: fmtTime(subHours(now, 1)) },
-    { id: 3, type: "redemption", description: "Amina Ice Water Express redeemed GH₵2,000 from Mystery Shopper Feb", time: fmtTime(subHours(now, 5)) },
-    { id: 4, type: "order", description: "New order ORD-MP-0002 from Akosua Cold Drinks — GH₵32,000", time: fmtTime(subHours(now, 3)) },
-    { id: 5, type: "redemption", description: "Nana Cooler Station redeemed GH₵3,000 from Q1 Volume Push", time: fmtTime(subDays(now, 2)) },
+    { id: 1, type: "redemption", partner_id: 1, partner_name: "Kwame Asante Chiller Hub", description: "Kwame Asante Chiller Hub redeemed GH₵1,200 from Q1 Volume Push", time: fmtTime(subHours(now, 2)) },
+    { id: 2, type: "order", partner_id: 1, partner_name: "Kwame Asante Chiller Hub", description: "New order ORD-MP-0001 from Kwame Asante Chiller Hub — GH₵45,000", time: fmtTime(subHours(now, 1)) },
+    { id: 3, type: "redemption", partner_id: 2, partner_name: "Amina Ice Water Express", description: "Amina Ice Water Express redeemed GH₵2,000 from Mystery Shopper Feb", time: fmtTime(subHours(now, 5)) },
+    { id: 4, type: "order", partner_id: 5, partner_name: "Akosua Cold Drinks", description: "New order ORD-MP-0002 from Akosua Cold Drinks — GH₵32,000", time: fmtTime(subHours(now, 3)) },
+    { id: 5, type: "redemption", partner_id: 3, partner_name: "Nana Cooler Station", description: "Nana Cooler Station redeemed GH₵3,000 from Q1 Volume Push", time: fmtTime(subDays(now, 2)) },
   ],
 };

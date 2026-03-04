@@ -165,7 +165,11 @@ export default function MPromoOverview() {
                   <div key={a.id} className="flex items-start gap-2 text-sm">
                     <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
-                      <p className="text-foreground">{a.description}</p>
+                      <p className="text-foreground">
+                        {a.partner_id && a.partner_name
+                          ? <>{a.description.split(a.partner_name)[0]}<Link to={`/mpromo/partners/${a.partner_id}`} className="text-primary hover:underline">{a.partner_name}</Link>{a.description.split(a.partner_name).slice(1).join(a.partner_name)}</>
+                          : a.description}
+                      </p>
                       <p className="text-xs text-muted-foreground">{a.time}</p>
                     </div>
                   </div>
