@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Plus, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -8,6 +8,12 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getCampaigns } from "@/lib/api/mpromo";
 import type { Campaign } from "@/types/mpromo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -41,7 +47,7 @@ export default function MPromoCampaigns() {
   }, [page, search, statusFilter, scope]);
 
   const columns: DataTableColumn<Campaign>[] = [
-    { key: "name", header: "Name" },
+    { key: "name", header: "Name", render: (r) => <Link to={`/mpromo/campaigns/${r.id}`} className="text-primary hover:underline">{r.name}</Link> },
     { key: "type", header: "Type", render: (r) => r.type.replace("_", " ") },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "start_date", header: "Start" },
@@ -51,6 +57,25 @@ export default function MPromoCampaigns() {
     ...(scopeMode === "all"
       ? [{ key: "team_name", header: "Team" } as DataTableColumn<Campaign>]
       : []),
+    {
+      key: "actions",
+      header: "",
+      className: "w-10",
+      render: (row) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate(`/mpromo/campaigns/${row.id}`)}>
+              <Eye className="h-4 w-4 mr-2" /> View Campaign
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
   ];
 
   return (
