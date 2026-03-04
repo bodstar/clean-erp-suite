@@ -1,20 +1,35 @@
 
 
-## Replace Redemptions Trend Placeholder with Recharts Line Chart
+## Make Partner Names Clickable Links Across M-Promo Module
 
-**File: `src/pages/mpromo/MPromoOverview.tsx`**
+All occurrences of partner names in the M-Promo module need to become clickable links navigating to `/mpromo/partners/:id`.
 
-### Changes
+### Files to Edit
 
-1. **Add imports**: `getRedemptions` from API, `ChartContainer`, `ChartTooltip`, `ChartTooltipContent` from chart UI, and `LineChart`, `Line`, `CartesianGrid`, `XAxis`, `YAxis` from recharts.
+**1. `src/pages/mpromo/MPromoPartners.tsx`**
+- Change the `name` column from plain text to a render function returning a `<Link to={/mpromo/partners/${row.id}}>` with appropriate styling (e.g., `text-primary hover:underline cursor-pointer`).
 
-2. **Add state + effect**: New `trendData` state (`{ label: string; count: number }[]`) and `trendLoading` boolean. Second `useEffect` on `[scope]` that calls `getRedemptions({ page: 1, page_size: 500 }, scope)`, groups results by day, and builds a 14-day array (oldest→newest) with zero-filled gaps.
+**2. `src/pages/mpromo/MPromoRedemptions.tsx`**
+- Add `import { Link } from "react-router-dom"`.
+- Change `partner_name` column to use a render function: `<Link to={/mpromo/partners/${r.partner_id}}>`.
 
-3. **Replace the placeholder card content** (lines ~145-150) with:
-   - Loading: `<Skeleton className="h-48 w-full" />`
-   - Otherwise: `<ChartContainer>` wrapping a `<LineChart>` with `XAxis dataKey="label"`, `YAxis`, `CartesianGrid`, `ChartTooltip`, and a single `<Line dataKey="count">`. Chart config uses a single `count` key with `hsl(var(--primary))` color.
+**3. `src/pages/mpromo/MPromoPayouts.tsx`**
+- Add `import { Link } from "react-router-dom"`.
+- Change `partner_name` column in both `pendingCols` and `paidCols` to render a link using `r.partner_id`.
 
-4. **Date grouping logic**: Use `new Date()` to build last 14 days array, format labels with `toLocaleDateString(undefined, { month: "short", day: "numeric" })`, match redemption dates by `YYYY-MM-DD` prefix.
+**4. `src/pages/mpromo/MPromoOrders.tsx`**
+- Change `partner_name` column to render a link using `r.partner_id`.
 
-No layout, structural, or dependency changes needed. Single file edit.
+**5. `src/pages/mpromo/MPromoCampaignDetail.tsx`**
+- Change `partner_name` column in redemption table to render a link using `r.partner_id`.
+
+**6. `src/pages/mpromo/MPromoGeoQueue.tsx`**
+- Add `import { Link } from "react-router-dom"`.
+- Change `name` column to render a link using `r.id`.
+
+**7. `src/pages/mpromo/MPromoOverview.tsx`**
+- In the Top Chillers and Top Ice Water Sellers lists, wrap `p.name` in a `<Link to={/mpromo/partners/${p.id}}>`.
+
+### Link Styling
+All partner name links will use: `className="text-primary hover:underline"` for consistent styling across the module.
 
