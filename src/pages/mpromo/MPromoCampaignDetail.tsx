@@ -55,7 +55,7 @@ export default function MPromoCampaignDetail() {
 
   const redemptionCols: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date" },
-    { key: "partner_name", header: "Partner" },
+    { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "payout_status", header: "Payout", render: (r) => <StatusBadge status={r.payout_status} /> },
   ];

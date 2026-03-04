@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { LocateFixed, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
@@ -69,7 +70,7 @@ export default function MPromoGeoQueue() {
   };
 
   const columns: DataTableColumn<Partner>[] = [
-    { key: "name", header: "Name" },
+    { key: "name", header: "Name", render: (r) => <Link to={`/mpromo/partners/${r.id}`} className="text-primary hover:underline">{r.name}</Link> },
     { key: "type", header: "Type", render: (r) => r.type.replace("_", " ") },
     { key: "phone", header: "Phone" },
     { key: "location", header: "Location" },

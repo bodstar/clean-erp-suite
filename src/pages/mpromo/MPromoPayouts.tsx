@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { DollarSign, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +41,7 @@ export default function MPromoPayouts() {
   };
 
   const pendingCols: DataTableColumn<Payout>[] = [
-    { key: "partner_name", header: "Partner" },
+    { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "phone", header: "Phone" },
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
@@ -66,7 +67,7 @@ export default function MPromoPayouts() {
   ];
 
   const paidCols: DataTableColumn<Payout>[] = [
-    { key: "partner_name", header: "Partner" },
+    { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "paystack_reference", header: "Paystack Ref", render: (r) => r.paystack_reference || "—" },
     { key: "paid_at", header: "Date", render: (r) => r.paid_at || "—" },

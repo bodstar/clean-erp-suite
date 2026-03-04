@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,7 +42,7 @@ export default function MPromoPartners() {
   }, [partnerType, page, search, geoMissing, scope]);
 
   const columns: DataTableColumn<Partner>[] = [
-    { key: "name", header: "Name" },
+    { key: "name", header: "Name", render: (row) => <Link to={`/mpromo/partners/${row.id}`} className="text-primary hover:underline">{row.name}</Link> },
     { key: "phone", header: "Phone" },
     { key: "location", header: "Location" },
     {
