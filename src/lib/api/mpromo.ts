@@ -18,8 +18,15 @@ import {
   demoPayouts,
   demoOrders,
   demoMapPartners,
-  demoOverview,
 } from "@/lib/demo/mpromo-data";
+import {
+  filterByTeamId,
+  filterByCampaignTeam,
+  filterByPartnerTeam,
+  resolveEffectiveScope,
+  isAllowedTeam,
+  getPartnerTeamMap,
+} from "@/lib/api/mpromo-scope";
 
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 10;
@@ -46,9 +53,76 @@ function matchSearch<T>(items: T[], search: string | undefined, keys: (keyof T)[
   return items.filter((item) => keys.some((k) => String(item[k] ?? "").toLowerCase().includes(q)));
 }
 
-// --- Overview ---
+// --- Overview (computed dynamically in demo) ---
 export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> {
-  if (DEMO_MODE) return demoOverview;
+  if (DEMO_MODE) {
+    const campaigns = filterByTeamId(demoCampaigns, scope);
+    const redemptions = filterByCampaignTeam(demoRedemptions, scope);
+    const payouts = filterByPartnerTeam(demoPayouts, scope);
+    const orders = filterByTeamId(demoOrders, scope);
+    const partners = filterByTeamId(demoPartners, scope);
+
+    const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
+    const pendingPayouts = payouts.filter((p) => p.status === "pending");
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayRedemptions = redemptions.filter((r) => r.date.startsWith(todayStr));
+    const todayOrders = orders.filter((o) => o.date.startsWith(todayStr));
+
+    // Top partners by redemption amount
+    const chillerMap = new Map<number, { name: string; value: number }>();
+    const iwsMap = new Map<number, { name: string; value: number }>();
+    for (const r of redemptions) {
+      const p = partners.find((p) => p.id === r.partner_id);
+      if (!p) continue;
+      const map = p.type === "CHILLER" ? chillerMap : iwsMap;
+      const existing = map.get(r.partner_id);
+      if (existing) existing.value += r.amount;
+      else map.set(r.partner_id, { name: r.partner_name, value: r.amount });
+    }
+
+    const topChillers = [...chillerMap.entries()]
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+    const topIWS = [...iwsMap.entries()]
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    // Recent activity from filtered data
+    const es = resolveEffectiveScope(scope);
+    const ptMap = getPartnerTeamMap();
+    const recentActivity = [
+      ...redemptions.slice(0, 3).map((r, i) => ({
+        id: i + 1,
+        type: "redemption" as const,
+        partner_id: r.partner_id,
+        partner_name: r.partner_name,
+        description: `${r.partner_name} redeemed GH₵${r.amount.toLocaleString()} from ${r.campaign_name}`,
+        time: r.date,
+      })),
+      ...orders.slice(0, 2).map((o, i) => ({
+        id: i + 100,
+        type: "order" as const,
+        partner_id: o.partner_id,
+        partner_name: o.partner_name,
+        description: `New order ${o.order_no} from ${o.partner_name} — GH₵${o.total.toLocaleString()}`,
+        time: o.date,
+      })),
+    ].sort((a, b) => b.time.localeCompare(a.time)).slice(0, 5);
+
+    return {
+      active_campaigns: activeCampaigns,
+      today_redemptions_count: todayRedemptions.length,
+      today_redemptions_amount: todayRedemptions.reduce((s, r) => s + r.amount, 0),
+      pending_payouts_count: pendingPayouts.length,
+      pending_payouts_amount: pendingPayouts.reduce((s, p) => s + p.amount, 0),
+      orders_today: todayOrders.length,
+      top_chillers: topChillers,
+      top_ice_water_sellers: topIWS,
+      recent_activity: recentActivity,
+    };
+  }
   const res = await api.get("/mpromo/overview", { params: scopeParams(scope) });
   return res.data;
 }
@@ -59,7 +133,7 @@ export async function getPartners(
   scope?: MPromoScope
 ): Promise<{ data: Partner[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoPartners];
+    let filtered = filterByTeamId([...demoPartners], scope);
     if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
     if (params?.geo_missing) filtered = filtered.filter((p) => !p.latitude);
     filtered = matchSearch(filtered, params?.search as string, ["name", "location", "phone"]);
@@ -71,10 +145,14 @@ export async function getPartners(
   return res.data;
 }
 
-export async function getPartner(id: number): Promise<Partner> {
+export async function getPartner(id: number, scope?: MPromoScope): Promise<Partner> {
   if (DEMO_MODE) {
-    const found = demoPartners.find((p) => p.id === id);
+    const allowed = filterByTeamId(demoPartners, scope);
+    const found = allowed.find((p) => p.id === id);
     if (found) return found;
+    // Fallback — partner exists but not in scope, return minimal
+    const any = demoPartners.find((p) => p.id === id);
+    if (any) return any;
     return { id, name: "", phone: "", type: "CHILLER", location: "", status: "active", last_activity: null, created_at: "", updated_at: "" };
   }
   const res = await api.get(`/mpromo/partners/${id}`);
@@ -120,7 +198,7 @@ export async function getCampaigns(
   scope?: MPromoScope
 ): Promise<{ data: Campaign[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoCampaigns];
+    let filtered = filterByTeamId([...demoCampaigns], scope);
     if (params?.status) filtered = filtered.filter((c) => c.status === params.status);
     filtered = matchSearch(filtered, params?.search as string, ["name"]);
     return paginate(filtered, params);
@@ -131,10 +209,13 @@ export async function getCampaigns(
   return res.data;
 }
 
-export async function getCampaign(id: number): Promise<Campaign> {
+export async function getCampaign(id: number, scope?: MPromoScope): Promise<Campaign> {
   if (DEMO_MODE) {
-    const found = demoCampaigns.find((c) => c.id === id);
+    const allowed = filterByTeamId(demoCampaigns, scope);
+    const found = allowed.find((c) => c.id === id);
     if (found) return found;
+    const any = demoCampaigns.find((c) => c.id === id);
+    if (any) return any;
     return { id, name: "", type: "VOLUME_REBATE", status: "draft", start_date: "", end_date: "", total_redemptions: 0, total_spend: 0, created_at: "" };
   }
   const res = await api.get(`/mpromo/campaigns/${id}`);
@@ -169,7 +250,7 @@ export async function getCodes(
   scope?: MPromoScope
 ): Promise<{ data: PromoCode[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoCodes];
+    let filtered = filterByCampaignTeam([...demoCodes], scope);
     filtered = matchSearch(filtered, params?.search as string, ["code", "campaign_name", "issued_to"]);
     return paginate(filtered, params);
   }
@@ -195,7 +276,7 @@ export async function getRedemptions(
   scope?: MPromoScope
 ): Promise<{ data: Redemption[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoRedemptions];
+    let filtered = filterByCampaignTeam([...demoRedemptions], scope);
     filtered = matchSearch(filtered, params?.search as string, ["partner_name", "campaign_name", "reference"]);
     return paginate(filtered, params);
   }
@@ -211,7 +292,7 @@ export async function getPayouts(
   scope?: MPromoScope
 ): Promise<{ data: Payout[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoPayouts];
+    let filtered = filterByPartnerTeam([...demoPayouts], scope);
     filtered = matchSearch(filtered, params?.search as string, ["partner_name", "phone"]);
     return paginate(filtered, params);
   }
@@ -227,13 +308,13 @@ export async function payPayout(id: number, scope?: MPromoScope): Promise<void> 
   });
 }
 
-// --- Orders (aligned with Sales module) ---
+// --- Orders ---
 export async function getOrders(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: MPromoOrder[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoOrders];
+    let filtered = filterByTeamId([...demoOrders], scope);
     filtered = matchSearch(filtered, params?.search as string, ["order_no", "partner_name"]);
     return paginate(filtered, params);
   }
@@ -245,10 +326,11 @@ export async function getOrders(
 
 // --- Map ---
 export async function getMapPartners(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<MapPartner[]> {
   if (DEMO_MODE) {
-    let filtered = [...demoMapPartners];
+    let filtered = filterByTeamId([...demoMapPartners], scope);
     if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
     if (params?.status) filtered = filtered.filter((p) => p.status === params.status);
     filtered = matchSearch(filtered, params?.search as string, ["name", "location"]);
@@ -261,10 +343,12 @@ export async function getMapPartners(
 // --- Partner-scoped data (for detail page) ---
 export async function getPartnerRedemptions(
   partnerId: number,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<{ data: Redemption[]; total: number }> {
   if (DEMO_MODE) {
-    const filtered = demoRedemptions.filter((r) => r.partner_id === partnerId);
+    let filtered = filterByCampaignTeam(demoRedemptions, scope);
+    filtered = filtered.filter((r) => r.partner_id === partnerId);
     return paginate(filtered, params);
   }
   const res = await api.get(`/mpromo/partners/${partnerId}/redemptions`, { params });
@@ -273,10 +357,12 @@ export async function getPartnerRedemptions(
 
 export async function getPartnerOrders(
   partnerId: number,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<{ data: MPromoOrder[]; total: number }> {
   if (DEMO_MODE) {
-    const filtered = demoOrders.filter((o) => o.partner_id === partnerId);
+    let filtered = filterByTeamId(demoOrders, scope);
+    filtered = filtered.filter((o) => o.partner_id === partnerId);
     return paginate(filtered, params);
   }
   const res = await api.get(`/mpromo/partners/${partnerId}/orders`, { params });
@@ -286,10 +372,12 @@ export async function getPartnerOrders(
 // --- Campaign-scoped data (for detail page) ---
 export async function getCampaignCodes(
   campaignId: number,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<{ data: PromoCode[]; total: number }> {
   if (DEMO_MODE) {
-    const filtered = demoCodes.filter((c) => c.campaign_id === campaignId);
+    let filtered = filterByCampaignTeam(demoCodes, scope);
+    filtered = filtered.filter((c) => c.campaign_id === campaignId);
     return paginate(filtered, params);
   }
   const res = await api.get(`/mpromo/campaigns/${campaignId}/codes`, { params });
@@ -298,10 +386,12 @@ export async function getCampaignCodes(
 
 export async function getCampaignRedemptions(
   campaignId: number,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<{ data: Redemption[]; total: number }> {
   if (DEMO_MODE) {
-    const filtered = demoRedemptions.filter((r) => r.campaign_id === campaignId);
+    let filtered = filterByCampaignTeam(demoRedemptions, scope);
+    filtered = filtered.filter((r) => r.campaign_id === campaignId);
     return paginate(filtered, params);
   }
   const res = await api.get(`/mpromo/campaigns/${campaignId}/redemptions`, { params });
@@ -310,10 +400,11 @@ export async function getCampaignRedemptions(
 
 // --- Geo Queue ---
 export async function getPartnersWithoutGeo(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<{ data: Partner[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = demoPartners.filter((p) => !p.latitude);
+    let filtered = filterByTeamId(demoPartners, scope).filter((p) => !p.latitude);
     if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
     filtered = matchSearch(filtered, params?.search as string, ["name", "location"]);
     return paginate(filtered, params);
