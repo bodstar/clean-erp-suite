@@ -47,7 +47,7 @@ export default function MPromoCampaigns() {
     { key: "start_date", header: "Start" },
     { key: "end_date", header: "End" },
     { key: "total_redemptions", header: "Redemptions" },
-    { key: "total_spend", header: "Spend", render: (r) => `₦${r.total_spend.toLocaleString()}` },
+    { key: "total_spend", header: "Spend", render: (r) => `GH₵${r.total_spend.toLocaleString()}` },
     ...(scopeMode === "all"
       ? [{ key: "team_name", header: "Team" } as DataTableColumn<Campaign>]
       : []),
