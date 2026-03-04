@@ -4,13 +4,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getOverview } from "@/lib/api/mpromo";
+import { getOverview, getRedemptions } from "@/lib/api/mpromo";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { MPromoOverview as OverviewData } from "@/types/mpromo";
+
+type TrendPoint = { dateKey: string; label: string; count: number };
+
+const chartConfig = {
+  count: { label: "Redemptions", color: "hsl(var(--primary))" },
+};
+
+function buildLast14Days(): { dateKey: string; label: string }[] {
+  const days: { dateKey: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateKey = d.toISOString().slice(0, 10);
+    const label = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    days.push({ dateKey, label });
+  }
+  return days;
+}
 
 export default function MPromoOverview() {
   const { scope, scopeMode } = useMPromoScope();
   const [data, setData] = useState<OverviewData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [trendLoading, setTrendLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
@@ -18,6 +41,22 @@ export default function MPromoOverview() {
       .then(setData)
       .catch(() => setData(null))
       .finally(() => setIsLoading(false));
+  }, [scope]);
+
+  useEffect(() => {
+    setTrendLoading(true);
+    getRedemptions({ page: 1, page_size: 500 }, scope)
+      .then((res) => {
+        const counts: Record<string, number> = {};
+        for (const r of res.data) {
+          const key = r.date.slice(0, 10);
+          counts[key] = (counts[key] || 0) + 1;
+        }
+        const days = buildLast14Days();
+        setTrendData(days.map((d) => ({ ...d, count: counts[d.dateKey] || 0 })));
+      })
+      .catch(() => setTrendData(buildLast14Days().map((d) => ({ ...d, count: 0 }))))
+      .finally(() => setTrendLoading(false));
   }, [scope]);
 
   const scopeLabel = scopeMode === "all" ? " (All Teams)" : "";
@@ -54,7 +93,6 @@ export default function MPromoOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Top Partners */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Top Chillers</CardTitle>
@@ -108,7 +146,6 @@ export default function MPromoOverview() {
         </Card>
       </div>
 
-      {/* Recent Activity + Chart Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
@@ -143,8 +180,20 @@ export default function MPromoOverview() {
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Redemptions Trend</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-            Chart placeholder — connect API to populate
+          <CardContent className="h-48">
+            {trendLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : (
+              <ChartContainer config={chartConfig} className="h-full w-full">
+                <LineChart data={trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line type="monotone" dataKey="count" stroke="var(--color-count)" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       </div>
