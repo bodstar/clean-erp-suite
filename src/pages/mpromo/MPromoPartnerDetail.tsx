@@ -8,10 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
+import { EditPartnerModal } from "@/components/mpromo/EditPartnerModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
-import { getPartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner } from "@/lib/api/mpromo";
-import type { Partner, Redemption, MPromoOrder } from "@/types/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner } from "@/lib/api/mpromo";
+import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -36,6 +37,7 @@ export default function MPromoPartnerDetail() {
   const [orders, setOrders] = useState<MPromoOrder[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -120,6 +122,17 @@ export default function MPromoPartnerDetail() {
     }
   };
 
+  const handleEditSave = async (data: { name: string; phone: string; type: PartnerType; status: PartnerStatus }) => {
+    try {
+      await updatePartner(Number(id), data);
+      setPartner((p) => p ? { ...p, ...data } : p);
+      toast.success("Partner updated");
+      setEditOpen(false);
+    } catch {
+      toast.error("Failed to update partner");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -167,7 +180,7 @@ export default function MPromoPartnerDetail() {
             </div>
             {canManage && (
               <div className="flex gap-2">
-                <Button variant="outline" size="sm"><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
                 <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
                   {partner.status === "active"
                     ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
@@ -268,6 +281,15 @@ export default function MPromoPartnerDetail() {
         variant={partner.status === "active" ? "destructive" : "default"}
         onConfirm={handleToggleStatus}
       />
+
+      {partner && (
+        <EditPartnerModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          partner={partner}
+          onSave={handleEditSave}
+        />
+      )}
     </div>
   );
 }
