@@ -1,35 +1,43 @@
 
 
-## Make Partner Names Clickable Links Across M-Promo Module
+## Campaign Profile Page Enhancement
 
-All occurrences of partner names in the M-Promo module need to become clickable links navigating to `/mpromo/partners/:id`.
+The current `MPromoCampaignDetail` page is a skeleton with placeholder data. The plan is to build it into a full profile page modeled after the partner detail page pattern.
 
-### Files to Edit
+### What exists now
+- Basic campaign header with name, type, dates, status, and action buttons (activate/pause/end)
+- Three KPI cards (total redemptions, total spend, chart placeholder)
+- Two empty DataTables for codes and redemptions (hardcoded `data={[]}`)
+- No campaign-scoped API calls for codes/redemptions
+- No tiers display, no team info, no activity timeline
 
-**1. `src/pages/mpromo/MPromoPartners.tsx`**
-- Change the `name` column from plain text to a render function returning a `<Link to={/mpromo/partners/${row.id}}>` with appropriate styling (e.g., `text-primary hover:underline cursor-pointer`).
+### What to build
 
-**2. `src/pages/mpromo/MPromoRedemptions.tsx`**
-- Add `import { Link } from "react-router-dom"`.
-- Change `partner_name` column to use a render function: `<Link to={/mpromo/partners/${r.partner_id}}>`.
+**1. Campaign-scoped API functions** (`src/lib/api/mpromo.ts`)
+- Add `getCampaignCodes(campaignId, params)` — filters `demoCodes` by `campaign_id` in demo mode
+- Add `getCampaignRedemptions(campaignId, params)` — filters `demoRedemptions` by `campaign_id` in demo mode
 
-**3. `src/pages/mpromo/MPromoPayouts.tsx`**
-- Add `import { Link } from "react-router-dom"`.
-- Change `partner_name` column in both `pendingCols` and `paidCols` to render a link using `r.partner_id`.
+**2. Enhanced campaign header card**
+- Add team name badge (e.g., "Accra Metro") when present
+- Add created date
+- For VOLUME_REBATE: display tiers in a compact table (threshold, reward)
+- For MYSTERY_SHOPPER: display reward amount
 
-**4. `src/pages/mpromo/MPromoOrders.tsx`**
-- Change `partner_name` column to render a link using `r.partner_id`.
+**3. Replace chart placeholder with a redemptions trend mini-chart**
+- Simple Recharts bar or area chart showing redemptions over time (demo: generate last 7 days of mock data from existing redemptions)
 
-**5. `src/pages/mpromo/MPromoCampaignDetail.tsx`**
-- Change `partner_name` column in redemption table to render a link using `r.partner_id`.
+**4. Populate codes and redemptions tables with real data**
+- Fetch campaign-scoped codes and redemptions on mount using the new API functions
+- Partner names in redemptions table link to partner detail (already defined in columns)
 
-**6. `src/pages/mpromo/MPromoGeoQueue.tsx`**
-- Add `import { Link } from "react-router-dom"`.
-- Change `name` column to render a link using `r.id`.
+**5. Add tabbed layout** (matching partner detail pattern)
+- Tabs: Overview (KPIs + tiers + chart), Codes, Redemptions
+- Move codes and redemptions tables into their respective tabs
 
-**7. `src/pages/mpromo/MPromoOverview.tsx`**
-- In the Top Chillers and Top Ice Water Sellers lists, wrap `p.name` in a `<Link to={/mpromo/partners/${p.id}}>`.
+**6. Add activity timeline in Overview tab**
+- Merge campaign codes and redemptions into a chronological feed, same pattern as partner detail
 
-### Link Styling
-All partner name links will use: `className="text-primary hover:underline"` for consistent styling across the module.
+### Files to modify
+- `src/lib/api/mpromo.ts` — add `getCampaignCodes`, `getCampaignRedemptions`
+- `src/pages/mpromo/MPromoCampaignDetail.tsx` — rebuild with tabs, real data fetching, tiers display, chart, activity timeline
 
