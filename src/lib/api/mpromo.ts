@@ -258,6 +258,31 @@ export async function getMapPartners(
   return res.data;
 }
 
+// --- Partner-scoped data (for detail page) ---
+export async function getPartnerRedemptions(
+  partnerId: number,
+  params?: Record<string, unknown>
+): Promise<{ data: Redemption[]; total: number }> {
+  if (DEMO_MODE) {
+    const filtered = demoRedemptions.filter((r) => r.partner_id === partnerId);
+    return paginate(filtered, params);
+  }
+  const res = await api.get(`/mpromo/partners/${partnerId}/redemptions`, { params });
+  return res.data;
+}
+
+export async function getPartnerOrders(
+  partnerId: number,
+  params?: Record<string, unknown>
+): Promise<{ data: MPromoOrder[]; total: number }> {
+  if (DEMO_MODE) {
+    const filtered = demoOrders.filter((o) => o.partner_id === partnerId);
+    return paginate(filtered, params);
+  }
+  const res = await api.get(`/mpromo/partners/${partnerId}/orders`, { params });
+  return res.data;
+}
+
 // --- Geo Queue ---
 export async function getPartnersWithoutGeo(
   params?: Record<string, unknown>
