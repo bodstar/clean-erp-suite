@@ -10,8 +10,19 @@ import type {
   MPromoOrder,
   MapPartner,
 } from "@/types/mpromo";
+import {
+  demoPartners,
+  demoCampaigns,
+  demoCodes,
+  demoRedemptions,
+  demoPayouts,
+  demoOrders,
+  demoMapPartners,
+  demoOverview,
+} from "@/lib/demo/mpromo-data";
 
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+const PAGE_SIZE = 10;
 
 function scopeParams(scope?: MPromoScope): Record<string, string> {
   if (!scope) return {};
@@ -21,22 +32,23 @@ function scopeParams(scope?: MPromoScope): Record<string, string> {
   return {};
 }
 
-// Demo placeholders
-const emptyOverview: MPromoOverview = {
-  active_campaigns: 0,
-  today_redemptions_count: 0,
-  today_redemptions_amount: 0,
-  pending_payouts_count: 0,
-  pending_payouts_amount: 0,
-  orders_today: 0,
-  top_chillers: [],
-  top_ice_water_sellers: [],
-  recent_activity: [],
-};
+// --- Demo helpers ---
+function paginate<T>(items: T[], params?: Record<string, unknown>): { data: T[]; total: number } {
+  const page = Number(params?.page) || 1;
+  const size = Number(params?.page_size) || PAGE_SIZE;
+  const start = (page - 1) * size;
+  return { data: items.slice(start, start + size), total: items.length };
+}
+
+function matchSearch<T>(items: T[], search: string | undefined, keys: (keyof T)[]): T[] {
+  if (!search) return items;
+  const q = search.toLowerCase();
+  return items.filter((item) => keys.some((k) => String(item[k] ?? "").toLowerCase().includes(q)));
+}
 
 // --- Overview ---
 export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> {
-  if (DEMO_MODE) return emptyOverview;
+  if (DEMO_MODE) return demoOverview;
   const res = await api.get("/mpromo/overview", { params: scopeParams(scope) });
   return res.data;
 }
@@ -46,7 +58,13 @@ export async function getPartners(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: Partner[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoPartners];
+    if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
+    if (params?.geo_missing) filtered = filtered.filter((p) => !p.latitude);
+    filtered = matchSearch(filtered, params?.search as string, ["name", "location", "phone"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/partners", {
     params: { ...params, ...scopeParams(scope) },
   });
@@ -54,18 +72,11 @@ export async function getPartners(
 }
 
 export async function getPartner(id: number): Promise<Partner> {
-  if (DEMO_MODE)
-    return {
-      id,
-      name: "",
-      phone: "",
-      type: "CHILLER",
-      location: "",
-      status: "active",
-      last_activity: null,
-      created_at: "",
-      updated_at: "",
-    };
+  if (DEMO_MODE) {
+    const found = demoPartners.find((p) => p.id === id);
+    if (found) return found;
+    return { id, name: "", phone: "", type: "CHILLER", location: "", status: "active", last_activity: null, created_at: "", updated_at: "" };
+  }
   const res = await api.get(`/mpromo/partners/${id}`);
   return res.data;
 }
@@ -108,7 +119,12 @@ export async function getCampaigns(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: Campaign[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoCampaigns];
+    if (params?.status) filtered = filtered.filter((c) => c.status === params.status);
+    filtered = matchSearch(filtered, params?.search as string, ["name"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/campaigns", {
     params: { ...params, ...scopeParams(scope) },
   });
@@ -116,18 +132,11 @@ export async function getCampaigns(
 }
 
 export async function getCampaign(id: number): Promise<Campaign> {
-  if (DEMO_MODE)
-    return {
-      id,
-      name: "",
-      type: "VOLUME_REBATE",
-      status: "draft",
-      start_date: "",
-      end_date: "",
-      total_redemptions: 0,
-      total_spend: 0,
-      created_at: "",
-    };
+  if (DEMO_MODE) {
+    const found = demoCampaigns.find((c) => c.id === id);
+    if (found) return found;
+    return { id, name: "", type: "VOLUME_REBATE", status: "draft", start_date: "", end_date: "", total_redemptions: 0, total_spend: 0, created_at: "" };
+  }
   const res = await api.get(`/mpromo/campaigns/${id}`);
   return res.data;
 }
@@ -159,7 +168,11 @@ export async function getCodes(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: PromoCode[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoCodes];
+    filtered = matchSearch(filtered, params?.search as string, ["code", "campaign_name", "issued_to"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/codes", {
     params: { ...params, ...scopeParams(scope) },
   });
@@ -181,7 +194,11 @@ export async function getRedemptions(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: Redemption[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoRedemptions];
+    filtered = matchSearch(filtered, params?.search as string, ["partner_name", "campaign_name", "reference"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/redemptions", {
     params: { ...params, ...scopeParams(scope) },
   });
@@ -193,7 +210,11 @@ export async function getPayouts(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: Payout[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoPayouts];
+    filtered = matchSearch(filtered, params?.search as string, ["partner_name", "phone"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/payouts", {
     params: { ...params, ...scopeParams(scope) },
   });
@@ -211,7 +232,11 @@ export async function getOrders(
   params?: Record<string, unknown>,
   scope?: MPromoScope
 ): Promise<{ data: MPromoOrder[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = [...demoOrders];
+    filtered = matchSearch(filtered, params?.search as string, ["order_no", "partner_name"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/sales/orders", {
     params: { source: "MPROMO", ...params, ...scopeParams(scope) },
   });
@@ -222,7 +247,13 @@ export async function getOrders(
 export async function getMapPartners(
   params?: Record<string, unknown>
 ): Promise<MapPartner[]> {
-  if (DEMO_MODE) return [];
+  if (DEMO_MODE) {
+    let filtered = [...demoMapPartners];
+    if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
+    if (params?.status) filtered = filtered.filter((p) => p.status === params.status);
+    filtered = matchSearch(filtered, params?.search as string, ["name", "location"]);
+    return filtered;
+  }
   const res = await api.get("/mpromo/map/partners", { params });
   return res.data;
 }
@@ -231,7 +262,12 @@ export async function getMapPartners(
 export async function getPartnersWithoutGeo(
   params?: Record<string, unknown>
 ): Promise<{ data: Partner[]; total: number }> {
-  if (DEMO_MODE) return { data: [], total: 0 };
+  if (DEMO_MODE) {
+    let filtered = demoPartners.filter((p) => !p.latitude);
+    if (params?.type) filtered = filtered.filter((p) => p.type === params.type);
+    filtered = matchSearch(filtered, params?.search as string, ["name", "location"]);
+    return paginate(filtered, params);
+  }
   const res = await api.get("/mpromo/partners", {
     params: { geo_missing: true, ...params },
   });
