@@ -1,79 +1,57 @@
 
 
-## Mobile and Tablet Responsiveness Overhaul
+## Add Demo Data for the M-Promo Module
 
-This plan addresses horizontal scrolling across the entire app by restructuring the TopBar for mobile, ensuring cards fit the viewport, and improving table/form layouts on small screens.
-
----
-
-### 1. TopBar: Collapse actions into a slide-out menu on mobile
-
-**Problem**: On mobile, the TopBar shows the sidebar trigger, team badge, team switcher button, theme toggle, notifications bell, and user menu all in a single row -- causing overflow.
-
-**Solution**: On screens below `sm` (640px), hide the individual icon buttons (theme, notifications, user) and the team switcher, and replace them with a single hamburger/menu icon that opens a Sheet (slide-in panel from the right). The sheet will contain all those actions in a vertical list.
-
-**Changes to `src/components/layout/TopBar.tsx`**:
-- Import `Sheet`, `SheetContent`, `SheetHeader`, `SheetTitle`, `SheetTrigger` from `@/components/ui/sheet`
-- Import `useIsMobile` from `@/hooks/use-mobile`
-- Import `Menu` icon from lucide-react
-- On mobile (`isMobile === true`): render only `SidebarTrigger` + team badge + spacer + a single Menu button that opens a Sheet from the right
-- Inside the Sheet: list "Switch Team" options, Theme toggle, Notifications, Profile, and Logout as full-width menu items
-- On desktop (`isMobile === false`): keep the current layout unchanged
+Currently, when the app runs without a backend (`DEMO_MODE`), every M-Promo API call returns empty arrays and zeroes. This plan populates all M-Promo pages with realistic dummy data so the module can be explored and demonstrated without a live backend.
 
 ---
 
-### 2. Breadcrumbs: Truncate on mobile
+### 1. Create a new demo data file
 
-**Problem**: Long breadcrumb trails can overflow horizontally on small screens.
+**New file: `src/lib/demo/mpromo-data.ts`**
 
-**Changes to `src/components/layout/Breadcrumbs.tsx`**:
-- Add `overflow-hidden` and `whitespace-nowrap` with `text-ellipsis` on the nav container
-- On mobile, show only the last breadcrumb segment (hide intermediate segments) using a `hidden sm:flex` pattern for middle crumbs
+This file will export pre-built arrays of realistic Nigerian-context demo records:
 
----
+- **Partners (12)**: Mix of CHILLERs and ICE_WATER_SELLERs across Accra/Lagos-area locations, with varied statuses, some with geo coordinates and some without
+- **Campaigns (6)**: Mix of VOLUME_REBATE and MYSTERY_SHOPPER types in all statuses (draft, active, paused, ended) with tier data and spend figures
+- **Promo Codes (15)**: Linked to campaigns, mix of active/redeemed/expired statuses with realistic code strings
+- **Redemptions (10)**: Linked to partners and campaigns, varied payout statuses and amounts
+- **Payouts (8)**: Linked to partners, mix of pending/paid/failed statuses with Paystack references
+- **Orders (10)**: Linked to partners, varied order statuses with realistic totals
+- **Map Partners (8)**: Subset of partners with full geo data plus aggregated redemption/order/payout stats
+- **Overview KPIs**: Pre-computed summary with top chillers, top ice water sellers, and recent activity entries
 
-### 3. Cards: Ensure full-width on mobile
-
-**Problem**: Cards with fixed or minimum widths may not fit mobile viewports.
-
-**Changes**:
-- `src/components/shared/KpiCard.tsx`: Already uses `w-full` implicitly via grid. No change needed; the grid in overview/dashboard already uses `grid-cols-1` at mobile. Verified OK.
-- `src/pages/mpromo/MPromoPartnerCreate.tsx`: The form has `max-w-2xl` which is fine. The geolocation buttons row should get `flex-wrap` to prevent overflow on narrow screens.
-
----
-
-### 4. DataTable header: Stack search/filters/actions vertically on mobile
-
-**Problem**: The search bar, filters, and action buttons sit in a row that can overflow.
-
-**Changes to `src/components/shared/DataTable.tsx`**:
-- The header already uses `flex-col sm:flex-row`. Ensure `headerActions` drops `ml-auto` on mobile and goes full width: change to `sm:ml-auto`.
-- Make search input `w-full sm:max-w-sm` (remove `max-w-sm` on mobile so it takes full width).
+All dates will use relative date-fns helpers so they stay current.
 
 ---
 
-### 5. MPromoLayout nav tabs: Already scrollable, but ensure no page-level overflow
+### 2. Update the API layer to return demo data
 
-**Changes to `src/components/mpromo/MPromoLayout.tsx`**:
-- Already has `overflow-x-auto` and edge-to-edge negative margins. Verified OK.
+**Modified file: `src/lib/api/mpromo.ts`**
+
+Replace every `DEMO_MODE` return with imports from the demo data file. Add basic client-side filtering/search/pagination to make the demo feel interactive:
+
+- **getOverview**: Return the pre-built overview object
+- **getPartners**: Return filtered by `type`, `search` (name match), `geo_missing`, with simple pagination
+- **getPartner**: Find by ID from the partners array
+- **getCampaigns**: Return filtered by `status`, `search`, with pagination
+- **getCampaign**: Find by ID from campaigns array
+- **getCodes**: Return filtered by `search` (code match), with pagination
+- **getRedemptions**: Return with pagination
+- **getPayouts**: Return with pagination
+- **getOrders**: Return with pagination
+- **getMapPartners**: Return the map partners array, filtered by `type`/`status`/`search`
+- **getPartnersWithoutGeo**: Return partners where latitude is null, filtered by `type`/`search`
+
+Write operations (`createPartner`, `suspendPartner`, `generateCodes`, `payPayout`, etc.) will remain as-is since they require a real backend.
 
 ---
 
-### 6. Partner create form: Wrap geolocation buttons
+### Technical Details
 
-**Changes to `src/pages/mpromo/MPromoPartnerCreate.tsx`**:
-- Add `flex-wrap` to the geolocation buttons container (line 249) so buttons stack on narrow screens.
-
----
-
-### Technical Summary
-
-| File | Change |
+| File | Action |
 |------|--------|
-| `src/components/layout/TopBar.tsx` | Mobile: collapse right-side actions into a Sheet slide-out panel |
-| `src/components/layout/Breadcrumbs.tsx` | Truncate/collapse middle segments on mobile |
-| `src/components/shared/DataTable.tsx` | Full-width search on mobile, stack header actions |
-| `src/pages/mpromo/MPromoPartnerCreate.tsx` | Wrap geolocation buttons with `flex-wrap` |
+| `src/lib/demo/mpromo-data.ts` | New -- all demo datasets |
+| `src/lib/api/mpromo.ts` | Modified -- replace empty DEMO_MODE returns with demo data + client-side filtering |
 
-No new dependencies are needed -- Sheet and useIsMobile already exist in the project.
-
+No new dependencies needed. No UI changes required -- the existing pages will automatically display the data.
