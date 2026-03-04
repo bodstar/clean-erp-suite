@@ -283,6 +283,31 @@ export async function getPartnerOrders(
   return res.data;
 }
 
+// --- Campaign-scoped data (for detail page) ---
+export async function getCampaignCodes(
+  campaignId: number,
+  params?: Record<string, unknown>
+): Promise<{ data: PromoCode[]; total: number }> {
+  if (DEMO_MODE) {
+    const filtered = demoCodes.filter((c) => c.campaign_id === campaignId);
+    return paginate(filtered, params);
+  }
+  const res = await api.get(`/mpromo/campaigns/${campaignId}/codes`, { params });
+  return res.data;
+}
+
+export async function getCampaignRedemptions(
+  campaignId: number,
+  params?: Record<string, unknown>
+): Promise<{ data: Redemption[]; total: number }> {
+  if (DEMO_MODE) {
+    const filtered = demoRedemptions.filter((r) => r.campaign_id === campaignId);
+    return paginate(filtered, params);
+  }
+  const res = await api.get(`/mpromo/campaigns/${campaignId}/redemptions`, { params });
+  return res.data;
+}
+
 // --- Geo Queue ---
 export async function getPartnersWithoutGeo(
   params?: Record<string, unknown>
