@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { getPartner, updatePartnerGeolocation } from "@/lib/api/mpromo";
 import type { Partner, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 export default function MPromoPartnerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -129,7 +131,14 @@ export default function MPromoPartnerDetail() {
         </CardHeader>
         <CardContent>
           {partner.latitude && partner.longitude ? (
-            <p className="text-sm">Lat: {partner.latitude.toFixed(6)}, Lng: {partner.longitude.toFixed(6)}</p>
+            <div className="space-y-3">
+              <div className="relative z-0 h-48 rounded-md overflow-hidden border">
+                <PartnerLocationMap lat={partner.latitude} lng={partner.longitude} />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Lat: {partner.latitude.toFixed(6)}, Lng: {partner.longitude.toFixed(6)}
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">Location not captured</p>
           )}
@@ -176,4 +185,43 @@ export default function MPromoPartnerDetail() {
       />
     </div>
   );
+}
+
+function PartnerLocationMap({ lat, lng }: { lat: number; lng: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const isDark = document.documentElement.classList.contains("dark");
+    const tileUrl = isDark
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+    const map = L.map(containerRef.current, {
+      center: [lat, lng],
+      zoom: 15,
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+    });
+
+    L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(map);
+
+    const icon = L.divIcon({
+      className: "",
+      html: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="hsl(var(--primary))" stroke="hsl(var(--primary-foreground))" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="hsl(var(--primary-foreground))"/></svg>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+    });
+
+    L.marker([lat, lng], { icon }).addTo(map);
+
+    return () => { map.remove(); };
+  }, [lat, lng]);
+
+  return <div ref={containerRef} className="h-full w-full" />;
 }
