@@ -26,7 +26,7 @@ export default function MPromoOrders() {
 
   const columns: DataTableColumn<MPromoOrder>[] = [
     { key: "order_no", header: "Order No" },
-    { key: "partner_name", header: "Partner" },
+    { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "date", header: "Date" },
     { key: "total", header: "Total", render: (r) => `GH₵${r.total.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },

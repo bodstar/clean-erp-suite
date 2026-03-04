@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
@@ -34,7 +35,7 @@ export default function MPromoRedemptions() {
 
   const columns: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date/Time" },
-    { key: "partner_name", header: "Partner" },
+    { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "partner_type", header: "Type", render: (r) => r.partner_type.replace("_", " ") },
     { key: "campaign_name", header: "Campaign" },
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },

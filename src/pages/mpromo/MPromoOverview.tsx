@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { BarChart3, Receipt, Wallet, ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,7 +109,7 @@ export default function MPromoOverview() {
               <div className="space-y-2">
                 {data.top_chillers.map((p, i) => (
                   <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{i + 1}. {p.name}</span>
+                    <span className="text-muted-foreground">{i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link></span>
                     <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
@@ -134,7 +135,7 @@ export default function MPromoOverview() {
               <div className="space-y-2">
                 {data.top_ice_water_sellers.map((p, i) => (
                   <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{i + 1}. {p.name}</span>
+                    <span className="text-muted-foreground">{i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link></span>
                     <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
