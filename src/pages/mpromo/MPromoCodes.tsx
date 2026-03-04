@@ -113,7 +113,7 @@ export default function MPromoCodes() {
                 <Label className="text-xs">Campaign</Label>
                 <Popover open={campaignOpen} onOpenChange={setCampaignOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-52 h-9 justify-between font-normal text-sm">
+                    <Button variant="outline" role="combobox" className="w-52 h-9 justify-between font-normal text-sm flex">
                       {campaignId
                         ? campaigns.find((c) => String(c.id) === campaignId)?.name ?? "Select campaign"
                         : "Select campaign"}
