@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPayouts, payPayout } from "@/lib/api/mpromo";
@@ -19,6 +20,7 @@ export default function MPromoPayouts() {
   const [pending, setPending] = useState<Payout[]>([]);
   const [paid, setPaid] = useState<Payout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [confirmPayout, setConfirmPayout] = useState<Payout | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -31,12 +33,17 @@ export default function MPromoPayouts() {
       .finally(() => setIsLoading(false));
   }, [scope]);
 
-  const handlePay = async (id: number) => {
+  const handlePay = async () => {
+    if (!confirmPayout) return;
     try {
-      await payPayout(id, scope);
+      await payPayout(confirmPayout.id, scope);
       toast.success("Payout initiated via Paystack");
+      setPending((prev) => prev.filter((p) => p.id !== confirmPayout.id));
+      setPaid((prev) => [{ ...confirmPayout, status: "paid" as const, paid_at: new Date().toISOString() }, ...prev]);
     } catch {
       toast.error("Payout failed");
+    } finally {
+      setConfirmPayout(null);
     }
   };
 
@@ -52,11 +59,11 @@ export default function MPromoPayouts() {
           className: "w-28",
           render: (r: Payout) => (
             <div className="flex gap-1">
-              <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => handlePay(r.id)}>
+              <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => setConfirmPayout(r)}>
                 <DollarSign className="h-3 w-3" /> Pay
               </Button>
               {r.status === "failed" && (
-                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handlePay(r.id)}>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setConfirmPayout(r)}>
                   <RefreshCw className="h-3 w-3" /> Retry
                 </Button>
               )}
@@ -88,6 +95,15 @@ export default function MPromoPayouts() {
           <DataTable columns={paidCols} data={paid} isLoading={isLoading} emptyMessage="No paid payouts yet." />
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!confirmPayout}
+        onOpenChange={(open) => { if (!open) setConfirmPayout(null); }}
+        title="Confirm Payout"
+        description={`Are you sure you want to pay GH₵${confirmPayout?.amount.toLocaleString()} to "${confirmPayout?.partner_name}" via Paystack?`}
+        confirmLabel="Pay Now"
+        onConfirm={handlePay}
+      />
     </div>
   );
 }

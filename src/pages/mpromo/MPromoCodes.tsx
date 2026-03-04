@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getCodes, generateCodes } from "@/lib/api/mpromo";
@@ -35,6 +36,9 @@ export default function MPromoCodes() {
   const [expiry, setExpiry] = useState("");
   const [campaignId, setCampaignId] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Cancel confirm
+  const [confirmCode, setConfirmCode] = useState<PromoCode | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -60,6 +64,16 @@ export default function MPromoCodes() {
     }
   };
 
+  const handleCancelCode = () => {
+    if (!confirmCode) return;
+    // In demo mode, update locally; in real mode this would call an API
+    setData((prev) =>
+      prev.map((c) => (c.id === confirmCode.id ? { ...c, status: "cancelled" as const } : c))
+    );
+    toast.success(`Code ${confirmCode.code} cancelled`);
+    setConfirmCode(null);
+  };
+
   const columns: DataTableColumn<PromoCode>[] = [
     { key: "code", header: "Code", render: (r) => <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{r.code}</code> },
     { key: "campaign_name", header: "Campaign" },
@@ -74,7 +88,7 @@ export default function MPromoCodes() {
           className: "w-10",
           render: (r: PromoCode) =>
             r.status === "active" ? (
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setConfirmCode(r)}>
                 <XCircle className="h-4 w-4 text-destructive" />
               </Button>
             ) : null,
@@ -127,6 +141,16 @@ export default function MPromoCodes() {
             <Download className="h-4 w-4" /> Export CSV
           </Button>
         }
+      />
+
+      <ConfirmDialog
+        open={!!confirmCode}
+        onOpenChange={(open) => { if (!open) setConfirmCode(null); }}
+        title="Cancel Promo Code"
+        description={`Are you sure you want to cancel code "${confirmCode?.code}"? This action cannot be undone.`}
+        confirmLabel="Cancel Code"
+        variant="destructive"
+        onConfirm={handleCancelCode}
       />
     </div>
   );

@@ -7,9 +7,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartners } from "@/lib/api/mpromo";
+import { getPartners, suspendPartner, activatePartner } from "@/lib/api/mpromo";
 import type { Partner, PartnerType } from "@/types/mpromo";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, Ban, CheckCircle, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 export default function MPromoPartners() {
   const navigate = useNavigate();
@@ -33,6 +35,8 @@ export default function MPromoPartners() {
   const [geoMissing, setGeoMissing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [confirmPartner, setConfirmPartner] = useState<Partner | null>(null);
+
   useEffect(() => {
     setIsLoading(true);
     getPartners({ type: partnerType, page, search, geo_missing: geoMissing || undefined }, scope)
@@ -40,6 +44,30 @@ export default function MPromoPartners() {
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
   }, [partnerType, page, search, geoMissing, scope]);
+
+  const handleToggleStatus = async () => {
+    if (!confirmPartner) return;
+    try {
+      if (confirmPartner.status === "active") {
+        await suspendPartner(confirmPartner.id);
+        toast.success(`${confirmPartner.name} suspended`);
+      } else {
+        await activatePartner(confirmPartner.id);
+        toast.success(`${confirmPartner.name} activated`);
+      }
+      setData((prev) =>
+        prev.map((p) =>
+          p.id === confirmPartner.id
+            ? { ...p, status: confirmPartner.status === "active" ? "suspended" : "active" }
+            : p
+        )
+      );
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setConfirmPartner(null);
+    }
+  };
 
   const columns: DataTableColumn<Partner>[] = [
     { key: "name", header: "Name", render: (row) => <Link to={`/mpromo/partners/${row.id}`} className="text-primary hover:underline">{row.name}</Link> },
@@ -81,7 +109,7 @@ export default function MPromoPartners() {
                 <DropdownMenuItem onClick={() => navigate(`/mpromo/partners/${row.id}`)}>
                   <Edit className="h-4 w-4 mr-2" /> Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setConfirmPartner(row)}>
                   {row.status === "active" ? (
                     <><Ban className="h-4 w-4 mr-2" /> Suspend</>
                   ) : (
@@ -134,6 +162,20 @@ export default function MPromoPartners() {
             </div>
           ) : undefined
         }
+      />
+
+      <ConfirmDialog
+        open={!!confirmPartner}
+        onOpenChange={(open) => { if (!open) setConfirmPartner(null); }}
+        title={confirmPartner?.status === "active" ? "Suspend Partner" : "Activate Partner"}
+        description={
+          confirmPartner?.status === "active"
+            ? `Are you sure you want to suspend "${confirmPartner?.name}"? They will no longer be able to redeem codes or place orders.`
+            : `Are you sure you want to activate "${confirmPartner?.name}"?`
+        }
+        confirmLabel={confirmPartner?.status === "active" ? "Suspend" : "Activate"}
+        variant={confirmPartner?.status === "active" ? "destructive" : "default"}
+        onConfirm={handleToggleStatus}
       />
     </div>
   );
