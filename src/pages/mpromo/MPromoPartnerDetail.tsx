@@ -8,8 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
-import { getPartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders } from "@/lib/api/mpromo";
+import { getPartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner } from "@/lib/api/mpromo";
 import type { Partner, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
 import L from "leaflet";
@@ -34,6 +35,7 @@ export default function MPromoPartnerDetail() {
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [orders, setOrders] = useState<MPromoOrder[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [confirmStatusChange, setConfirmStatusChange] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -99,6 +101,25 @@ export default function MPromoPartnerDetail() {
     }
   };
 
+  const handleToggleStatus = async () => {
+    if (!partner) return;
+    try {
+      if (partner.status === "active") {
+        await suspendPartner(partner.id);
+        toast.success(`${partner.name} suspended`);
+        setPartner((p) => p ? { ...p, status: "suspended" } : p);
+      } else {
+        await activatePartner(partner.id);
+        toast.success(`${partner.name} activated`);
+        setPartner((p) => p ? { ...p, status: "active" } : p);
+      }
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setConfirmStatusChange(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -147,7 +168,7 @@ export default function MPromoPartnerDetail() {
             {canManage && (
               <div className="flex gap-2">
                 <Button variant="outline" size="sm"><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
                   {partner.status === "active"
                     ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
                     : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
@@ -232,6 +253,20 @@ export default function MPromoPartnerDetail() {
         onConfirm={handleMapPick}
         initialLat={partner.latitude ?? undefined}
         initialLng={partner.longitude ?? undefined}
+      />
+
+      <ConfirmDialog
+        open={confirmStatusChange}
+        onOpenChange={setConfirmStatusChange}
+        title={partner.status === "active" ? "Suspend Partner" : "Activate Partner"}
+        description={
+          partner.status === "active"
+            ? `Are you sure you want to suspend "${partner.name}"? They will no longer be able to redeem codes or place orders.`
+            : `Are you sure you want to activate "${partner.name}"?`
+        }
+        confirmLabel={partner.status === "active" ? "Suspend" : "Activate"}
+        variant={partner.status === "active" ? "destructive" : "default"}
+        onConfirm={handleToggleStatus}
       />
     </div>
   );
