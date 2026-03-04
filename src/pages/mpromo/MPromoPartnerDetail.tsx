@@ -11,9 +11,11 @@ import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
 import { EditPartnerModal } from "@/components/mpromo/EditPartnerModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
-import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner } from "@/lib/api/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
 import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -32,6 +34,7 @@ export default function MPromoPartnerDetail() {
 
   const [partner, setPartner] = useState<Partner | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [orders, setOrders] = useState<MPromoOrder[]>([]);
@@ -70,7 +73,12 @@ export default function MPromoPartnerDetail() {
         ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         setActivity(items);
       })
-      .catch(() => setPartner(null))
+      .catch((err) => {
+        if (err instanceof AccessDeniedError) {
+          setAccessDenied(true);
+        }
+        setPartner(null);
+      })
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -144,7 +152,20 @@ export default function MPromoPartnerDetail() {
 
   if (!partner) {
     return (
-      <div className="text-center py-12 text-muted-foreground">Partner not found.</div>
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/mpromo/partners")} className="gap-1.5">
+          <ArrowLeft className="h-4 w-4" /> Back to Partners
+        </Button>
+        {accessDenied ? (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Access Denied</AlertTitle>
+            <AlertDescription>This partner belongs to another team. You do not have permission to view it.</AlertDescription>
+          </Alert>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">Partner not found.</div>
+        )}
+      </div>
     );
   }
 
