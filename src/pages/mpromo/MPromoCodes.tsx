@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
-import { Download, XCircle } from "lucide-react";
+import { Download, XCircle, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -36,6 +32,7 @@ export default function MPromoCodes() {
   const [expiry, setExpiry] = useState("");
   const [campaignId, setCampaignId] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [campaignOpen, setCampaignOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   // Cancel confirm
@@ -114,18 +111,36 @@ export default function MPromoCodes() {
             <div className="flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
                 <Label className="text-xs">Campaign</Label>
-                <Select value={campaignId} onValueChange={setCampaignId}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {campaigns.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={campaignOpen} onOpenChange={setCampaignOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-52 justify-between font-normal">
+                      {campaignId
+                        ? campaigns.find((c) => String(c.id) === campaignId)?.name ?? "Select campaign"
+                        : "Select campaign"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-0">
+                    <Command>
+                      <CommandInput placeholder="Search campaigns..." />
+                      <CommandList>
+                        <CommandEmpty>No campaigns found.</CommandEmpty>
+                        <CommandGroup>
+                          {campaigns.map((c) => (
+                            <CommandItem
+                              key={c.id}
+                              value={c.name}
+                              onSelect={() => { setCampaignId(String(c.id)); setCampaignOpen(false); }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", campaignId === String(c.id) ? "opacity-100" : "opacity-0")} />
+                              {c.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Quantity</Label>
