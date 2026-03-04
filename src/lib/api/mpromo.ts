@@ -31,6 +31,20 @@ import {
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 10;
 
+export class AccessDeniedError extends Error {
+  constructor(message = "Access denied") {
+    super(message);
+    this.name = "AccessDeniedError";
+  }
+}
+
+export class NotFoundError extends Error {
+  constructor(message = "Not found") {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
 function scopeParams(scope?: MPromoScope): Record<string, string> {
   if (!scope) return {};
   if (scope.mode === "all") return { scope: "all" };
@@ -150,10 +164,10 @@ export async function getPartner(id: number, scope?: MPromoScope): Promise<Partn
     const allowed = filterByTeamId(demoPartners, scope);
     const found = allowed.find((p) => p.id === id);
     if (found) return found;
-    // Fallback — partner exists but not in scope, return minimal
+    // Entity exists but not in user's scope — throw access denied
     const any = demoPartners.find((p) => p.id === id);
-    if (any) return any;
-    return { id, name: "", phone: "", type: "CHILLER", location: "", status: "active", last_activity: null, created_at: "", updated_at: "" };
+    if (any) throw new AccessDeniedError("You do not have access to this partner.");
+    throw new NotFoundError("Partner not found.");
   }
   const res = await api.get(`/mpromo/partners/${id}`);
   return res.data;
@@ -215,8 +229,8 @@ export async function getCampaign(id: number, scope?: MPromoScope): Promise<Camp
     const found = allowed.find((c) => c.id === id);
     if (found) return found;
     const any = demoCampaigns.find((c) => c.id === id);
-    if (any) return any;
-    return { id, name: "", type: "VOLUME_REBATE", status: "draft", start_date: "", end_date: "", total_redemptions: 0, total_spend: 0, created_at: "" };
+    if (any) throw new AccessDeniedError("You do not have access to this campaign.");
+    throw new NotFoundError("Campaign not found.");
   }
   const res = await api.get(`/mpromo/campaigns/${id}`);
   return res.data;

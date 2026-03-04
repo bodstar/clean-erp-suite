@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award } from "lucide-react";
+import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,8 +10,9 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodes, getCampaignRedemptions } from "@/lib/api/mpromo";
+import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodes, getCampaignRedemptions, AccessDeniedError } from "@/lib/api/mpromo";
 import type { Campaign, PromoCode, Redemption } from "@/types/mpromo";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, parseISO, startOfDay } from "date-fns";
@@ -34,6 +35,7 @@ export default function MPromoCampaignDetail() {
   const [codes, setCodes] = useState<PromoCode[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -49,7 +51,10 @@ export default function MPromoCampaignDetail() {
         setCodes(codesRes.data);
         setRedemptions(redsRes.data);
       })
-      .catch(() => setCampaign(null))
+      .catch((err) => {
+        if (err instanceof AccessDeniedError) setAccessDenied(true);
+        setCampaign(null);
+      })
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -101,7 +106,24 @@ export default function MPromoCampaignDetail() {
   }, [codes, redemptions]);
 
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-40 w-full" /></div>;
-  if (!campaign) return <div className="text-center py-12 text-muted-foreground">Campaign not found.</div>;
+  if (!campaign) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/mpromo/campaigns")} className="gap-1.5">
+          <ArrowLeft className="h-4 w-4" /> Back to Campaigns
+        </Button>
+        {accessDenied ? (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Access Denied</AlertTitle>
+            <AlertDescription>This campaign belongs to another team. You do not have permission to view it.</AlertDescription>
+          </Alert>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">Campaign not found.</div>
+        )}
+      </div>
+    );
+  }
 
   const codeCols: DataTableColumn<PromoCode>[] = [
     { key: "code", header: "Code" },
