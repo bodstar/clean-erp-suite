@@ -79,14 +79,14 @@ export default function MPromoPartnerDetail() {
   const redemptionCols: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date" },
     { key: "campaign_name", header: "Campaign" },
-    { key: "amount", header: "Amount", render: (r) => `₦${r.amount.toLocaleString()}` },
+    { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "payout_status", header: "Payout", render: (r) => <StatusBadge status={r.payout_status} /> },
   ];
 
   const orderCols: DataTableColumn<MPromoOrder>[] = [
     { key: "order_no", header: "Order No" },
     { key: "date", header: "Date" },
-    { key: "total", header: "Total", render: (r) => `₦${r.total.toLocaleString()}` },
+    { key: "total", header: "Total", render: (r) => `GH₵${r.total.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
   ];
 

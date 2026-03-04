@@ -28,7 +28,7 @@ export default function MPromoOrders() {
     { key: "order_no", header: "Order No" },
     { key: "partner_name", header: "Partner" },
     { key: "date", header: "Date" },
-    { key: "total", header: "Total", render: (r) => `₦${r.total.toLocaleString()}` },
+    { key: "total", header: "Total", render: (r) => `GH₵${r.total.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     ...(scopeMode === "all"
       ? [{ key: "team_name", header: "Team" } as DataTableColumn<MPromoOrder>]

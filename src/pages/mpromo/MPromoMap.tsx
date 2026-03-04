@@ -121,6 +121,8 @@ export default function MPromoMap() {
     const handler = () => loadPartners(map.getBounds(), map.getZoom());
     map.on("moveend", handler);
     map.on("zoomend", handler);
+    // Load partners on initial mount
+    handler();
     return () => {
       map.off("moveend", handler);
       map.off("zoomend", handler);
@@ -197,15 +199,15 @@ export default function MPromoMap() {
                 <div className="border-t border-border pt-3 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Redemptions</span>
-                    <span>{selectedPartner.redemptions_count} · ₦{selectedPartner.redemptions_amount.toLocaleString()}</span>
+                    <span>{selectedPartner.redemptions_count} · GH₵{selectedPartner.redemptions_amount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Orders</span>
-                    <span>{selectedPartner.orders_count} · ₦{selectedPartner.orders_amount.toLocaleString()}</span>
+                    <span>{selectedPartner.orders_count} · GH₵{selectedPartner.orders_amount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Pending Payouts</span>
-                    <span>{selectedPartner.pending_payouts_count} · ₦{selectedPartner.pending_payouts_amount.toLocaleString()}</span>
+                    <span>{selectedPartner.pending_payouts_count} · GH₵{selectedPartner.pending_payouts_amount.toLocaleString()}</span>
                   </div>
                 </div>
 

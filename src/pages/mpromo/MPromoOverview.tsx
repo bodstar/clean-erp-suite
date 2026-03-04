@@ -35,14 +35,14 @@ export default function MPromoOverview() {
           icon={Receipt}
           label={`Today's Redemptions${scopeLabel}`}
           value={data?.today_redemptions_count ?? 0}
-          subtitle={data ? `₦${data.today_redemptions_amount.toLocaleString()}` : undefined}
+          subtitle={data ? `GH₵${data.today_redemptions_amount.toLocaleString()}` : undefined}
           isLoading={isLoading}
         />
         <KpiCard
           icon={Wallet}
           label={`Pending Payouts${scopeLabel}`}
           value={data?.pending_payouts_count ?? 0}
-          subtitle={data ? `₦${data.pending_payouts_amount.toLocaleString()}` : undefined}
+          subtitle={data ? `GH₵${data.pending_payouts_amount.toLocaleString()}` : undefined}
           isLoading={isLoading}
         />
         <KpiCard
@@ -71,7 +71,7 @@ export default function MPromoOverview() {
                 {data.top_chillers.map((p, i) => (
                   <div key={p.id} className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{i + 1}. {p.name}</span>
-                    <span className="font-medium">₦{p.value.toLocaleString()}</span>
+                    <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -97,7 +97,7 @@ export default function MPromoOverview() {
                 {data.top_ice_water_sellers.map((p, i) => (
                   <div key={p.id} className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{i + 1}. {p.name}</span>
-                    <span className="font-medium">₦{p.value.toLocaleString()}</span>
+                    <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>

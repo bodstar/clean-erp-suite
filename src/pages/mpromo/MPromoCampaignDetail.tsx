@@ -56,7 +56,7 @@ export default function MPromoCampaignDetail() {
   const redemptionCols: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date" },
     { key: "partner_name", header: "Partner" },
-    { key: "amount", header: "Amount", render: (r) => `₦${r.amount.toLocaleString()}` },
+    { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "payout_status", header: "Payout", render: (r) => <StatusBadge status={r.payout_status} /> },
   ];
 
@@ -106,7 +106,7 @@ export default function MPromoCampaignDetail() {
         </Card>
         <Card>
           <CardContent className="p-5 text-center">
-            <p className="text-2xl font-bold">₦{campaign.total_spend.toLocaleString()}</p>
+            <p className="text-2xl font-bold">GH₵{campaign.total_spend.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Total Spend</p>
           </CardContent>
         </Card>

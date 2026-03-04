@@ -37,7 +37,7 @@ export default function MPromoRedemptions() {
     { key: "partner_name", header: "Partner" },
     { key: "partner_type", header: "Type", render: (r) => r.partner_type.replace("_", " ") },
     { key: "campaign_name", header: "Campaign" },
-    { key: "amount", header: "Amount", render: (r) => `₦${r.amount.toLocaleString()}` },
+    { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "payout_status", header: "Payout", render: (r) => <StatusBadge status={r.payout_status} /> },
     { key: "reference", header: "Reference" },
   ];

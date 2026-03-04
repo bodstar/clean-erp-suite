@@ -156,7 +156,7 @@ export default function MPromoCampaignCreate() {
                       />
                     </div>
                     <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Reward (₦)</Label>
+                      <Label className="text-xs">Reward (GH₵)</Label>
                       <Input
                         type="number"
                         value={tier.reward_amount || ""}
@@ -185,7 +185,7 @@ export default function MPromoCampaignCreate() {
               </div>
             ) : (
               <div className="space-y-1.5">
-                <Label>Reward per Valid Code (₦)</Label>
+                <Label>Reward per Valid Code (GH₵)</Label>
                 <Input
                   type="number"
                   value={rewardAmount || ""}
@@ -215,7 +215,7 @@ export default function MPromoCampaignCreate() {
               {type === "MYSTERY_SHOPPER" && (
                 <>
                   <span className="text-muted-foreground">Reward</span>
-                  <span className="font-medium">₦{rewardAmount.toLocaleString()}</span>
+                  <span className="font-medium">GH₵{rewardAmount.toLocaleString()}</span>
                 </>
               )}
             </div>
@@ -223,7 +223,7 @@ export default function MPromoCampaignCreate() {
               <div className="text-sm">
                 <p className="text-muted-foreground mb-1">Tiers:</p>
                 {tiers.map((t, i) => (
-                  <p key={i}>≥ {t.threshold} units → ₦{t.reward_amount.toLocaleString()}</p>
+                  <p key={i}>≥ {t.threshold} units → GH₵{t.reward_amount.toLocaleString()}</p>
                 ))}
               </div>
             )}
