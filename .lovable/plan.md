@@ -1,57 +1,28 @@
 
 
-## Add Demo Data for the M-Promo Module
+## Relocate Demo Data from Lagos to Accra
 
-Currently, when the app runs without a backend (`DEMO_MODE`), every M-Promo API call returns empty arrays and zeroes. This plan populates all M-Promo pages with realistic dummy data so the module can be explored and demonstrated without a live backend.
+The demo data currently has about half of the partners located in Lagos, Nigeria with Nigerian phone numbers and Lagos GPS coordinates. Since the app launches in Ghana (Accra first), all demo data needs to be Ghana-focused.
 
----
+### Changes (single file: `src/lib/demo/mpromo-data.ts`)
 
-### 1. Create a new demo data file
+**Partners** -- Replace all 6 Lagos-based partners with Accra-area locations and Ghanaian names/phones:
+- id 3: "Emeka Cold Drinks" (Ikeja, Lagos) → Ghanaian name, location like "Cantonments, Accra", GPS ~5.56, -0.17, phone +233...
+- id 4: "Fatima Pure Water" (Lekki, Lagos) → location like "East Legon, Accra", GPS ~5.64, -0.16
+- id 6: "Blessing Ice Point" (Surulere, Lagos) → "Dansoman, Accra", GPS ~5.55, -0.26
+- id 8: "Chidi Cooler Station" (Victoria Island, Lagos) → "Airport Residential, Accra", GPS ~5.60, -0.18
+- id 10: "Tunde Refresh Corner" (Yaba, Lagos) → "Achimota, Accra", GPS ~5.63, -0.23
+- id 12: "Ngozi Drinks Depot" (Ajah, Lagos) → "Spintex, Accra", GPS ~5.63, -0.10
 
-**New file: `src/lib/demo/mpromo-data.ts`**
+All Nigerian phone numbers (+234...) become Ghanaian (+233...).
 
-This file will export pre-built arrays of realistic Nigerian-context demo records:
+**Teams** -- Replace "Lagos Central" (team_id 2) with "Tema/East Accra" across campaigns, orders, and overview data.
 
-- **Partners (12)**: Mix of CHILLERs and ICE_WATER_SELLERs across Accra/Lagos-area locations, with varied statuses, some with geo coordinates and some without
-- **Campaigns (6)**: Mix of VOLUME_REBATE and MYSTERY_SHOPPER types in all statuses (draft, active, paused, ended) with tier data and spend figures
-- **Promo Codes (15)**: Linked to campaigns, mix of active/redeemed/expired statuses with realistic code strings
-- **Redemptions (10)**: Linked to partners and campaigns, varied payout statuses and amounts
-- **Payouts (8)**: Linked to partners, mix of pending/paid/failed statuses with Paystack references
-- **Orders (10)**: Linked to partners, varied order statuses with realistic totals
-- **Map Partners (8)**: Subset of partners with full geo data plus aggregated redemption/order/payout stats
-- **Overview KPIs**: Pre-computed summary with top chillers, top ice water sellers, and recent activity entries
+**Map Partners** -- Update the same 6 partners with Accra GPS coordinates and Ghanaian details.
 
-All dates will use relative date-fns helpers so they stay current.
+**Redemptions, Payouts, Codes, Orders** -- Update partner names/phones to match the renamed partners. Update team_name references from "Lagos Central" to "Tema/East Accra".
 
----
+**Overview** -- Update any partner names in top_chillers/top_ice_water_sellers and recent_activity descriptions.
 
-### 2. Update the API layer to return demo data
+No structural or API changes needed -- only data values in `src/lib/demo/mpromo-data.ts`.
 
-**Modified file: `src/lib/api/mpromo.ts`**
-
-Replace every `DEMO_MODE` return with imports from the demo data file. Add basic client-side filtering/search/pagination to make the demo feel interactive:
-
-- **getOverview**: Return the pre-built overview object
-- **getPartners**: Return filtered by `type`, `search` (name match), `geo_missing`, with simple pagination
-- **getPartner**: Find by ID from the partners array
-- **getCampaigns**: Return filtered by `status`, `search`, with pagination
-- **getCampaign**: Find by ID from campaigns array
-- **getCodes**: Return filtered by `search` (code match), with pagination
-- **getRedemptions**: Return with pagination
-- **getPayouts**: Return with pagination
-- **getOrders**: Return with pagination
-- **getMapPartners**: Return the map partners array, filtered by `type`/`status`/`search`
-- **getPartnersWithoutGeo**: Return partners where latitude is null, filtered by `type`/`search`
-
-Write operations (`createPartner`, `suspendPartner`, `generateCodes`, `payPayout`, etc.) will remain as-is since they require a real backend.
-
----
-
-### Technical Details
-
-| File | Action |
-|------|--------|
-| `src/lib/demo/mpromo-data.ts` | New -- all demo datasets |
-| `src/lib/api/mpromo.ts` | Modified -- replace empty DEMO_MODE returns with demo data + client-side filtering |
-
-No new dependencies needed. No UI changes required -- the existing pages will automatically display the data.
