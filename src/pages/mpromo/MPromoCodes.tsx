@@ -16,8 +16,8 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getCodes, generateCodes } from "@/lib/api/mpromo";
-import type { PromoCode } from "@/types/mpromo";
+import { getCodes, generateCodes, getCampaigns } from "@/lib/api/mpromo";
+import type { PromoCode, Campaign } from "@/types/mpromo";
 import { toast } from "sonner";
 
 export default function MPromoCodes() {
@@ -36,9 +36,16 @@ export default function MPromoCodes() {
   const [expiry, setExpiry] = useState("");
   const [campaignId, setCampaignId] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   // Cancel confirm
   const [confirmCode, setConfirmCode] = useState<PromoCode | null>(null);
+
+  useEffect(() => {
+    getCampaigns({ page_size: 100 }, scope)
+      .then((res) => setCampaigns(res.data.filter((c) => c.status === "active" || c.status === "draft")))
+      .catch(() => setCampaigns([]));
+  }, [scope]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -106,8 +113,19 @@ export default function MPromoCodes() {
           <CardContent>
             <div className="flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
-                <Label className="text-xs">Campaign ID</Label>
-                <Input className="w-28" value={campaignId} onChange={(e) => setCampaignId(e.target.value)} placeholder="ID" />
+                <Label className="text-xs">Campaign</Label>
+                <Select value={campaignId} onValueChange={setCampaignId}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select campaign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaigns.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Quantity</Label>
