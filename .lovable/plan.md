@@ -1,43 +1,54 @@
 
 
-## Campaign Profile Page Enhancement
+## Strict Tenant Scoping for MPromo Demo Mode
 
-The current `MPromoCampaignDetail` page is a skeleton with placeholder data. The plan is to build it into a full profile page modeled after the partner detail page pattern.
+### Summary
+Add `team_id` to root entities (Partners, MapPartners), build a reusable scoping helper that enforces HQ/non-HQ rules, and apply team filtering across every demo-mode API function. Child entities (codes, redemptions, payouts) inherit team via parent lookups.
 
-### What exists now
-- Basic campaign header with name, type, dates, status, and action buttons (activate/pause/end)
-- Three KPI cards (total redemptions, total spend, chart placeholder)
-- Two empty DataTables for codes and redemptions (hardcoded `data={[]}`)
-- No campaign-scoped API calls for codes/redemptions
-- No tiers display, no team info, no activity timeline
+### Changes
 
-### What to build
+**1. `src/types/mpromo.ts`** — Add `team_id?: number` and `team_name?: string` to `Partner` and `MapPartner` interfaces.
 
-**1. Campaign-scoped API functions** (`src/lib/api/mpromo.ts`)
-- Add `getCampaignCodes(campaignId, params)` — filters `demoCodes` by `campaign_id` in demo mode
-- Add `getCampaignRedemptions(campaignId, params)` — filters `demoRedemptions` by `campaign_id` in demo mode
+**2. `src/lib/demo/mpromo-data.ts`** — Assign `team_id` + `team_name` to all Partner and MapPartner records:
 
-**2. Enhanced campaign header card**
-- Add team name badge (e.g., "Accra Metro") when present
-- Add created date
-- For VOLUME_REBATE: display tiers in a compact table (threshold, reward)
-- For MYSTERY_SHOPPER: display reward amount
+| Team | Partners (by location) |
+|------|----------------------|
+| 1 — Magvlyn HQ | 1 (Osu), 3 (Cantonments), 6 (Dansoman), 10 (Achimota) |
+| 2 — Franchise – Accra Central | 2 (Madina), 4 (East Legon), 5 (Tema), 8 (Airport), 12 (Spintex) |
+| 3 — Franchise – Kumasi | 7 (Kumasi), 9 (Takoradi), 11 (Kasoa) |
 
-**3. Replace chart placeholder with a redemptions trend mini-chart**
-- Simple Recharts bar or area chart showing redemptions over time (demo: generate last 7 days of mock data from existing redemptions)
+Campaigns already have `team_id`. Orders already have `team_id`. No changes needed there.
 
-**4. Populate codes and redemptions tables with real data**
-- Fetch campaign-scoped codes and redemptions on mount using the new API functions
-- Partner names in redemptions table link to partner detail (already defined in columns)
+**3. `src/providers/AuthProvider.tsx`** — Add Team 3 "Franchise – Kumasi" to `DEMO_DATA.teams` with basic mpromo permissions (no `global_view`).
 
-**5. Add tabbed layout** (matching partner detail pattern)
-- Tabs: Overview (KPIs + tiers + chart), Codes, Redemptions
-- Move codes and redemptions tables into their respective tabs
+**4. `src/lib/api/mpromo.ts`** — Core filtering logic:
 
-**6. Add activity timeline in Overview tab**
-- Merge campaign codes and redemptions into a chronological feed, same pattern as partner detail
+- **`resolveEffectiveScope(scope?)`**: Reads `currentTeamId` and permissions from `localStorage`. If user lacks `mpromo.hq.global_view`, forces `mode="current"` regardless of passed scope. Returns `{ mode, teamId }`.
 
-### Files to modify
-- `src/lib/api/mpromo.ts` — add `getCampaignCodes`, `getCampaignRedemptions`
-- `src/pages/mpromo/MPromoCampaignDetail.tsx` — rebuild with tabs, real data fetching, tiers display, chart, activity timeline
+- **`demoTeamFilter<T>(items, scope, teamIdAccessor)`**: Generic filter. For root entities with `team_id`, filters directly. Returns filtered array.
+
+- **Parent lookup maps** built lazily: `campaignTeamMap` (campaign_id → team_id from `demoCampaigns`), `partnerTeamMap` (partner_id → team_id from `demoPartners`). Used for child entity filtering.
+
+- Apply filtering in every DEMO_MODE branch:
+  - `getOverview`: Compute KPIs dynamically from filtered redemptions/orders/campaigns/payouts
+  - `getPartners`, `getPartner`, `getPartnersWithoutGeo`, `getMapPartners`: Filter by partner `team_id`
+  - `getCampaigns`, `getCampaign`: Filter by campaign `team_id`
+  - `getCodes`, `getCampaignCodes`: Inherit team from campaign via `campaignTeamMap`
+  - `getRedemptions`, `getCampaignRedemptions`, `getPartnerRedemptions`: Inherit team from campaign via `campaignTeamMap`
+  - `getPayouts`: Inherit team from partner via `partnerTeamMap`
+  - `getOrders`, `getPartnerOrders`: Filter by order `team_id`
+
+**5. `src/providers/MPromoScopeProvider.tsx`** — Import `useAuth`, check `hasPermission("mpromo.hq.global_view")`. In `setScopeMode` wrapper, if user lacks permission, force mode to `"current"` silently. This prevents non-HQ users from ever holding an "all" or "target" scope in state.
+
+### Technical notes
+- The scoping helper reads from `localStorage("clean-team-id")` and `localStorage("clean-token")` for permission check (parsing demo teams) since the API module doesn't have React context access. Alternatively, scope + currentTeamId are already passed as params to most functions — we can add `currentTeamId` as an extra param to demo helpers.
+- Simpler approach: since every API call site already has access to `useMPromoScope()` and `useAuth()`, we pass `currentTeamId` into the scope object or as a separate param. The `MPromoScope` type gets an additional `currentTeamId` field populated by the provider, keeping the API module pure (no localStorage reads).
+- Overview becomes dynamic: sum filtered redemptions, count filtered campaigns with status "active", etc.
+
+### Files modified
+- `src/types/mpromo.ts`
+- `src/lib/demo/mpromo-data.ts`
+- `src/lib/api/mpromo.ts`
+- `src/providers/AuthProvider.tsx`
+- `src/providers/MPromoScopeProvider.tsx`
 
