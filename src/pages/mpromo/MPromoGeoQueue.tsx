@@ -6,6 +6,7 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
 import { getPartnersWithoutGeo, updatePartnerGeolocation } from "@/lib/api/mpromo";
 import type { Partner } from "@/types/mpromo";
+import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { toast } from "sonner";
 import {
   Select,
@@ -17,6 +18,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function MPromoGeoQueue() {
+  const { scope } = useMPromoScope();
   const [data, setData] = useState<Partner[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -31,11 +33,11 @@ export default function MPromoGeoQueue() {
       page,
       search,
       type: typeFilter !== "all" ? typeFilter : undefined,
-    })
+    }, scope)
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [page, search, typeFilter]);
+  }, [page, search, typeFilter, scope.mode, scope.targetTeamId]);
 
   const handleCaptureCurrent = (partner: Partner) => {
     navigator.geolocation.getCurrentPosition(
