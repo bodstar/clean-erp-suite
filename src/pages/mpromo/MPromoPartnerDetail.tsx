@@ -11,6 +11,7 @@ import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
 import { EditPartnerModal } from "@/components/mpromo/EditPartnerModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
+import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
 import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder } from "@/types/mpromo";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ export default function MPromoPartnerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { scopeMode, targetTeamId } = useMPromoScope();
   const canManage = hasPermission("mpromo.partners.manage");
 
   const [partner, setPartner] = useState<Partner | null>(null);
@@ -46,6 +48,7 @@ export default function MPromoPartnerDetail() {
     if (!id) return;
     const partnerId = Number(id);
     setIsLoading(true);
+    setAccessDenied(false);
     Promise.all([
       getPartner(partnerId),
       getPartnerRedemptions(partnerId),
@@ -58,29 +61,27 @@ export default function MPromoPartnerDetail() {
 
         // Build activity timeline from redemptions + orders, sorted by date desc
         const items: ActivityItem[] = [
-          ...reds.data.map((r) => ({
+          ...reds.data.map((r: Redemption) => ({
             id: `red-${r.id}`,
             type: "redemption" as const,
-            description: `Redeemed GH₵${r.amount.toLocaleString()} from "${r.campaign_name}"`,
+            description: `GH₵${r.amount.toLocaleString()} redeemed`,
             time: r.date,
           })),
-          ...ords.data.map((o) => ({
+          ...ords.data.map((o: MPromoOrder) => ({
             id: `ord-${o.id}`,
             type: "order" as const,
-            description: `Order ${o.order_no} — GH₵${o.total.toLocaleString()} (${o.status})`,
+            description: `Order ${o.order_no} · GH₵${o.total.toLocaleString()}`,
             time: o.date,
           })),
         ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         setActivity(items);
       })
       .catch((err) => {
-        if (err instanceof AccessDeniedError) {
-          setAccessDenied(true);
-        }
+        if (err instanceof AccessDeniedError) setAccessDenied(true);
         setPartner(null);
       })
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, scopeMode, targetTeamId]);
 
   const handleCaptureLocation = () => {
     navigator.geolocation.getCurrentPosition(
