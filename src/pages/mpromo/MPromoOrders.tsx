@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getOrders } from "@/lib/api/mpromo";
 import type { MPromoOrder } from "@/types/mpromo";
@@ -31,7 +32,7 @@ export default function MPromoOrders() {
     { key: "total", header: "Total", render: (r) => `GH₵${r.total.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     ...(scopeMode === "all"
-      ? [{ key: "team_name", header: "Team" } as DataTableColumn<MPromoOrder>]
+      ? [{ key: "team_name", header: "Team", render: (r: MPromoOrder) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<MPromoOrder>]
       : []),
     {
       key: "actions",

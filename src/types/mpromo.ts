@@ -53,6 +53,8 @@ export interface PromoCode {
   status: CodeStatus;
   expires_at: string;
   redeemed_at?: string | null;
+  team_id?: number;
+  team_name?: string;
 }
 
 export interface Redemption {
@@ -66,6 +68,8 @@ export interface Redemption {
   amount: number;
   payout_status: PayoutStatus;
   reference: string;
+  team_id?: number;
+  team_name?: string;
 }
 
 export interface Payout {
@@ -78,6 +82,8 @@ export interface Payout {
   paystack_reference?: string | null;
   paid_at?: string | null;
   created_at: string;
+  team_id?: number;
+  team_name?: string;
 }
 
 export interface MPromoOrder {

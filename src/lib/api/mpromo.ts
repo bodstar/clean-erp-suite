@@ -266,7 +266,12 @@ export async function getCodes(
   if (DEMO_MODE) {
     let filtered = filterByCampaignTeam([...demoCodes], scope);
     filtered = matchSearch(filtered, params?.search as string, ["code", "campaign_name", "issued_to"]);
-    return paginate(filtered, params);
+    // Enrich with team info from parent campaign
+    const enriched = filtered.map((c) => {
+      const campaign = demoCampaigns.find((camp) => camp.id === c.campaign_id);
+      return { ...c, team_id: campaign?.team_id, team_name: campaign?.team_name };
+    });
+    return paginate(enriched, params);
   }
   const res = await api.get("/mpromo/codes", {
     params: { ...params, ...scopeParams(scope) },
@@ -292,7 +297,12 @@ export async function getRedemptions(
   if (DEMO_MODE) {
     let filtered = filterByCampaignTeam([...demoRedemptions], scope);
     filtered = matchSearch(filtered, params?.search as string, ["partner_name", "campaign_name", "reference"]);
-    return paginate(filtered, params);
+    // Enrich with team info from parent campaign
+    const enriched = filtered.map((r) => {
+      const campaign = demoCampaigns.find((c) => c.id === r.campaign_id);
+      return { ...r, team_id: campaign?.team_id, team_name: campaign?.team_name };
+    });
+    return paginate(enriched, params);
   }
   const res = await api.get("/mpromo/redemptions", {
     params: { ...params, ...scopeParams(scope) },
@@ -308,7 +318,12 @@ export async function getPayouts(
   if (DEMO_MODE) {
     let filtered = filterByPartnerTeam([...demoPayouts], scope);
     filtered = matchSearch(filtered, params?.search as string, ["partner_name", "phone"]);
-    return paginate(filtered, params);
+    // Enrich with team info from parent partner
+    const enriched = filtered.map((p) => {
+      const partner = demoPartners.find((pt) => pt.id === p.partner_id);
+      return { ...p, team_id: partner?.team_id, team_name: partner?.team_name };
+    });
+    return paginate(enriched, params);
   }
   const res = await api.get("/mpromo/payouts", {
     params: { ...params, ...scopeParams(scope) },
