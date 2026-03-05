@@ -49,6 +49,7 @@ export default function MPromoMap() {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
+  const heatLayerRef = useRef<L.LayerGroup>(L.layerGroup());
 
   const [partners, setPartners] = useState<MapPartner[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +72,7 @@ export default function MPromoMap() {
     const map = L.map(mapContainerRef.current).setView([5.6037, -0.1870], 12);
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(map);
     markersRef.current.addTo(map);
+    heatLayerRef.current.addTo(map);
     mapRef.current = map;
 
     return () => {
@@ -137,6 +139,7 @@ export default function MPromoMap() {
     partners.forEach((p) => {
       const marker = L.marker([p.latitude, p.longitude], {
         icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
+        opacity: heatmap ? 0.5 : 1,
       });
       marker.bindTooltip(
         `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
@@ -145,7 +148,43 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartner(p));
       markersRef.current.addLayer(marker);
     });
-  }, [partners]);
+  }, [partners, heatmap]);
+
+  // Heatmap layer
+  useEffect(() => {
+    heatLayerRef.current.clearLayers();
+    if (!heatmap || partners.length === 0) return;
+
+    const amounts = partners.map((p) => p.redemptions_amount);
+    const maxAmount = Math.max(...amounts, 1);
+
+    const getColor = (ratio: number) => {
+      if (ratio < 0.5) {
+        const g = Math.round(200 - ratio * 2 * 100);
+        const r = Math.round(ratio * 2 * 255);
+        return `rgb(${r}, ${g}, 50)`;
+      }
+      const r = 255;
+      const g = Math.round(200 - (ratio - 0.5) * 2 * 200);
+      return `rgb(${r}, ${g}, 30)`;
+    };
+
+    partners.forEach((p) => {
+      const ratio = maxAmount > 0 ? p.redemptions_amount / maxAmount : 0;
+      const radius = 8 + ratio * 32;
+      const circle = L.circleMarker([p.latitude, p.longitude], {
+        radius,
+        fillColor: getColor(ratio),
+        fillOpacity: 0.45,
+        stroke: false,
+      });
+      circle.bindTooltip(
+        `<strong>${p.name}</strong><br/>Redemptions: GH₵${p.redemptions_amount.toLocaleString()}`,
+        { direction: "top" }
+      );
+      heatLayerRef.current.addLayer(circle);
+    });
+  }, [partners, heatmap]);
 
   return (
     <div className="space-y-4">
@@ -245,7 +284,12 @@ export default function MPromoMap() {
       </div>
 
       {heatmap && (
-        <p className="text-xs text-muted-foreground italic">Heatmap layer placeholder — will overlay redemption intensity when enabled via API.</p>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>Low</span>
+          <div className="h-3 w-40 rounded-full" style={{ background: "linear-gradient(to right, rgb(0,200,50), rgb(255,200,50), rgb(255,30,30))" }} />
+          <span>High</span>
+          <span className="ml-2 italic">Redemption intensity</span>
+        </div>
       )}
     </div>
   );
