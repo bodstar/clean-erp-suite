@@ -30,7 +30,7 @@ interface ActivityItem {
 export default function MPromoPartnerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentTeamId } = useAuth();
   const { scopeMode, targetTeamId } = useMPromoScope();
   const canManage = hasPermission("mpromo.partners.manage");
 
@@ -50,7 +50,7 @@ export default function MPromoPartnerDetail() {
     setIsLoading(true);
     setAccessDenied(false);
     Promise.all([
-      getPartner(partnerId),
+      getPartner(partnerId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getPartnerRedemptions(partnerId),
       getPartnerOrders(partnerId),
     ])
@@ -81,7 +81,7 @@ export default function MPromoPartnerDetail() {
         setPartner(null);
       })
       .finally(() => setIsLoading(false));
-  }, [id, scopeMode, targetTeamId]);
+  }, [id, scopeMode, targetTeamId, currentTeamId]);
 
   const handleCaptureLocation = () => {
     navigator.geolocation.getCurrentPosition(
