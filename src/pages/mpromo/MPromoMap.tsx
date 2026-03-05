@@ -136,6 +136,10 @@ export default function MPromoMap() {
       const marker = L.marker([p.latitude, p.longitude], {
         icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
       });
+      marker.bindTooltip(
+        `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
+        { direction: "top", offset: [0, -30], className: "leaflet-tooltip" }
+      );
       marker.on("click", () => setSelectedPartner(p));
       markersRef.current.addLayer(marker);
     });
