@@ -27,7 +27,7 @@ interface ActivityItem {
 export default function MPromoCampaignDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentTeamId } = useAuth();
   const { scopeMode, targetTeamId } = useMPromoScope();
   const canManage = hasPermission("mpromo.campaign.manage") && scopeMode !== "all";
 
@@ -43,7 +43,7 @@ export default function MPromoCampaignDetail() {
     setIsLoading(true);
     setAccessDenied(false);
     Promise.all([
-      getCampaign(campaignId),
+      getCampaign(campaignId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getCampaignCodes(campaignId),
       getCampaignRedemptions(campaignId),
     ])
@@ -57,7 +57,7 @@ export default function MPromoCampaignDetail() {
         setCampaign(null);
       })
       .finally(() => setIsLoading(false));
-  }, [id, scopeMode, targetTeamId]);
+  }, [id, scopeMode, targetTeamId, currentTeamId]);
 
   const handleAction = async (action: "activate" | "pause" | "end") => {
     try {
