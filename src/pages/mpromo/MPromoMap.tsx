@@ -15,6 +15,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getMapPartners } from "@/lib/api/mpromo";
 import type { MapPartner } from "@/types/mpromo";
 import { Link } from "react-router-dom";
@@ -44,6 +45,7 @@ const iceWaterIcon = new L.Icon({
 
 export default function MPromoMap() {
   const { theme } = useTheme();
+  const { scopeMode, targetTeamId } = useMPromoScope();
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -102,7 +104,7 @@ export default function MPromoMap() {
             type: typeFilter !== "all" ? typeFilter : undefined,
             status: statusFilter !== "all" ? statusFilter : undefined,
             search: search || undefined,
-          });
+          }, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null });
           setPartners(data);
         } catch {
           setPartners([]);
@@ -111,7 +113,7 @@ export default function MPromoMap() {
         }
       }, 300);
     },
-    [typeFilter, statusFilter, search]
+    [typeFilter, statusFilter, search, scopeMode, targetTeamId]
   );
 
   // Bind map events
