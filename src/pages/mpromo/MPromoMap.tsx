@@ -221,12 +221,12 @@ export default function MPromoMap() {
                       <Eye className="h-3.5 w-3.5" /> View Partner
                     </Button>
                   </Link>
-                  <Link to={`/mpromo/orders?partner=${selectedPartner.id}`}>
+                  <Link to={`/mpromo/partners/${selectedPartner.id}?tab=orders`}>
                     <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
                       <ShoppingCart className="h-3.5 w-3.5" /> View Orders
                     </Button>
                   </Link>
-                  <Link to={`/mpromo/redemptions?partner=${selectedPartner.id}`}>
+                  <Link to={`/mpromo/partners/${selectedPartner.id}?tab=redemptions`}>
                     <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
                       <Receipt className="h-3.5 w-3.5" /> View Redemptions
                     </Button>

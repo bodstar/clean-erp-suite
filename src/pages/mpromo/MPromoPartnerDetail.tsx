@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +29,8 @@ interface ActivityItem {
 
 export default function MPromoPartnerDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "activity";
   const navigate = useNavigate();
   const { hasPermission, currentTeamId } = useAuth();
   const { scopeMode, targetTeamId } = useMPromoScope();
@@ -247,7 +249,7 @@ export default function MPromoPartnerDetail() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="activity">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
