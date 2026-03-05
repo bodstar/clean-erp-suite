@@ -1,54 +1,42 @@
 
 
-## Strict Tenant Scoping for MPromo Demo Mode
+## Add Team Badge Column to All MPromo List Pages (All Teams Scope)
 
 ### Summary
-Add `team_id` to root entities (Partners, MapPartners), build a reusable scoping helper that enforces HQ/non-HQ rules, and apply team filtering across every demo-mode API function. Child entities (codes, redemptions, payouts) inherit team via parent lookups.
+When an HQ user views data in "All Teams" scope, every list page should show a **Badge** column indicating which team owns each row. Currently, Campaigns and Orders show a plain-text "Team" column. This plan upgrades those to badges and adds the team column to Partners, Codes, Redemptions, and Payouts.
 
 ### Changes
 
-**1. `src/types/mpromo.ts`** — Add `team_id?: number` and `team_name?: string` to `Partner` and `MapPartner` interfaces.
+**1. Create a reusable `TeamBadge` component** — `src/components/shared/TeamBadge.tsx`
+A small component that renders the team name inside a `<Badge variant="secondary">`. Returns null/dash if no team name is provided.
 
-**2. `src/lib/demo/mpromo-data.ts`** — Assign `team_id` + `team_name` to all Partner and MapPartner records:
+**2. Add `team_name` to child entity types** — `src/types/mpromo.ts`
+Add optional `team_name?: string` and `team_id?: number` to `PromoCode`, `Redemption`, and `Payout` interfaces.
 
-| Team | Partners (by location) |
-|------|----------------------|
-| 1 — Magvlyn HQ | 1 (Osu), 3 (Cantonments), 6 (Dansoman), 10 (Achimota) |
-| 2 — Franchise – Accra Central | 2 (Madina), 4 (East Legon), 5 (Tema), 8 (Airport), 12 (Spintex) |
-| 3 — Franchise – Kumasi | 7 (Kumasi), 9 (Takoradi), 11 (Kasoa) |
+**3. Enrich child entities with team info in the API layer** — `src/lib/api/mpromo.ts`
+In demo mode, after filtering, map `team_name` onto Codes and Redemptions (via campaign → team lookup) and Payouts (via partner → team lookup) before returning results.
 
-Campaigns already have `team_id`. Orders already have `team_id`. No changes needed there.
+**4. Update all 6 list pages** to conditionally add a Team badge column when `scopeMode === "all"`:
 
-**3. `src/providers/AuthProvider.tsx`** — Add Team 3 "Franchise – Kumasi" to `DEMO_DATA.teams` with basic mpromo permissions (no `global_view`).
+| Page | File | Current state | Change |
+|------|------|--------------|--------|
+| Partners | `MPromoPartners.tsx` | No team column | Add team badge column |
+| Campaigns | `MPromoCampaigns.tsx` | Plain text column | Replace with badge render |
+| Orders | `MPromoOrders.tsx` | Plain text column | Replace with badge render |
+| Codes | `MPromoCodes.tsx` | No team column | Add team badge column |
+| Redemptions | `MPromoRedemptions.tsx` | No team column | Add team badge column |
+| Payouts | `MPromoPayouts.tsx` | No team column (2 tables) | Add team badge column to both pending and paid tables |
 
-**4. `src/lib/api/mpromo.ts`** — Core filtering logic:
-
-- **`resolveEffectiveScope(scope?)`**: Reads `currentTeamId` and permissions from `localStorage`. If user lacks `mpromo.hq.global_view`, forces `mode="current"` regardless of passed scope. Returns `{ mode, teamId }`.
-
-- **`demoTeamFilter<T>(items, scope, teamIdAccessor)`**: Generic filter. For root entities with `team_id`, filters directly. Returns filtered array.
-
-- **Parent lookup maps** built lazily: `campaignTeamMap` (campaign_id → team_id from `demoCampaigns`), `partnerTeamMap` (partner_id → team_id from `demoPartners`). Used for child entity filtering.
-
-- Apply filtering in every DEMO_MODE branch:
-  - `getOverview`: Compute KPIs dynamically from filtered redemptions/orders/campaigns/payouts
-  - `getPartners`, `getPartner`, `getPartnersWithoutGeo`, `getMapPartners`: Filter by partner `team_id`
-  - `getCampaigns`, `getCampaign`: Filter by campaign `team_id`
-  - `getCodes`, `getCampaignCodes`: Inherit team from campaign via `campaignTeamMap`
-  - `getRedemptions`, `getCampaignRedemptions`, `getPartnerRedemptions`: Inherit team from campaign via `campaignTeamMap`
-  - `getPayouts`: Inherit team from partner via `partnerTeamMap`
-  - `getOrders`, `getPartnerOrders`: Filter by order `team_id`
-
-**5. `src/providers/MPromoScopeProvider.tsx`** — Import `useAuth`, check `hasPermission("mpromo.hq.global_view")`. In `setScopeMode` wrapper, if user lacks permission, force mode to `"current"` silently. This prevents non-HQ users from ever holding an "all" or "target" scope in state.
-
-### Technical notes
-- The scoping helper reads from `localStorage("clean-team-id")` and `localStorage("clean-token")` for permission check (parsing demo teams) since the API module doesn't have React context access. Alternatively, scope + currentTeamId are already passed as params to most functions — we can add `currentTeamId` as an extra param to demo helpers.
-- Simpler approach: since every API call site already has access to `useMPromoScope()` and `useAuth()`, we pass `currentTeamId` into the scope object or as a separate param. The `MPromoScope` type gets an additional `currentTeamId` field populated by the provider, keeping the API module pure (no localStorage reads).
-- Overview becomes dynamic: sum filtered redemptions, count filtered campaigns with status "active", etc.
+Each page already imports `useMPromoScope` and has `scopeMode`. The conditional column pattern (`...(scopeMode === "all" ? [column] : [])`) is already used in Campaigns and Orders — same pattern applied everywhere.
 
 ### Files modified
+- `src/components/shared/TeamBadge.tsx` (new)
 - `src/types/mpromo.ts`
-- `src/lib/demo/mpromo-data.ts`
 - `src/lib/api/mpromo.ts`
-- `src/providers/AuthProvider.tsx`
-- `src/providers/MPromoScopeProvider.tsx`
+- `src/pages/mpromo/MPromoPartners.tsx`
+- `src/pages/mpromo/MPromoCampaigns.tsx`
+- `src/pages/mpromo/MPromoOrders.tsx`
+- `src/pages/mpromo/MPromoCodes.tsx`
+- `src/pages/mpromo/MPromoRedemptions.tsx`
+- `src/pages/mpromo/MPromoPayouts.tsx`
 
