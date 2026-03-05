@@ -9,6 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
@@ -85,6 +86,9 @@ export default function MPromoCodes() {
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "expires_at", header: "Expires" },
     { key: "redeemed_at", header: "Redeemed At", render: (r) => r.redeemed_at || "—" },
+    ...(scopeMode === "all"
+      ? [{ key: "team_name", header: "Team", render: (r: PromoCode) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<PromoCode>]
+      : []),
     ...(canManage
       ? [{
           key: "action",

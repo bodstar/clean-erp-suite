@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getRedemptions } from "@/lib/api/mpromo";
 import type { Redemption } from "@/types/mpromo";
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/select";
 
 export default function MPromoRedemptions() {
-  const { scope } = useMPromoScope();
+  const { scope, scopeMode } = useMPromoScope();
   const [data, setData] = useState<Redemption[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -41,6 +42,9 @@ export default function MPromoRedemptions() {
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "payout_status", header: "Payout", render: (r) => <StatusBadge status={r.payout_status} /> },
     { key: "reference", header: "Reference" },
+    ...(scopeMode === "all"
+      ? [{ key: "team_name", header: "Team", render: (r: Redemption) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Redemption>]
+      : []),
   ];
 
   return (

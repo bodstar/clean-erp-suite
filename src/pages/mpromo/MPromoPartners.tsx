@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPartners, suspendPartner, activatePartner } from "@/lib/api/mpromo";
@@ -89,6 +90,9 @@ export default function MPromoPartners() {
           <span className="text-xs text-muted-foreground">Missing</span>
         ),
     },
+    ...(scopeMode === "all"
+      ? [{ key: "team_name", header: "Team", render: (r: Partner) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Partner>]
+      : []),
     {
       key: "actions",
       header: "",

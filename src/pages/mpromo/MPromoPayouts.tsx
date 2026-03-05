@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
@@ -52,6 +53,9 @@ export default function MPromoPayouts() {
     { key: "phone", header: "Phone" },
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
+    ...(scopeMode === "all"
+      ? [{ key: "team_name", header: "Team", render: (r: Payout) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Payout>]
+      : []),
     ...(canManage
       ? [{
           key: "actions",
@@ -78,6 +82,9 @@ export default function MPromoPayouts() {
     { key: "amount", header: "Amount", render: (r) => `GH₵${r.amount.toLocaleString()}` },
     { key: "paystack_reference", header: "Paystack Ref", render: (r) => r.paystack_reference || "—" },
     { key: "paid_at", header: "Date", render: (r) => r.paid_at || "—" },
+    ...(scopeMode === "all"
+      ? [{ key: "team_name", header: "Team", render: (r: Payout) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Payout>]
+      : []),
   ];
 
   return (

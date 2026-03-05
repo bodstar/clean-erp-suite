@@ -4,6 +4,7 @@ import { Plus, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getCampaigns } from "@/lib/api/mpromo";
@@ -55,7 +56,7 @@ export default function MPromoCampaigns() {
     { key: "total_redemptions", header: "Redemptions" },
     { key: "total_spend", header: "Spend", render: (r) => `GH₵${r.total_spend.toLocaleString()}` },
     ...(scopeMode === "all"
-      ? [{ key: "team_name", header: "Team" } as DataTableColumn<Campaign>]
+      ? [{ key: "team_name", header: "Team", render: (r: Campaign) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Campaign>]
       : []),
     {
       key: "actions",
