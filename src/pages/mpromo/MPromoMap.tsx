@@ -156,7 +156,13 @@ export default function MPromoMap() {
     heatLayerRef.current.clearLayers();
     if (!heatmap || partners.length === 0) return;
 
-    const amounts = partners.map((p) => p.redemptions_amount);
+    const metricLabel = heatMetric === "redemptions" ? "Redemptions" : heatMetric === "orders" ? "Orders" : "Pending Payouts";
+    const getValue = (p: MapPartner) =>
+      heatMetric === "redemptions" ? p.redemptions_amount
+        : heatMetric === "orders" ? p.orders_amount
+        : p.pending_payouts_amount;
+
+    const amounts = partners.map(getValue);
     const maxAmount = Math.max(...amounts, 1);
 
     const getColor = (ratio: number) => {
@@ -171,7 +177,8 @@ export default function MPromoMap() {
     };
 
     partners.forEach((p) => {
-      const ratio = maxAmount > 0 ? p.redemptions_amount / maxAmount : 0;
+      const val = getValue(p);
+      const ratio = maxAmount > 0 ? val / maxAmount : 0;
       const radius = 8 + ratio * 32;
       const circle = L.circleMarker([p.latitude, p.longitude], {
         radius,
@@ -180,12 +187,12 @@ export default function MPromoMap() {
         stroke: false,
       });
       circle.bindTooltip(
-        `<strong>${p.name}</strong><br/>Redemptions: GH₵${p.redemptions_amount.toLocaleString()}`,
+        `<strong>${p.name}</strong><br/>${metricLabel}: GH₵${val.toLocaleString()}`,
         { direction: "top" }
       );
       heatLayerRef.current.addLayer(circle);
     });
-  }, [partners, heatmap]);
+  }, [partners, heatmap, heatMetric]);
 
   return (
     <div className="space-y-4">
