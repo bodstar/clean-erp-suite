@@ -1,25 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getMapPartners } from "@/lib/api/mpromo";
 import type { MapPartner } from "@/types/mpromo";
-import { Link } from "react-router-dom";
-import { Eye, ShoppingCart, Receipt } from "lucide-react";
+import { MapFilterBar, type HeatMetric } from "@/components/mpromo/map/MapFilterBar";
+import { MapPartnerPanel } from "@/components/mpromo/map/MapPartnerPanel";
+import { useMapHeatLayer, getHeatMetricIntensityLabel } from "@/components/mpromo/map/useMapHeatLayer";
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -49,16 +37,15 @@ export default function MPromoMap() {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
-  const heatLayerRef = useRef<L.LayerGroup>(L.layerGroup());
 
   const [partners, setPartners] = useState<MapPartner[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<MapPartner | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [heatmap, setHeatmap] = useState(false);
-  const [heatMetric, setHeatMetric] = useState<"redemptions" | "orders" | "payouts">("redemptions");
+  const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const isDark = theme === "dark";
@@ -69,13 +56,10 @@ export default function MPromoMap() {
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-
-    const map = L.map(mapContainerRef.current).setView([5.6037, -0.1870], 12);
+    const map = L.map(mapContainerRef.current).setView([5.6037, -0.187], 12);
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(map);
     markersRef.current.addTo(map);
-    heatLayerRef.current.addTo(map);
     mapRef.current = map;
-
     return () => {
       map.remove();
       mapRef.current = null;
@@ -86,12 +70,13 @@ export default function MPromoMap() {
   useEffect(() => {
     if (!mapRef.current) return;
     mapRef.current.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer) {
-        mapRef.current!.removeLayer(layer);
-      }
+      if (layer instanceof L.TileLayer) mapRef.current!.removeLayer(layer);
     });
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(mapRef.current);
   }, [tileUrl]);
+
+  // Heatmap hook
+  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric });
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -101,13 +86,16 @@ export default function MPromoMap() {
         try {
           const sw = bounds.getSouthWest();
           const ne = bounds.getNorthEast();
-          const data = await getMapPartners({
-            bbox: `${sw.lat},${sw.lng},${ne.lat},${ne.lng}`,
-            zoom,
-            type: typeFilter !== "all" ? typeFilter : undefined,
-            status: statusFilter !== "all" ? statusFilter : undefined,
-            search: search || undefined,
-          }, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null });
+          const data = await getMapPartners(
+            {
+              bbox: `${sw.lat},${sw.lng},${ne.lat},${ne.lng}`,
+              zoom,
+              type: typeFilter !== "all" ? typeFilter : undefined,
+              status: statusFilter !== "all" ? statusFilter : undefined,
+              search: search || undefined,
+            },
+            { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }
+          );
           setPartners(data);
         } catch {
           setPartners([]);
@@ -126,7 +114,6 @@ export default function MPromoMap() {
     const handler = () => loadPartners(map.getBounds(), map.getZoom());
     map.on("moveend", handler);
     map.on("zoomend", handler);
-    // Load partners on initial mount
     handler();
     return () => {
       map.off("moveend", handler);
@@ -151,165 +138,44 @@ export default function MPromoMap() {
     });
   }, [partners, heatmap]);
 
-  // Heatmap layer
-  useEffect(() => {
-    heatLayerRef.current.clearLayers();
-    if (!heatmap || partners.length === 0) return;
-
-    const metricLabel = heatMetric === "redemptions" ? "Redemptions" : heatMetric === "orders" ? "Orders" : "Pending Payouts";
-    const getValue = (p: MapPartner) =>
-      heatMetric === "redemptions" ? p.redemptions_amount
-        : heatMetric === "orders" ? p.orders_amount
-        : p.pending_payouts_amount;
-
-    const amounts = partners.map(getValue);
-    const maxAmount = Math.max(...amounts, 1);
-
-    const getColor = (ratio: number) => {
-      if (ratio < 0.5) {
-        const g = Math.round(200 - ratio * 2 * 100);
-        const r = Math.round(ratio * 2 * 255);
-        return `rgb(${r}, ${g}, 50)`;
-      }
-      const r = 255;
-      const g = Math.round(200 - (ratio - 0.5) * 2 * 200);
-      return `rgb(${r}, ${g}, 30)`;
-    };
-
-    partners.forEach((p) => {
-      const val = getValue(p);
-      const ratio = maxAmount > 0 ? val / maxAmount : 0;
-      const radius = 8 + ratio * 32;
-      const circle = L.circleMarker([p.latitude, p.longitude], {
-        radius,
-        fillColor: getColor(ratio),
-        fillOpacity: 0.45,
-        stroke: false,
-      });
-      circle.bindTooltip(
-        `<strong>${p.name}</strong><br/>${metricLabel}: GH₵${val.toLocaleString()}`,
-        { direction: "top" }
-      );
-      heatLayerRef.current.addLayer(circle);
-    });
-  }, [partners, heatmap, heatMetric]);
-
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-xs">Partner Type</Label>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="CHILLER">Chillers</SelectItem>
-              <SelectItem value="ICE_WATER_SELLER">Ice Water Sellers</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Status</Label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Search</Label>
-          <Input className="w-48 h-8 text-xs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Name / Phone / Location" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch id="heatmap" checked={heatmap} onCheckedChange={setHeatmap} />
-          <Label htmlFor="heatmap" className="text-xs">Heatmap</Label>
-        </div>
-        {heatmap && (
-          <div className="space-y-1">
-            <Label className="text-xs">Metric</Label>
-            <Select value={heatMetric} onValueChange={(v) => setHeatMetric(v as "redemptions" | "orders" | "payouts")}>
-              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="redemptions">Redemptions</SelectItem>
-                <SelectItem value="orders">Orders</SelectItem>
-                <SelectItem value="payouts">Pending Payouts</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        {isLoading && <Skeleton className="h-4 w-16" />}
-      </div>
+      <MapFilterBar
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        search={search}
+        onSearchChange={setSearch}
+        heatmap={heatmap}
+        onHeatmapChange={setHeatmap}
+        heatMetric={heatMetric}
+        onHeatMetricChange={setHeatMetric}
+        isLoading={isLoading}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-        {/* Map */}
         <div
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-
-        {/* Side panel */}
-        <Card className="h-[500px] overflow-auto">
-          <CardContent className="p-4">
-            {selectedPartner ? (
-              <div className="space-y-3">
-                <h3 className="font-bold text-foreground">{selectedPartner.name}</h3>
-                <p className="text-xs text-muted-foreground">{selectedPartner.type.replace("_", " ")} · {selectedPartner.phone}</p>
-                <p className="text-xs text-muted-foreground">{selectedPartner.location}</p>
-                <p className="text-xs">Status: <span className="capitalize font-medium">{selectedPartner.status}</span></p>
-                <p className="text-xs">Last Activity: {selectedPartner.last_activity || "—"}</p>
-
-                <div className="border-t border-border pt-3 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Redemptions</span>
-                    <span>{selectedPartner.redemptions_count} · GH₵{selectedPartner.redemptions_amount.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Orders</span>
-                    <span>{selectedPartner.orders_count} · GH₵{selectedPartner.orders_amount.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Pending Payouts</span>
-                    <span>{selectedPartner.pending_payouts_count} · GH₵{selectedPartner.pending_payouts_amount.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-border pt-3 flex flex-col gap-2">
-                  <Link to={`/mpromo/partners/${selectedPartner.id}`}>
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                      <Eye className="h-3.5 w-3.5" /> View Partner
-                    </Button>
-                  </Link>
-                  <Link to={`/mpromo/partners/${selectedPartner.id}?tab=orders`}>
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                      <ShoppingCart className="h-3.5 w-3.5" /> View Orders
-                    </Button>
-                  </Link>
-                  <Link to={`/mpromo/partners/${selectedPartner.id}?tab=redemptions`}>
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                      <Receipt className="h-3.5 w-3.5" /> View Redemptions
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                Click a marker to view partner details
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <MapPartnerPanel partner={selectedPartner} />
       </div>
 
       {heatmap && (
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>Low</span>
-          <div className="h-3 w-40 rounded-full" style={{ background: "linear-gradient(to right, rgb(0,200,50), rgb(255,200,50), rgb(255,30,30))" }} />
+          <div
+            className="h-3 w-40 rounded-full"
+            style={{
+              background:
+                "linear-gradient(to right, rgb(0,200,50), rgb(255,200,50), rgb(255,30,30))",
+            }}
+          />
           <span>High</span>
-          <span className="ml-2 italic">{heatMetric === "redemptions" ? "Redemption" : heatMetric === "orders" ? "Order" : "Payout"} intensity</span>
+          <span className="ml-2 italic">
+            {getHeatMetricIntensityLabel(heatMetric)} intensity
+          </span>
         </div>
       )}
     </div>
