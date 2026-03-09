@@ -309,7 +309,7 @@ export default function MPromoMap() {
           <span>Low</span>
           <div className="h-3 w-40 rounded-full" style={{ background: "linear-gradient(to right, rgb(0,200,50), rgb(255,200,50), rgb(255,30,30))" }} />
           <span>High</span>
-          <span className="ml-2 italic">Redemption intensity</span>
+          <span className="ml-2 italic">{heatMetric === "redemptions" ? "Redemption" : heatMetric === "orders" ? "Order" : "Payout"} intensity</span>
         </div>
       )}
     </div>
