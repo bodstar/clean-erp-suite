@@ -58,6 +58,7 @@ export default function MPromoMap() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [heatmap, setHeatmap] = useState(false);
+  const [heatMetric, setHeatMetric] = useState<"redemptions" | "orders" | "payouts">("redemptions");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const isDark = theme === "dark";
