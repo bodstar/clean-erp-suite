@@ -221,6 +221,19 @@ export default function MPromoMap() {
           <Switch id="heatmap" checked={heatmap} onCheckedChange={setHeatmap} />
           <Label htmlFor="heatmap" className="text-xs">Heatmap</Label>
         </div>
+        {heatmap && (
+          <div className="space-y-1">
+            <Label className="text-xs">Metric</Label>
+            <Select value={heatMetric} onValueChange={(v) => setHeatMetric(v as "redemptions" | "orders" | "payouts")}>
+              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="redemptions">Redemptions</SelectItem>
+                <SelectItem value="orders">Orders</SelectItem>
+                <SelectItem value="payouts">Pending Payouts</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         {isLoading && <Skeleton className="h-4 w-16" />}
       </div>
 
