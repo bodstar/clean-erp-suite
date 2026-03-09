@@ -58,6 +58,7 @@ export default function MPromoMap() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [heatmap, setHeatmap] = useState(false);
+  const [heatMetric, setHeatMetric] = useState<"redemptions" | "orders" | "payouts">("redemptions");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const isDark = theme === "dark";
@@ -155,7 +156,13 @@ export default function MPromoMap() {
     heatLayerRef.current.clearLayers();
     if (!heatmap || partners.length === 0) return;
 
-    const amounts = partners.map((p) => p.redemptions_amount);
+    const metricLabel = heatMetric === "redemptions" ? "Redemptions" : heatMetric === "orders" ? "Orders" : "Pending Payouts";
+    const getValue = (p: MapPartner) =>
+      heatMetric === "redemptions" ? p.redemptions_amount
+        : heatMetric === "orders" ? p.orders_amount
+        : p.pending_payouts_amount;
+
+    const amounts = partners.map(getValue);
     const maxAmount = Math.max(...amounts, 1);
 
     const getColor = (ratio: number) => {
@@ -170,7 +177,8 @@ export default function MPromoMap() {
     };
 
     partners.forEach((p) => {
-      const ratio = maxAmount > 0 ? p.redemptions_amount / maxAmount : 0;
+      const val = getValue(p);
+      const ratio = maxAmount > 0 ? val / maxAmount : 0;
       const radius = 8 + ratio * 32;
       const circle = L.circleMarker([p.latitude, p.longitude], {
         radius,
@@ -179,12 +187,12 @@ export default function MPromoMap() {
         stroke: false,
       });
       circle.bindTooltip(
-        `<strong>${p.name}</strong><br/>Redemptions: GH₵${p.redemptions_amount.toLocaleString()}`,
+        `<strong>${p.name}</strong><br/>${metricLabel}: GH₵${val.toLocaleString()}`,
         { direction: "top" }
       );
       heatLayerRef.current.addLayer(circle);
     });
-  }, [partners, heatmap]);
+  }, [partners, heatmap, heatMetric]);
 
   return (
     <div className="space-y-4">
@@ -220,6 +228,19 @@ export default function MPromoMap() {
           <Switch id="heatmap" checked={heatmap} onCheckedChange={setHeatmap} />
           <Label htmlFor="heatmap" className="text-xs">Heatmap</Label>
         </div>
+        {heatmap && (
+          <div className="space-y-1">
+            <Label className="text-xs">Metric</Label>
+            <Select value={heatMetric} onValueChange={(v) => setHeatMetric(v as "redemptions" | "orders" | "payouts")}>
+              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="redemptions">Redemptions</SelectItem>
+                <SelectItem value="orders">Orders</SelectItem>
+                <SelectItem value="payouts">Pending Payouts</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         {isLoading && <Skeleton className="h-4 w-16" />}
       </div>
 
@@ -288,7 +309,7 @@ export default function MPromoMap() {
           <span>Low</span>
           <div className="h-3 w-40 rounded-full" style={{ background: "linear-gradient(to right, rgb(0,200,50), rgb(255,200,50), rgb(255,30,30))" }} />
           <span>High</span>
-          <span className="ml-2 italic">Redemption intensity</span>
+          <span className="ml-2 italic">{heatMetric === "redemptions" ? "Redemption" : heatMetric === "orders" ? "Order" : "Payout"} intensity</span>
         </div>
       )}
     </div>
