@@ -42,7 +42,7 @@ export default function MPromoCampaignCreate() {
   const isStep2Valid =
     type === "MYSTERY_SHOPPER"
       ? rewardAmount > 0
-      : tiers.every((t) => t.threshold > 0 && t.reward_amount > 0);
+      : tiers.every((t) => t.threshold > 0 && t.reward_amount > 0 && t.loyalty_points >= 0);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
