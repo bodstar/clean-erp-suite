@@ -27,6 +27,7 @@ export interface Partner {
 export interface CampaignTier {
   threshold: number;
   reward_amount: number;
+  loyalty_points: number;
 }
 
 export interface Campaign {
