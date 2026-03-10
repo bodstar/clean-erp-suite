@@ -262,11 +262,11 @@ export default function MPromoPartnerCreate() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => navigate("/mpromo/partners")}>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => navigate("/mpromo/partners")} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving} className="gap-1.5">
+            <Button type="submit" disabled={isSaving} className="gap-1.5 w-full sm:w-auto">
               <Save className="h-4 w-4" /> {isSaving ? "Saving..." : "Save Partner"}
             </Button>
           </div>
