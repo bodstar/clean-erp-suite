@@ -32,8 +32,9 @@ export default function MPromoCampaignCreate() {
   const [endDate, setEndDate] = useState("");
 
   // Step 2
-  const [tiers, setTiers] = useState<CampaignTier[]>([{ threshold: 0, reward_amount: 0 }]);
+  const [tiers, setTiers] = useState<CampaignTier[]>([{ threshold: 0, reward_amount: 0, loyalty_points: 0 }]);
   const [rewardAmount, setRewardAmount] = useState<number>(0);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
 
   const targetTeam = teams.find((t) => t.id === targetTeamId);
 
