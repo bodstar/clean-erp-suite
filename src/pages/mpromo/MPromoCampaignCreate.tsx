@@ -32,8 +32,9 @@ export default function MPromoCampaignCreate() {
   const [endDate, setEndDate] = useState("");
 
   // Step 2
-  const [tiers, setTiers] = useState<CampaignTier[]>([{ threshold: 0, reward_amount: 0 }]);
+  const [tiers, setTiers] = useState<CampaignTier[]>([{ threshold: 0, reward_amount: 0, loyalty_points: 0 }]);
   const [rewardAmount, setRewardAmount] = useState<number>(0);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
 
   const targetTeam = teams.find((t) => t.id === targetTeamId);
 
@@ -41,7 +42,7 @@ export default function MPromoCampaignCreate() {
   const isStep2Valid =
     type === "MYSTERY_SHOPPER"
       ? rewardAmount > 0
-      : tiers.every((t) => t.threshold > 0 && t.reward_amount > 0);
+      : tiers.every((t) => t.threshold > 0 && t.reward_amount > 0 && t.loyalty_points >= 0);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -52,7 +53,7 @@ export default function MPromoCampaignCreate() {
           type,
           start_date: startDate,
           end_date: endDate,
-          ...(type === "VOLUME_REBATE" ? { tiers } : { reward_amount: rewardAmount }),
+          ...(type === "VOLUME_REBATE" ? { tiers } : { reward_amount: rewardAmount, loyalty_points: loyaltyPoints }),
         },
         scope
       );
@@ -168,6 +169,19 @@ export default function MPromoCampaignCreate() {
                         placeholder="e.g. 500"
                       />
                     </div>
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">Loyalty Points</Label>
+                      <Input
+                        type="number"
+                        value={tier.loyalty_points || ""}
+                        onChange={(e) => {
+                          const n = [...tiers];
+                          n[i] = { ...n[i], loyalty_points: Number(e.target.value) };
+                          setTiers(n);
+                        }}
+                        placeholder="e.g. 10"
+                      />
+                    </div>
                     {tiers.length > 1 && (
                       <Button
                         variant="ghost"
@@ -179,19 +193,30 @@ export default function MPromoCampaignCreate() {
                     )}
                   </div>
                 ))}
-                <Button variant="outline" size="sm" onClick={() => setTiers([...tiers, { threshold: 0, reward_amount: 0 }])}>
+                <Button variant="outline" size="sm" onClick={() => setTiers([...tiers, { threshold: 0, reward_amount: 0, loyalty_points: 0 }])}>
                   + Add Tier
                 </Button>
               </div>
             ) : (
-              <div className="space-y-1.5">
-                <Label>Reward per Valid Code (GH₵)</Label>
-                <Input
-                  type="number"
-                  value={rewardAmount || ""}
-                  onChange={(e) => setRewardAmount(Number(e.target.value))}
-                  placeholder="e.g. 200"
-                />
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Reward per Valid Code (GH₵)</Label>
+                  <Input
+                    type="number"
+                    value={rewardAmount || ""}
+                    onChange={(e) => setRewardAmount(Number(e.target.value))}
+                    placeholder="e.g. 200"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Loyalty Points per Redemption</Label>
+                  <Input
+                    type="number"
+                    value={loyaltyPoints || ""}
+                    onChange={(e) => setLoyaltyPoints(Number(e.target.value))}
+                    placeholder="e.g. 15"
+                  />
+                </div>
               </div>
             )}
             <div className="flex justify-between">
@@ -216,6 +241,8 @@ export default function MPromoCampaignCreate() {
                 <>
                   <span className="text-muted-foreground">Reward</span>
                   <span className="font-medium">GH₵{rewardAmount.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Loyalty Points</span>
+                  <span className="font-medium">{loyaltyPoints} pts</span>
                 </>
               )}
             </div>
@@ -223,7 +250,7 @@ export default function MPromoCampaignCreate() {
               <div className="text-sm">
                 <p className="text-muted-foreground mb-1">Tiers:</p>
                 {tiers.map((t, i) => (
-                  <p key={i}>≥ {t.threshold} units → GH₵{t.reward_amount.toLocaleString()}</p>
+                  <p key={i}>≥ {t.threshold} units → GH₵{t.reward_amount.toLocaleString()} + {t.loyalty_points} pts</p>
                 ))}
               </div>
             )}

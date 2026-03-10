@@ -17,6 +17,7 @@ export interface Partner {
   latitude?: number | null;
   longitude?: number | null;
   geolocation_captured_at?: string | null;
+  loyalty_points: number;
   team_id?: number;
   team_name?: string;
   created_at: string;
@@ -26,6 +27,7 @@ export interface Partner {
 export interface CampaignTier {
   threshold: number;
   reward_amount: number;
+  loyalty_points: number;
 }
 
 export interface Campaign {
@@ -37,6 +39,7 @@ export interface Campaign {
   end_date: string;
   tiers?: CampaignTier[];
   reward_amount?: number;
+  loyalty_points?: number;
   total_redemptions: number;
   total_spend: number;
   team_id?: number;
@@ -127,6 +130,7 @@ export interface MapPartner {
   orders_amount: number;
   pending_payouts_count: number;
   pending_payouts_amount: number;
+  loyalty_points: number;
   team_id?: number;
   team_name?: string;
 }

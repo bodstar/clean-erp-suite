@@ -174,22 +174,29 @@ export default function MPromoCampaignDetail() {
               {campaign.type === "VOLUME_REBATE" && campaign.tiers && campaign.tiers.length > 0 && (
                 <div className="mt-3">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Rebate Tiers</p>
-                  <div className="inline-grid grid-cols-2 gap-x-6 gap-y-1 text-sm border rounded-md p-2">
+                  <div className="inline-grid grid-cols-3 gap-x-6 gap-y-1 text-sm border rounded-md p-2">
                     <span className="text-xs font-medium text-muted-foreground">Threshold</span>
                     <span className="text-xs font-medium text-muted-foreground">Reward</span>
+                    <span className="text-xs font-medium text-muted-foreground">Points</span>
                     {campaign.tiers.map((t, i) => (
                       <React.Fragment key={i}>
                         <span>{t.threshold} units</span>
                         <span>GH₵{t.reward_amount.toLocaleString()}</span>
+                        <span>{t.loyalty_points} pts</span>
                       </React.Fragment>
                     ))}
                   </div>
                 </div>
               )}
               {campaign.type === "MYSTERY_SHOPPER" && campaign.reward_amount && (
-                <div className="flex items-center gap-1.5 mt-2 text-sm">
-                  <Award className="h-4 w-4 text-primary" />
-                  <span>Reward: <strong>GH₵{campaign.reward_amount.toLocaleString()}</strong></span>
+                <div className="flex items-center gap-3 mt-2 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Award className="h-4 w-4 text-primary" />
+                    <span>Reward: <strong>GH₵{campaign.reward_amount.toLocaleString()}</strong></span>
+                  </div>
+                  {campaign.loyalty_points != null && (
+                    <span>· <strong>{campaign.loyalty_points}</strong> pts per redemption</span>
+                  )}
                 </div>
               )}
             </div>

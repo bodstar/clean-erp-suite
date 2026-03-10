@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed } from "lucide-react";
+import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -198,8 +198,12 @@ export default function MPromoPartnerDetail() {
             <div>
               <h2 className="text-xl font-bold text-foreground">{partner.name}</h2>
               <p className="text-sm text-muted-foreground">{partner.phone} · {partner.type.replace("_", " ")} · {partner.location}</p>
-              <div className="mt-2">
+              <div className="mt-2 flex items-center gap-3">
                 <StatusBadge status={partner.status} />
+                <div className="flex items-center gap-1 text-sm font-medium text-primary">
+                  <Star className="h-4 w-4" />
+                  {partner.loyalty_points.toLocaleString()} pts
+                </div>
               </div>
             </div>
             {canManage && (
