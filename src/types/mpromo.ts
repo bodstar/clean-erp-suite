@@ -130,6 +130,7 @@ export interface MapPartner {
   orders_amount: number;
   pending_payouts_count: number;
   pending_payouts_amount: number;
+  loyalty_points: number;
   team_id?: number;
   team_name?: string;
 }
