@@ -53,7 +53,7 @@ export default function MPromoCampaignCreate() {
           type,
           start_date: startDate,
           end_date: endDate,
-          ...(type === "VOLUME_REBATE" ? { tiers } : { reward_amount: rewardAmount }),
+          ...(type === "VOLUME_REBATE" ? { tiers } : { reward_amount: rewardAmount, loyalty_points: loyaltyPoints }),
         },
         scope
       );
