@@ -80,6 +80,7 @@ export default function MPromoPartners() {
       render: (row) => <StatusBadge status={row.status} />,
     },
     { key: "last_activity", header: "Last Activity", render: (row) => row.last_activity || "—" },
+    { key: "loyalty_points", header: "Points", render: (row) => row.loyalty_points.toLocaleString() },
     {
       key: "geo",
       header: "Geo",

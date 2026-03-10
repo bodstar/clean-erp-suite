@@ -189,9 +189,14 @@ export default function MPromoCampaignDetail() {
                 </div>
               )}
               {campaign.type === "MYSTERY_SHOPPER" && campaign.reward_amount && (
-                <div className="flex items-center gap-1.5 mt-2 text-sm">
-                  <Award className="h-4 w-4 text-primary" />
-                  <span>Reward: <strong>GH₵{campaign.reward_amount.toLocaleString()}</strong></span>
+                <div className="flex items-center gap-3 mt-2 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Award className="h-4 w-4 text-primary" />
+                    <span>Reward: <strong>GH₵{campaign.reward_amount.toLocaleString()}</strong></span>
+                  </div>
+                  {campaign.loyalty_points != null && (
+                    <span>· <strong>{campaign.loyalty_points}</strong> pts per redemption</span>
+                  )}
                 </div>
               )}
             </div>

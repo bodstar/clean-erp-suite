@@ -241,6 +241,8 @@ export default function MPromoCampaignCreate() {
                 <>
                   <span className="text-muted-foreground">Reward</span>
                   <span className="font-medium">GH₵{rewardAmount.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Loyalty Points</span>
+                  <span className="font-medium">{loyaltyPoints} pts</span>
                 </>
               )}
             </div>
@@ -248,7 +250,7 @@ export default function MPromoCampaignCreate() {
               <div className="text-sm">
                 <p className="text-muted-foreground mb-1">Tiers:</p>
                 {tiers.map((t, i) => (
-                  <p key={i}>≥ {t.threshold} units → GH₵{t.reward_amount.toLocaleString()}</p>
+                  <p key={i}>≥ {t.threshold} units → GH₵{t.reward_amount.toLocaleString()} + {t.loyalty_points} pts</p>
                 ))}
               </div>
             )}
