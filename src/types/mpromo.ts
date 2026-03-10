@@ -17,6 +17,7 @@ export interface Partner {
   latitude?: number | null;
   longitude?: number | null;
   geolocation_captured_at?: string | null;
+  loyalty_points: number;
   team_id?: number;
   team_name?: string;
   created_at: string;
