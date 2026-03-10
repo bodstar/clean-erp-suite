@@ -174,13 +174,15 @@ export default function MPromoCampaignDetail() {
               {campaign.type === "VOLUME_REBATE" && campaign.tiers && campaign.tiers.length > 0 && (
                 <div className="mt-3">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Rebate Tiers</p>
-                  <div className="inline-grid grid-cols-2 gap-x-6 gap-y-1 text-sm border rounded-md p-2">
+                  <div className="inline-grid grid-cols-3 gap-x-6 gap-y-1 text-sm border rounded-md p-2">
                     <span className="text-xs font-medium text-muted-foreground">Threshold</span>
                     <span className="text-xs font-medium text-muted-foreground">Reward</span>
+                    <span className="text-xs font-medium text-muted-foreground">Points</span>
                     {campaign.tiers.map((t, i) => (
                       <React.Fragment key={i}>
                         <span>{t.threshold} units</span>
                         <span>GH₵{t.reward_amount.toLocaleString()}</span>
+                        <span>{t.loyalty_points} pts</span>
                       </React.Fragment>
                     ))}
                   </div>
