@@ -39,6 +39,7 @@ export interface Campaign {
   end_date: string;
   tiers?: CampaignTier[];
   reward_amount?: number;
+  loyalty_points?: number;
   total_redemptions: number;
   total_spend: number;
   team_id?: number;
