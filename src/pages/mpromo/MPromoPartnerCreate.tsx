@@ -147,7 +147,7 @@ export default function MPromoPartnerCreate() {
   };
 
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="space-y-4 w-full max-w-2xl px-1 sm:px-0">
       <Button variant="ghost" size="sm" onClick={() => navigate("/mpromo/partners")} className="gap-1.5">
         <ArrowLeft className="h-4 w-4" /> Back to Partners
       </Button>
