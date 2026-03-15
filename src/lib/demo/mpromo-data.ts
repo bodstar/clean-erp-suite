@@ -7,6 +7,7 @@ import type {
   Payout,
   MPromoOrder,
   MapPartner,
+  PointsHistoryEntry,
 } from "@/types/mpromo";
 
 const now = new Date();

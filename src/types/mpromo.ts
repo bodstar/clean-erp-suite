@@ -136,6 +136,16 @@ export interface MapPartner {
   team_name?: string;
 }
 
+export interface PointsHistoryEntry {
+  id: number;
+  date: string;
+  points: number;
+  campaign_id: number;
+  campaign_name: string;
+  redemption_id: number;
+  description: string;
+}
+
 export type ScopeMode = "current" | "all" | "target";
 
 export interface MPromoScope {
