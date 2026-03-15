@@ -351,6 +351,22 @@ export default function MPromoPartnerDetail() {
           onSave={handleEditSave}
         />
       )}
+
+      {partner && (
+        <AdjustPointsModal
+          open={adjustPointsOpen}
+          onClose={() => setAdjustPointsOpen(false)}
+          partnerName={partner.name}
+          currentPoints={partner.loyalty_points}
+          onConfirm={async (adj) => {
+            const result = await adjustPartnerPoints(partner.id, adj);
+            setPartner((p) => p ? { ...p, loyalty_points: result.new_balance } : p);
+            toast.success(
+              `${adj.type === "add" ? "Added" : "Deducted"} ${adj.amount.toLocaleString()} pts. New balance: ${result.new_balance.toLocaleString()} pts`
+            );
+          }}
+        />
+      )}
     </div>
   );
 }
