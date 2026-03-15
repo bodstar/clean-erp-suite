@@ -212,8 +212,9 @@ export default function MPromoPartnerDetail() {
               </div>
             </div>
             {canManage && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+                <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
                 <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
                   {partner.status === "active"
                     ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
