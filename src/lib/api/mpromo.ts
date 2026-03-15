@@ -141,6 +141,7 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
       orders_today: todayOrders.length,
       top_chillers: topChillers,
       top_ice_water_sellers: topIWS,
+      top_loyalty: topLoyalty,
       recent_activity: recentActivity,
     };
   }

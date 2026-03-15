@@ -147,6 +147,43 @@ export default function MPromoOverview() {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+            <Star className="h-4 w-4 text-yellow-500" />
+            Loyalty Points Leaderboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </div>
+          ) : data?.top_loyalty && data.top_loyalty.length > 0 ? (
+            <div className="space-y-2">
+              {data.top_loyalty.map((p, i) => (
+                <div key={p.id} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {i + 1}.{" "}
+                    <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">
+                      {p.name}
+                    </Link>
+                    <span className="ml-1.5 text-xs text-muted-foreground/70">
+                      {p.type === "CHILLER" ? "Chiller" : "Ice Water"}
+                    </span>
+                  </span>
+                  <span className="font-medium text-yellow-600 dark:text-yellow-400">{p.points.toLocaleString()} pts</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No data yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
