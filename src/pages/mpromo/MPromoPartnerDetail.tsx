@@ -12,8 +12,8 @@ import { EditPartnerModal } from "@/components/mpromo/EditPartnerModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
-import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder } from "@/types/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
+import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder, PointsHistoryEntry } from "@/types/mpromo";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -42,6 +42,7 @@ export default function MPromoPartnerDetail() {
   const [mapOpen, setMapOpen] = useState(false);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [orders, setOrders] = useState<MPromoOrder[]>([]);
+  const [pointsHistory, setPointsHistory] = useState<PointsHistoryEntry[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -55,11 +56,13 @@ export default function MPromoPartnerDetail() {
       getPartner(partnerId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getPartnerRedemptions(partnerId),
       getPartnerOrders(partnerId),
+      getPartnerPointsHistory(partnerId),
     ])
-      .then(([p, reds, ords]) => {
+      .then(([p, reds, ords, pts]) => {
         setPartner(p);
         setRedemptions(reds.data);
         setOrders(ords.data);
+        setPointsHistory(pts);
 
         // Build activity timeline from redemptions + orders, sorted by date desc
         const items: ActivityItem[] = [
@@ -256,6 +259,7 @@ export default function MPromoPartnerDetail() {
       <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="points">Points History</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
@@ -272,6 +276,32 @@ export default function MPromoPartnerDetail() {
                       <div className="min-w-0">
                         <p className="text-sm text-foreground">{a.description}</p>
                         <p className="text-xs text-muted-foreground">{a.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="points" className="mt-4">
+          <Card>
+            <CardContent className="p-6">
+              {pointsHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No points earned yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {pointsHistory.map((entry) => (
+                    <div key={entry.id} className="flex items-start gap-3">
+                      <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <Star className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{entry.campaign_name}</p>
                       </div>
                     </div>
                   ))}

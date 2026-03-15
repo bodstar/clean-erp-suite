@@ -9,6 +9,7 @@ import type {
   Payout,
   MPromoOrder,
   MapPartner,
+  PointsHistoryEntry,
 } from "@/types/mpromo";
 import {
   demoPartners,
@@ -18,6 +19,7 @@ import {
   demoPayouts,
   demoOrders,
   demoMapPartners,
+  demoPointsHistory,
 } from "@/lib/demo/mpromo-data";
 import {
   filterByTeamId,
@@ -212,6 +214,35 @@ export async function updatePartnerGeolocation(
   data: { latitude: number; longitude: number }
 ): Promise<void> {
   await api.put(`/mpromo/partners/${id}/geolocation`, data);
+}
+
+// --- Partner Points History ---
+export async function getPartnerPointsHistory(partnerId: number): Promise<PointsHistoryEntry[]> {
+  if (DEMO_MODE) {
+    // Filter demo redemptions for this partner, then map to points history
+    const partnerRedemptions = demoRedemptions.filter((r) => r.partner_id === partnerId);
+    const campaignPoints: Record<number, number> = {};
+    for (const c of demoCampaigns) {
+      if (c.type === "MYSTERY_SHOPPER" && c.loyalty_points) {
+        campaignPoints[c.id] = c.loyalty_points;
+      } else if (c.type === "VOLUME_REBATE" && c.tiers?.length) {
+        campaignPoints[c.id] = c.tiers[0].loyalty_points;
+      }
+    }
+    return partnerRedemptions
+      .map((r, i) => ({
+        id: i + 1,
+        date: r.date,
+        points: campaignPoints[r.campaign_id] || 10,
+        campaign_id: r.campaign_id,
+        campaign_name: r.campaign_name,
+        redemption_id: r.id,
+        description: `Earned from ${r.campaign_name} redemption`,
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  const res = await api.get(`/mpromo/partners/${partnerId}/points-history`);
+  return res.data;
 }
 
 // --- Campaigns ---
