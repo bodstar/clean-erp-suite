@@ -115,3 +115,27 @@ export const demoMapPartners: MapPartner[] = [
   { id: 10, name: "Kojo Refresh Corner", type: "CHILLER", status: "active", phone: "+233241000010", location: "Achimota, Accra", latitude: 5.6310, longitude: -0.2280, last_activity: fmtTime(subHours(now, 6)), redemptions_count: 5, redemptions_amount: 3500, orders_count: 3, orders_amount: 38000, pending_payouts_count: 0, pending_payouts_amount: 0, loyalty_points: 160, team_id: 1, team_name: TEAM_HQ },
   { id: 12, name: "Kwesi Drinks Depot", type: "CHILLER", status: "active", phone: "+233241000012", location: "Spintex, Accra", latitude: 5.6340, longitude: -0.1020, last_activity: fmtTime(subHours(now, 4)), redemptions_count: 2, redemptions_amount: 800, orders_count: 1, orders_amount: 54000, pending_payouts_count: 1, pending_payouts_amount: 400, loyalty_points: 85, team_id: 2, team_name: TEAM_ACCRA },
 ];
+
+// --- Points History (derived from redemptions + campaigns) ---
+function buildPointsHistory(): PointsHistoryEntry[] {
+  const campaignPoints: Record<number, number> = {};
+  for (const c of demoCampaigns) {
+    if (c.type === "MYSTERY_SHOPPER" && c.loyalty_points) {
+      campaignPoints[c.id] = c.loyalty_points;
+    } else if (c.type === "VOLUME_REBATE" && c.tiers?.length) {
+      campaignPoints[c.id] = c.tiers[0].loyalty_points;
+    }
+  }
+
+  return demoRedemptions.map((r, i) => ({
+    id: i + 1,
+    date: r.date,
+    points: campaignPoints[r.campaign_id] || 10,
+    campaign_id: r.campaign_id,
+    campaign_name: r.campaign_name,
+    redemption_id: r.id,
+    description: `Earned from ${r.campaign_name} redemption`,
+  }));
+}
+
+export const demoPointsHistory: PointsHistoryEntry[] = buildPointsHistory();
