@@ -13,7 +13,7 @@ import { AdjustPointsModal } from "@/components/mpromo/AdjustPointsModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, adjustPartnerPoints, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
 import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder, PointsHistoryEntry } from "@/types/mpromo";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
