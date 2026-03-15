@@ -19,6 +19,7 @@ import {
   demoPayouts,
   demoOrders,
   demoMapPartners,
+  demoPointsHistory,
 } from "@/lib/demo/mpromo-data";
 import {
   filterByTeamId,
