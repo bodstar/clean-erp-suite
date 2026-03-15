@@ -103,6 +103,13 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
 
+    // Top loyalty points
+    const topLoyalty = [...partners]
+      .filter((p) => p.loyalty_points > 0)
+      .sort((a, b) => b.loyalty_points - a.loyalty_points)
+      .slice(0, 5)
+      .map((p) => ({ id: p.id, name: p.name, type: p.type, points: p.loyalty_points }));
+
     // Recent activity from filtered data
     const es = resolveEffectiveScope(scope);
     const ptMap = getPartnerTeamMap();
