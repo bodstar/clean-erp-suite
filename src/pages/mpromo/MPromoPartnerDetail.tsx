@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star } from "lucide-react";
+import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,10 +9,11 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
 import { EditPartnerModal } from "@/components/mpromo/EditPartnerModal";
+import { AdjustPointsModal } from "@/components/mpromo/AdjustPointsModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, adjustPartnerPoints, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
 import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder, PointsHistoryEntry } from "@/types/mpromo";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -46,6 +47,7 @@ export default function MPromoPartnerDetail() {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [adjustPointsOpen, setAdjustPointsOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -210,8 +212,9 @@ export default function MPromoPartnerDetail() {
               </div>
             </div>
             {canManage && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+                <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
                 <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
                   {partner.status === "active"
                     ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
@@ -346,6 +349,22 @@ export default function MPromoPartnerDetail() {
           onClose={() => setEditOpen(false)}
           partner={partner}
           onSave={handleEditSave}
+        />
+      )}
+
+      {partner && (
+        <AdjustPointsModal
+          open={adjustPointsOpen}
+          onClose={() => setAdjustPointsOpen(false)}
+          partnerName={partner.name}
+          currentPoints={partner.loyalty_points}
+          onConfirm={async (adj) => {
+            const result = await adjustPartnerPoints(partner.id, adj);
+            setPartner((p) => p ? { ...p, loyalty_points: result.new_balance } : p);
+            toast.success(
+              `${adj.type === "add" ? "Added" : "Deducted"} ${adj.amount.toLocaleString()} pts. New balance: ${result.new_balance.toLocaleString()} pts`
+            );
+          }}
         />
       )}
     </div>
