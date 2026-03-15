@@ -42,6 +42,7 @@ export default function MPromoPartnerDetail() {
   const [mapOpen, setMapOpen] = useState(false);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [orders, setOrders] = useState<MPromoOrder[]>([]);
+  const [pointsHistory, setPointsHistory] = useState<PointsHistoryEntry[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
