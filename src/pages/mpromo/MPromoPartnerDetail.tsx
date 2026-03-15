@@ -259,6 +259,7 @@ export default function MPromoPartnerDetail() {
       <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="points">Points History</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
