@@ -47,6 +47,7 @@ export default function MPromoPartnerDetail() {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [adjustPointsOpen, setAdjustPointsOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;

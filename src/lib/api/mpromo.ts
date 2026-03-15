@@ -216,6 +216,21 @@ export async function updatePartnerGeolocation(
   await api.put(`/mpromo/partners/${id}/geolocation`, data);
 }
 
+export async function adjustPartnerPoints(
+  id: number,
+  data: { type: "add" | "deduct"; amount: number; reason: string }
+): Promise<{ new_balance: number }> {
+  if (DEMO_MODE) {
+    const partner = demoPartners.find((p) => p.id === id);
+    if (!partner) throw new NotFoundError("Partner not found.");
+    const delta = data.type === "add" ? data.amount : -data.amount;
+    partner.loyalty_points = Math.max(0, partner.loyalty_points + delta);
+    return { new_balance: partner.loyalty_points };
+  }
+  const res = await api.post(`/mpromo/partners/${id}/adjust-points`, data);
+  return res.data;
+}
+
 // --- Partner Points History ---
 export async function getPartnerPointsHistory(partnerId: number): Promise<PointsHistoryEntry[]> {
   if (DEMO_MODE) {
