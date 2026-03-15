@@ -284,6 +284,32 @@ export default function MPromoPartnerDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="points" className="mt-4">
+          <Card>
+            <CardContent className="p-6">
+              {pointsHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No points earned yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {pointsHistory.map((entry) => (
+                    <div key={entry.id} className="flex items-start gap-3">
+                      <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <Star className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{entry.campaign_name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="redemptions" className="mt-4">
           <DataTable columns={redemptionCols} data={redemptions} emptyMessage="No redemptions yet." />
         </TabsContent>
