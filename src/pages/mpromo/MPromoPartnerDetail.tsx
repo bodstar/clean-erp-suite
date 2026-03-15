@@ -56,11 +56,13 @@ export default function MPromoPartnerDetail() {
       getPartner(partnerId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getPartnerRedemptions(partnerId),
       getPartnerOrders(partnerId),
+      getPartnerPointsHistory(partnerId),
     ])
-      .then(([p, reds, ords]) => {
+      .then(([p, reds, ords, pts]) => {
         setPartner(p);
         setRedemptions(reds.data);
         setOrders(ords.data);
+        setPointsHistory(pts);
 
         // Build activity timeline from redemptions + orders, sorted by date desc
         const items: ActivityItem[] = [
