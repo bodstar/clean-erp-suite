@@ -9,6 +9,7 @@ import type {
   Payout,
   MPromoOrder,
   MapPartner,
+  PointsHistoryEntry,
 } from "@/types/mpromo";
 import {
   demoPartners,
