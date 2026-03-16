@@ -247,6 +247,7 @@ export default function MPromoCampaignDetail() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="loyalty">Loyalty Points</TabsTrigger>
           <TabsTrigger value="codes">Codes ({codes.length})</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions ({redemptions.length})</TabsTrigger>
         </TabsList>
