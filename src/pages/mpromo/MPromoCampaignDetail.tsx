@@ -272,6 +272,15 @@ export default function MPromoCampaignDetail() {
                 <p className="text-xs text-muted-foreground">Codes Issued</p>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent className="p-5 text-center">
+                <div className="flex items-center justify-center gap-1.5">
+                  <Star className="h-5 w-5 text-primary" />
+                  <p className="text-2xl font-bold">{pointsData.total.toLocaleString()}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">Loyalty Points Generated</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Chart */}
