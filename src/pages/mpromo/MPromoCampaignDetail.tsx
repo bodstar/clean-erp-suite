@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
+
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award, ShieldAlert, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -70,6 +71,25 @@ export default function MPromoCampaignDetail() {
       toast.error(`Failed to ${action} campaign`);
     }
   };
+
+  // Compute loyalty points from redemptions based on campaign config
+  const pointsData = useMemo(() => {
+    if (!campaign) return { total: 0, entries: [] as { id: number; partner_name: string; partner_id: number; points: number; date: string }[] };
+    let pointsPerRedemption = 0;
+    if (campaign.type === "MYSTERY_SHOPPER" && campaign.loyalty_points) {
+      pointsPerRedemption = campaign.loyalty_points;
+    } else if (campaign.type === "VOLUME_REBATE" && campaign.tiers?.length) {
+      pointsPerRedemption = campaign.tiers[0].loyalty_points;
+    }
+    const entries = redemptions.map((r, i) => ({
+      id: i + 1,
+      partner_name: r.partner_name,
+      partner_id: r.partner_id,
+      points: pointsPerRedemption || 10,
+      date: r.date,
+    }));
+    return { total: entries.reduce((s, e) => s + e.points, 0), entries };
+  }, [campaign, redemptions]);
 
   // Build chart data — last 7 days of redemptions
   const chartData = useMemo(() => {
@@ -227,13 +247,14 @@ export default function MPromoCampaignDetail() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="loyalty">Loyalty Points</TabsTrigger>
           <TabsTrigger value="codes">Codes ({codes.length})</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions ({redemptions.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
           {/* KPIs */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-5 text-center">
                 <p className="text-2xl font-bold">{campaign.total_redemptions}</p>
@@ -250,6 +271,15 @@ export default function MPromoCampaignDetail() {
               <CardContent className="p-5 text-center">
                 <p className="text-2xl font-bold">{codes.length}</p>
                 <p className="text-xs text-muted-foreground">Codes Issued</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5 text-center">
+                <div className="flex items-center justify-center gap-1.5">
+                  <Star className="h-5 w-5 text-primary" />
+                  <p className="text-2xl font-bold">{pointsData.total.toLocaleString()}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">Loyalty Points Generated</p>
               </CardContent>
             </Card>
           </div>
@@ -295,6 +325,38 @@ export default function MPromoCampaignDetail() {
                       <div className="min-w-0">
                         <p className="text-sm text-foreground">{a.description}</p>
                         <p className="text-xs text-muted-foreground">{a.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="loyalty" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Star className="h-4 w-4 text-primary" /> Points History ({pointsData.entries.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pointsData.entries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No loyalty points generated yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {pointsData.entries.map((entry) => (
+                    <div key={entry.id} className="flex items-start gap-3">
+                      <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <Star className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                        </div>
+                        <Link to={`/mpromo/partners/${entry.partner_id}`} className="text-xs text-primary hover:underline">{entry.partner_name}</Link>
                       </div>
                     </div>
                   ))}
