@@ -253,7 +253,7 @@ export default function MPromoCampaignDetail() {
 
         <TabsContent value="overview" className="mt-4 space-y-4">
           {/* KPIs */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-5 text-center">
                 <p className="text-2xl font-bold">{campaign.total_redemptions}</p>
