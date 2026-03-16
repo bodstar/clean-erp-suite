@@ -72,6 +72,25 @@ export default function MPromoCampaignDetail() {
     }
   };
 
+  // Compute loyalty points from redemptions based on campaign config
+  const pointsData = useMemo(() => {
+    if (!campaign) return { total: 0, entries: [] as { id: number; partner_name: string; partner_id: number; points: number; date: string }[] };
+    let pointsPerRedemption = 0;
+    if (campaign.type === "MYSTERY_SHOPPER" && campaign.loyalty_points) {
+      pointsPerRedemption = campaign.loyalty_points;
+    } else if (campaign.type === "VOLUME_REBATE" && campaign.tiers?.length) {
+      pointsPerRedemption = campaign.tiers[0].loyalty_points;
+    }
+    const entries = redemptions.map((r, i) => ({
+      id: i + 1,
+      partner_name: r.partner_name,
+      partner_id: r.partner_id,
+      points: pointsPerRedemption || 10,
+      date: r.date,
+    }));
+    return { total: entries.reduce((s, e) => s + e.points, 0), entries };
+  }, [campaign, redemptions]);
+
   // Build chart data — last 7 days of redemptions
   const chartData = useMemo(() => {
     const days: { date: string; count: number; amount: number }[] = [];
