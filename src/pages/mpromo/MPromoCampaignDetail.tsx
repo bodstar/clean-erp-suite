@@ -334,6 +334,38 @@ export default function MPromoCampaignDetail() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="loyalty" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Star className="h-4 w-4 text-primary" /> Points History ({pointsData.entries.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pointsData.entries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No loyalty points generated yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {pointsData.entries.map((entry) => (
+                    <div key={entry.id} className="flex items-start gap-3">
+                      <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <Star className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                        </div>
+                        <Link to={`/mpromo/partners/${entry.partner_id}`} className="text-xs text-primary hover:underline">{entry.partner_name}</Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="codes" className="mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
