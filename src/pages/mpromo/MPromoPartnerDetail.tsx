@@ -304,7 +304,7 @@ export default function MPromoPartnerDetail() {
                           <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
                           <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground">{entry.campaign_name}</p>
+                        <button type="button" className="text-xs text-primary hover:underline" onClick={() => navigate(`/mpromo/campaigns/${entry.campaign_id}`)}>{entry.campaign_name}</button>
                       </div>
                     </div>
                   ))}
