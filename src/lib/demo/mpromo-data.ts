@@ -47,21 +47,21 @@ export const demoCampaigns: Campaign[] = [
 
 // --- Promo Codes (15) ---
 export const demoCodes: PromoCode[] = [
-  { id: 1, code: "MPROMO-Q1-A001", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Kwame Asante Chiller Hub", status: "redeemed", expires_at: fmt(addDays(now, 45)), redeemed_at: fmtTime(subDays(now, 3)) },
-  { id: 2, code: "MPROMO-Q1-A002", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Akosua Cold Drinks", status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null },
-  { id: 3, code: "MPROMO-Q1-A003", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: null, status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null },
-  { id: 4, code: "MPROMO-MS-B001", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Abena Ice Point", status: "redeemed", expires_at: fmt(addDays(now, 10)), redeemed_at: fmtTime(subDays(now, 1)) },
-  { id: 5, code: "MPROMO-MS-B002", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Amina Ice Water Express", status: "active", expires_at: fmt(addDays(now, 10)), redeemed_at: null },
-  { id: 6, code: "MPROMO-MS-B003", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: null, status: "active", expires_at: fmt(addDays(now, 10)), redeemed_at: null },
-  { id: 7, code: "MPROMO-RM-C001", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: "Efua Pure Water", status: "redeemed", expires_at: fmt(subDays(now, 30)), redeemed_at: fmtTime(subDays(now, 35)) },
-  { id: 8, code: "MPROMO-RM-C002", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: "Kojo Refresh Corner", status: "expired", expires_at: fmt(subDays(now, 30)), redeemed_at: null },
-  { id: 9, code: "MPROMO-RM-C003", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: null, status: "expired", expires_at: fmt(subDays(now, 30)), redeemed_at: null },
-  { id: 10, code: "MPROMO-EC-D001", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Kofi Chill Zone", status: "active", expires_at: fmt(addDays(now, 30)), redeemed_at: null },
-  { id: 11, code: "MPROMO-EC-D002", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Yaw Fresh Beverages", status: "redeemed", expires_at: fmt(addDays(now, 30)), redeemed_at: fmtTime(subDays(now, 2)) },
-  { id: 12, code: "MPROMO-Q1-A004", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Nana Cooler Station", status: "redeemed", expires_at: fmt(addDays(now, 45)), redeemed_at: fmtTime(subHours(now, 18)) },
-  { id: 13, code: "MPROMO-Q1-A005", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: null, status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null },
-  { id: 14, code: "MPROMO-MS-B004", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Kwesi Drinks Depot", status: "cancelled", expires_at: fmt(addDays(now, 10)), redeemed_at: null },
-  { id: 15, code: "MPROMO-EC-D003", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Ama Sachet Water", status: "active", expires_at: fmt(addDays(now, 30)), redeemed_at: null },
+  { id: 1, code: "MPROMO-Q1-A001", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Kwame Asante Chiller Hub", status: "redeemed", expires_at: fmt(addDays(now, 45)), redeemed_at: fmtTime(subDays(now, 3)), redemption_amount: 1200 },
+  { id: 2, code: "MPROMO-Q1-A002", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Akosua Cold Drinks", status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null, redemption_amount: 500 },
+  { id: 3, code: "MPROMO-Q1-A003", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: null, status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null, redemption_amount: 3000 },
+  { id: 4, code: "MPROMO-MS-B001", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Abena Ice Point", status: "redeemed", expires_at: fmt(addDays(now, 10)), redeemed_at: fmtTime(subDays(now, 1)), redemption_amount: 2000 },
+  { id: 5, code: "MPROMO-MS-B002", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Amina Ice Water Express", status: "active", expires_at: fmt(addDays(now, 10)), redeemed_at: null, redemption_amount: 2000 },
+  { id: 6, code: "MPROMO-MS-B003", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: null, status: "active", expires_at: fmt(addDays(now, 10)), redeemed_at: null, redemption_amount: 2000 },
+  { id: 7, code: "MPROMO-RM-C001", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: "Efua Pure Water", status: "redeemed", expires_at: fmt(subDays(now, 30)), redeemed_at: fmtTime(subDays(now, 35)), redemption_amount: 900 },
+  { id: 8, code: "MPROMO-RM-C002", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: "Kojo Refresh Corner", status: "expired", expires_at: fmt(subDays(now, 30)), redeemed_at: null, redemption_amount: 300 },
+  { id: 9, code: "MPROMO-RM-C003", campaign_id: 3, campaign_name: "Ramadan Special Rebate", issued_to: null, status: "expired", expires_at: fmt(subDays(now, 30)), redeemed_at: null, redemption_amount: 900 },
+  { id: 10, code: "MPROMO-EC-D001", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Kofi Chill Zone", status: "active", expires_at: fmt(addDays(now, 30)), redeemed_at: null, redemption_amount: 400 },
+  { id: 11, code: "MPROMO-EC-D002", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Yaw Fresh Beverages", status: "redeemed", expires_at: fmt(addDays(now, 30)), redeemed_at: fmtTime(subDays(now, 2)), redemption_amount: 400 },
+  { id: 12, code: "MPROMO-Q1-A004", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: "Nana Cooler Station", status: "redeemed", expires_at: fmt(addDays(now, 45)), redeemed_at: fmtTime(subHours(now, 18)), redemption_amount: 3000 },
+  { id: 13, code: "MPROMO-Q1-A005", campaign_id: 1, campaign_name: "Q1 Volume Push", issued_to: null, status: "active", expires_at: fmt(addDays(now, 45)), redeemed_at: null, redemption_amount: 1200 },
+  { id: 14, code: "MPROMO-MS-B004", campaign_id: 2, campaign_name: "Mystery Shopper Feb", issued_to: "Kwesi Drinks Depot", status: "cancelled", expires_at: fmt(addDays(now, 10)), redeemed_at: null, redemption_amount: 2000 },
+  { id: 15, code: "MPROMO-EC-D003", campaign_id: 4, campaign_name: "Easter Cool Down", issued_to: "Ama Sachet Water", status: "active", expires_at: fmt(addDays(now, 30)), redeemed_at: null, redemption_amount: 400 },
 ];
 
 // --- Redemptions (10) ---

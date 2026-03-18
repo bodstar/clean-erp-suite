@@ -1,31 +1,35 @@
 
 
-## Plan: Add redemption amount to codes
+## Build Heatmap Layer for M-Promo Map
 
-**What changes**: Codes will carry a `redemption_amount` field that defines how much a partner can redeem. When generating codes, the admin selects a tier (for Volume Rebate campaigns) or the amount is auto-filled (for Mystery Shopper campaigns).
+### Summary
+Implement a canvas-based heatmap overlay that visualizes redemption intensity across partner locations. When the "Heatmap" toggle is enabled, colored intensity circles overlay the map using each partner's `redemptions_amount` as the weight. Markers remain visible underneath.
 
-### 1. Update `PromoCode` type
-Add `redemption_amount: number` to the `PromoCode` interface in `src/types/mpromo.ts`.
+### Approach
+Since `leaflet.heat` is a third-party plugin that would require an npm install and has compatibility concerns, we will implement a **lightweight custom canvas heatmap layer** using Leaflet's `L.CircleMarker` approach — drawing semi-transparent, gradient circles sized and colored by redemption amount. This avoids external dependencies entirely.
 
-### 2. Update demo data
-Add `redemption_amount` to each entry in `demoCodes` in `src/lib/demo/mpromo-data.ts`, derived from their parent campaign's reward rules.
+Alternatively, we can use a simple `L.CircleMarker`-based approach:
+- Each partner gets a translucent circle whose radius and color intensity scale with `redemptions_amount`
+- Low redemptions = small green circle, high redemptions = large red circle
+- Circles are added to a separate `LayerGroup` that is toggled by the heatmap switch
 
-### 3. Update code generation UI (`MPromoCodes.tsx`)
-- When a campaign is selected, check its type:
-  - **Volume Rebate**: Show a tier selector dropdown listing the campaign's tiers (e.g., "50+ cases → GH₵200"). The selected tier's `reward_amount` becomes the code's `redemption_amount`.
-  - **Mystery Shopper**: Auto-fill and display the campaign's `reward_amount` as a read-only field (no tier selection needed).
-- Pass `redemption_amount` to the `generateCodes` API call.
+### Changes
 
-### 4. Update `generateCodes` API function
-Add `redemption_amount: number` to the data parameter in `src/lib/api/mpromo.ts`.
+**1. `src/pages/mpromo/MPromoMap.tsx`**
+- Add a new `heatLayerRef = useRef<L.LayerGroup>()` for heatmap circles
+- Add the layer group to the map on init
+- New `useEffect` that reacts to `[partners, heatmap]`:
+  - Clears the heat layer
+  - If `heatmap` is true, iterates partners and adds `L.circleMarker` at each location with:
+    - `radius`: scaled from `redemptions_amount` (min 8, max 40)
+    - `fillColor`: gradient from green (low) → yellow (mid) → red (high)
+    - `fillOpacity`: 0.45
+    - `stroke`: false
+  - Each circle gets a tooltip showing partner name and redemption amount
+- When heatmap is on, optionally reduce marker opacity so circles are more visible
+- Remove the placeholder text at the bottom
+- Add a legend below the map showing the color scale (green → yellow → red) with labels "Low" / "Medium" / "High"
 
-### 5. Display redemption amount in codes table
-Add a "Value" column to the codes table in `MPromoCodes.tsx` showing `GH₵{code.redemption_amount}`. Also add it to the codes tab on `MPromoCampaignDetail.tsx`.
-
-### 6. Files affected
-- `src/types/mpromo.ts` — add field to `PromoCode`
-- `src/lib/demo/mpromo-data.ts` — add values to demo codes
-- `src/lib/api/mpromo.ts` — update `generateCodes` signature
-- `src/pages/mpromo/MPromoCodes.tsx` — tier/amount selector + value column
-- `src/pages/mpromo/MPromoCampaignDetail.tsx` — value column in codes tab
+### Files modified
+- `src/pages/mpromo/MPromoMap.tsx`
 

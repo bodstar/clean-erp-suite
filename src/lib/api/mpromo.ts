@@ -334,7 +334,7 @@ export async function getCodes(
 }
 
 export async function generateCodes(
-  data: { campaign_id: number; quantity: number; expires_at: string },
+  data: { campaign_id: number; quantity: number; expires_at: string; redemption_amount: number },
   scope?: MPromoScope
 ): Promise<{ count: number }> {
   const res = await api.post("/mpromo/codes/generate", data, {
