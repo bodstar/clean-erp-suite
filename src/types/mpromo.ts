@@ -56,6 +56,7 @@ export interface PromoCode {
   status: CodeStatus;
   expires_at: string;
   redeemed_at?: string | null;
+  redemption_amount: number;
   team_id?: number;
   team_name?: string;
 }

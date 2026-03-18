@@ -148,6 +148,7 @@ export default function MPromoCampaignDetail() {
 
   const codeCols: DataTableColumn<PromoCode>[] = [
     { key: "code", header: "Code" },
+    { key: "redemption_amount", header: "Value", render: (r) => `GH₵${r.redemption_amount.toLocaleString()}` },
     { key: "issued_to", header: "Issued To", render: (r) => r.issued_to || "—" },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "expires_at", header: "Expires" },
