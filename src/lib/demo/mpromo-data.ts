@@ -89,6 +89,7 @@ export const demoPayouts: Payout[] = [
   { id: 6, partner_id: 10, partner_name: "Kojo Refresh Corner", phone: "+233241000010", amount: 1200, status: "failed", paystack_reference: "PSK-TXN-00G7H8", paid_at: null, created_at: fmt(subDays(now, 4)) },
   { id: 7, partner_id: 4, partner_name: "Efua Pure Water", phone: "+233241000004", amount: 900, status: "paid", paystack_reference: "PSK-TXN-00I9J0", paid_at: fmtTime(subDays(now, 3)), created_at: fmt(subDays(now, 5)) },
   { id: 8, partner_id: 12, partner_name: "Kwesi Drinks Depot", phone: "+233241000012", amount: 400, status: "pending", paystack_reference: null, paid_at: null, created_at: fmt(subDays(now, 5)) },
+  { id: 9, partner_id: 7, partner_name: "Yaw Fresh Beverages", phone: "+233241000007", amount: 400, status: "paid", paystack_reference: "PSK-TXN-00K1L2", paid_at: fmtTime(subDays(now, 6)), created_at: fmt(subDays(now, 7)) },
 ];
 
 // --- Orders (10) ---
