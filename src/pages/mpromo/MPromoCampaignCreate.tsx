@@ -206,8 +206,9 @@ export default function MPromoCampaignCreate() {
                   <Label>Reward per Valid Code (GH₵)</Label>
                   <Input
                     type="number"
+                    min={0}
                     value={rewardAmount || ""}
-                    onChange={(e) => setRewardAmount(Number(e.target.value))}
+                    onChange={(e) => setRewardAmount(Math.max(0, Number(e.target.value)))}
                     placeholder="e.g. 200"
                   />
                 </div>
@@ -215,8 +216,9 @@ export default function MPromoCampaignCreate() {
                   <Label>Loyalty Points per Redemption</Label>
                   <Input
                     type="number"
+                    min={0}
                     value={loyaltyPoints || ""}
-                    onChange={(e) => setLoyaltyPoints(Number(e.target.value))}
+                    onChange={(e) => setLoyaltyPoints(Math.max(0, Number(e.target.value)))}
                     placeholder="e.g. 15"
                   />
                 </div>
