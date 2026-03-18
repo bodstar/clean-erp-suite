@@ -110,7 +110,7 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
       .filter((p) => p.loyalty_points > 0)
       .sort((a, b) => b.loyalty_points - a.loyalty_points)
       .slice(0, 5)
-      .map((p) => ({ id: p.id, name: p.name, type: p.type, points: p.loyalty_points }));
+      .map((p) => ({ id: p.id, name: p.name, type: p.type, points: p.loyalty_points, team_name: p.team_name }));
 
     // Recent activity from filtered data
     const es = resolveEffectiveScope(scope);
