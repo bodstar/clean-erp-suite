@@ -256,28 +256,28 @@ export default function MPromoCampaignDetail() {
           {/* KPIs */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-5 text-center">
-                <p className="text-2xl font-bold">{campaign.total_redemptions}</p>
+              <CardContent className="p-5 text-center overflow-hidden min-w-0">
+                <p className="text-lg sm:text-2xl font-bold truncate">{campaign.total_redemptions}</p>
                 <p className="text-xs text-muted-foreground">Total Redemptions</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-5 text-center">
-                <p className="text-2xl font-bold">GH₵{campaign.total_spend.toLocaleString()}</p>
+              <CardContent className="p-5 text-center overflow-hidden min-w-0">
+                <p className="text-lg sm:text-2xl font-bold truncate">GH₵{campaign.total_spend.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">Total Spend</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-5 text-center">
-                <p className="text-2xl font-bold">{codes.length}</p>
+              <CardContent className="p-5 text-center overflow-hidden min-w-0">
+                <p className="text-lg sm:text-2xl font-bold truncate">{codes.length}</p>
                 <p className="text-xs text-muted-foreground">Codes Issued</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-5 text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Star className="h-5 w-5 text-primary" />
-                  <p className="text-2xl font-bold">{pointsData.total.toLocaleString()}</p>
+              <CardContent className="p-5 text-center overflow-hidden min-w-0">
+                <div className="flex items-center justify-center gap-1.5 min-w-0">
+                  <Star className="h-5 w-5 text-primary shrink-0" />
+                  <p className="text-lg sm:text-2xl font-bold truncate">{pointsData.total.toLocaleString()}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Loyalty Points Generated</p>
               </CardContent>
