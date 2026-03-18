@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Download, XCircle, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -32,6 +33,7 @@ export default function MPromoCodes() {
   const [quantity, setQuantity] = useState(10);
   const [expiry, setExpiry] = useState("");
   const [campaignId, setCampaignId] = useState("");
+  const [selectedTierIndex, setSelectedTierIndex] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -53,14 +55,43 @@ export default function MPromoCodes() {
       .finally(() => setIsLoading(false));
   }, [page, search, scope]);
 
+  const selectedCampaign = useMemo(
+    () => campaigns.find((c) => String(c.id) === campaignId),
+    [campaigns, campaignId]
+  );
+
+  // Determine redemption amount based on campaign type
+  const redemptionAmount = useMemo(() => {
+    if (!selectedCampaign) return 0;
+    if (selectedCampaign.type === "MYSTERY_SHOPPER") {
+      return selectedCampaign.reward_amount || 0;
+    }
+    if (selectedCampaign.type === "VOLUME_REBATE" && selectedCampaign.tiers?.length) {
+      const idx = Number(selectedTierIndex);
+      if (!isNaN(idx) && selectedCampaign.tiers[idx]) {
+        return selectedCampaign.tiers[idx].reward_amount;
+      }
+    }
+    return 0;
+  }, [selectedCampaign, selectedTierIndex]);
+
+  // Reset tier when campaign changes
+  useEffect(() => {
+    setSelectedTierIndex("");
+  }, [campaignId]);
+
   const handleGenerate = async () => {
     if (!campaignId || !expiry) {
       toast.error("Please fill all fields");
       return;
     }
+    if (redemptionAmount <= 0) {
+      toast.error(selectedCampaign?.type === "VOLUME_REBATE" ? "Please select a tier" : "Campaign has no reward amount");
+      return;
+    }
     setIsGenerating(true);
     try {
-      await generateCodes({ campaign_id: Number(campaignId), quantity, expires_at: expiry }, scope);
+      await generateCodes({ campaign_id: Number(campaignId), quantity, expires_at: expiry, redemption_amount: redemptionAmount }, scope);
       toast.success(`${quantity} codes generated`);
     } catch {
       toast.error("Failed to generate codes");
@@ -71,7 +102,6 @@ export default function MPromoCodes() {
 
   const handleCancelCode = () => {
     if (!confirmCode) return;
-    // In demo mode, update locally; in real mode this would call an API
     setData((prev) =>
       prev.map((c) => (c.id === confirmCode.id ? { ...c, status: "cancelled" as const } : c))
     );
@@ -82,6 +112,7 @@ export default function MPromoCodes() {
   const columns: DataTableColumn<PromoCode>[] = [
     { key: "code", header: "Code", render: (r) => <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{r.code}</code> },
     { key: "campaign_name", header: "Campaign" },
+    { key: "redemption_amount", header: "Value", render: (r) => `GH₵${r.redemption_amount.toLocaleString()}` },
     { key: "issued_to", header: "Issued To", render: (r) => r.issued_to || "—" },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "expires_at", header: "Expires" },
@@ -146,6 +177,34 @@ export default function MPromoCodes() {
                   </PopoverContent>
                 </Popover>
               </div>
+
+              {/* Tier selector for Volume Rebate campaigns */}
+              {selectedCampaign?.type === "VOLUME_REBATE" && selectedCampaign.tiers && selectedCampaign.tiers.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Tier</Label>
+                  <Select value={selectedTierIndex} onValueChange={setSelectedTierIndex}>
+                    <SelectTrigger className="w-56 h-9">
+                      <SelectValue placeholder="Select tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedCampaign.tiers.map((t, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {t.threshold}+ units → GH₵{t.reward_amount.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Auto-filled amount for Mystery Shopper */}
+              {selectedCampaign?.type === "MYSTERY_SHOPPER" && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Reward Amount</Label>
+                  <Input className="w-36" value={`GH₵${selectedCampaign.reward_amount?.toLocaleString() ?? 0}`} readOnly disabled />
+                </div>
+              )}
+
               <div className="space-y-1">
                 <Label className="text-xs">Quantity</Label>
                 <Input type="number" className="w-24" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} min={1} />
