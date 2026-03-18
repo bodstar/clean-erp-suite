@@ -36,6 +36,7 @@ export default function MPromoRedemptions() {
 
   const columns: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date/Time" },
+    { key: "code", header: "Code", render: (r) => <span className="font-mono text-xs">{r.code}</span> },
     { key: "partner_name", header: "Partner", render: (r) => <Link to={`/mpromo/partners/${r.partner_id}`} className="text-primary hover:underline">{r.partner_name}</Link> },
     { key: "partner_type", header: "Type", render: (r) => r.partner_type.replace("_", " ") },
     { key: "campaign_name", header: "Campaign" },
