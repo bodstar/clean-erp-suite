@@ -1,35 +1,17 @@
 
 
-## Build Heatmap Layer for M-Promo Map
+## Fix: KPI card text overflow on campaign detail overview
 
-### Summary
-Implement a canvas-based heatmap overlay that visualizes redemption intensity across partner locations. When the "Heatmap" toggle is enabled, colored intensity circles overlay the map using each partner's `redemptions_amount` as the weight. Markers remain visible underneath.
+**Problem**: The "Total Spend" KPI card (and potentially others) allows long values like `GH₵1,234,567,890` to overflow horizontally beyond the card boundaries, especially on smaller viewports where the 4-column grid compresses card widths.
 
-### Approach
-Since `leaflet.heat` is a third-party plugin that would require an npm install and has compatibility concerns, we will implement a **lightweight custom canvas heatmap layer** using Leaflet's `L.CircleMarker` approach — drawing semi-transparent, gradient circles sized and colored by redemption amount. This avoids external dependencies entirely.
+**Root cause**: The KPI cards use raw `<p className="text-2xl font-bold">` without any overflow or text-sizing constraints.
 
-Alternatively, we can use a simple `L.CircleMarker`-based approach:
-- Each partner gets a translucent circle whose radius and color intensity scale with `redemptions_amount`
-- Low redemptions = small green circle, high redemptions = large red circle
-- Circles are added to a separate `LayerGroup` that is toggled by the heatmap switch
+**Solution**: Add overflow protection and responsive text sizing to all four KPI cards in the overview grid (lines 257-285):
 
-### Changes
+1. Add `overflow-hidden` to each `CardContent` container
+2. Add `truncate` to the value `<p>` tags so long numbers are clipped gracefully
+3. Reduce font size responsively: use `text-lg sm:text-2xl` so values scale down on narrow cards
+4. Add `min-w-0` to the card content to allow flex/grid truncation to work properly
 
-**1. `src/pages/mpromo/MPromoMap.tsx`**
-- Add a new `heatLayerRef = useRef<L.LayerGroup>()` for heatmap circles
-- Add the layer group to the map on init
-- New `useEffect` that reacts to `[partners, heatmap]`:
-  - Clears the heat layer
-  - If `heatmap` is true, iterates partners and adds `L.circleMarker` at each location with:
-    - `radius`: scaled from `redemptions_amount` (min 8, max 40)
-    - `fillColor`: gradient from green (low) → yellow (mid) → red (high)
-    - `fillOpacity`: 0.45
-    - `stroke`: false
-  - Each circle gets a tooltip showing partner name and redemption amount
-- When heatmap is on, optionally reduce marker opacity so circles are more visible
-- Remove the placeholder text at the bottom
-- Add a legend below the map showing the color scale (green → yellow → red) with labels "Low" / "Medium" / "High"
-
-### Files modified
-- `src/pages/mpromo/MPromoMap.tsx`
+This is a small, targeted fix affecting only the four KPI cards in the overview tab of `MPromoCampaignDetail.tsx`.
 
