@@ -171,8 +171,8 @@ export default function MPromoOverview() {
           ) : data?.top_loyalty && data.top_loyalty.length > 0 ? (
             <div className="space-y-2">
               {data.top_loyalty.map((p, i) => (
-                <div key={p.id} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
+                <div key={p.id} className="flex items-center justify-between text-sm gap-2">
+                  <span className="text-muted-foreground truncate">
                     {i + 1}.{" "}
                     <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">
                       {p.name}
@@ -180,8 +180,9 @@ export default function MPromoOverview() {
                     <span className="ml-1.5 text-xs text-muted-foreground/70">
                       {p.type === "CHILLER" ? "Chiller" : "Ice Water"}
                     </span>
+                    {scopeMode === "all" && p.team_name && <TeamBadge teamName={p.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
                   </span>
-                  <span className="font-medium text-yellow-600 dark:text-yellow-400">{p.points.toLocaleString()} pts</span>
+                  <span className="font-medium text-yellow-600 dark:text-yellow-400 shrink-0">{p.points.toLocaleString()} pts</span>
                 </div>
               ))}
             </div>
