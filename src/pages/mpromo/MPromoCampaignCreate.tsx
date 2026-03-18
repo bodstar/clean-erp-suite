@@ -147,10 +147,11 @@ export default function MPromoCampaignCreate() {
                       <Label className="text-xs">Threshold</Label>
                       <Input
                         type="number"
+                        min={0}
                         value={tier.threshold || ""}
                         onChange={(e) => {
                           const n = [...tiers];
-                          n[i] = { ...n[i], threshold: Number(e.target.value) };
+                          n[i] = { ...n[i], threshold: Math.max(0, Number(e.target.value)) };
                           setTiers(n);
                         }}
                         placeholder="e.g. 100"
@@ -160,10 +161,11 @@ export default function MPromoCampaignCreate() {
                       <Label className="text-xs">Reward (GH₵)</Label>
                       <Input
                         type="number"
+                        min={0}
                         value={tier.reward_amount || ""}
                         onChange={(e) => {
                           const n = [...tiers];
-                          n[i] = { ...n[i], reward_amount: Number(e.target.value) };
+                          n[i] = { ...n[i], reward_amount: Math.max(0, Number(e.target.value)) };
                           setTiers(n);
                         }}
                         placeholder="e.g. 500"
@@ -173,10 +175,11 @@ export default function MPromoCampaignCreate() {
                       <Label className="text-xs">Loyalty Points</Label>
                       <Input
                         type="number"
+                        min={0}
                         value={tier.loyalty_points || ""}
                         onChange={(e) => {
                           const n = [...tiers];
-                          n[i] = { ...n[i], loyalty_points: Number(e.target.value) };
+                          n[i] = { ...n[i], loyalty_points: Math.max(0, Number(e.target.value)) };
                           setTiers(n);
                         }}
                         placeholder="e.g. 10"
@@ -203,8 +206,9 @@ export default function MPromoCampaignCreate() {
                   <Label>Reward per Valid Code (GH₵)</Label>
                   <Input
                     type="number"
+                    min={0}
                     value={rewardAmount || ""}
-                    onChange={(e) => setRewardAmount(Number(e.target.value))}
+                    onChange={(e) => setRewardAmount(Math.max(0, Number(e.target.value)))}
                     placeholder="e.g. 200"
                   />
                 </div>
@@ -212,8 +216,9 @@ export default function MPromoCampaignCreate() {
                   <Label>Loyalty Points per Redemption</Label>
                   <Input
                     type="number"
+                    min={0}
                     value={loyaltyPoints || ""}
-                    onChange={(e) => setLoyaltyPoints(Number(e.target.value))}
+                    onChange={(e) => setLoyaltyPoints(Math.max(0, Number(e.target.value)))}
                     placeholder="e.g. 15"
                   />
                 </div>
