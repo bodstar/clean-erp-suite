@@ -123,6 +123,7 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
         partner_name: r.partner_name,
         description: `${r.partner_name} redeemed GH₵${r.amount.toLocaleString()} from ${r.campaign_name}`,
         time: r.date,
+        team_name: r.team_name,
       })),
       ...orders.slice(0, 2).map((o, i) => ({
         id: i + 100,
@@ -131,6 +132,7 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
         partner_name: o.partner_name,
         description: `New order ${o.order_no} from ${o.partner_name} — GH₵${o.total.toLocaleString()}`,
         time: o.date,
+        team_name: o.team_name,
       })),
     ].sort((a, b) => b.time.localeCompare(a.time)).slice(0, 5);
 
