@@ -38,7 +38,7 @@ export default function MPromoCampaignCreate() {
 
   const targetTeam = teams.find((t) => t.id === targetTeamId);
 
-  const isStep1Valid = name.trim() && startDate && endDate;
+  const isStep1Valid = name.trim() && startDate && endDate && startDate <= endDate;
   const isStep2Valid =
     type === "MYSTERY_SHOPPER"
       ? rewardAmount > 0
