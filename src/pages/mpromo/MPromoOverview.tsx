@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { BarChart3, Receipt, Wallet, ShoppingCart, Star } from "lucide-react";
+import { TeamBadge } from "@/components/shared/TeamBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/shared/KpiCard";
@@ -108,9 +109,12 @@ export default function MPromoOverview() {
             ) : data?.top_chillers && data.top_chillers.length > 0 ? (
               <div className="space-y-2">
                 {data.top_chillers.map((p, i) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link></span>
-                    <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
+                  <div key={p.id} className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-muted-foreground truncate">
+                      {i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link>
+                      {scopeMode === "all" && p.team_name && <TeamBadge teamName={p.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
+                    </span>
+                    <span className="font-medium shrink-0">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -134,9 +138,12 @@ export default function MPromoOverview() {
             ) : data?.top_ice_water_sellers && data.top_ice_water_sellers.length > 0 ? (
               <div className="space-y-2">
                 {data.top_ice_water_sellers.map((p, i) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link></span>
-                    <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
+                  <div key={p.id} className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-muted-foreground truncate">
+                      {i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link>
+                      {scopeMode === "all" && p.team_name && <TeamBadge teamName={p.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
+                    </span>
+                    <span className="font-medium shrink-0">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -164,8 +171,8 @@ export default function MPromoOverview() {
           ) : data?.top_loyalty && data.top_loyalty.length > 0 ? (
             <div className="space-y-2">
               {data.top_loyalty.map((p, i) => (
-                <div key={p.id} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
+                <div key={p.id} className="flex items-center justify-between text-sm gap-2">
+                  <span className="text-muted-foreground truncate">
                     {i + 1}.{" "}
                     <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">
                       {p.name}
@@ -173,8 +180,9 @@ export default function MPromoOverview() {
                     <span className="ml-1.5 text-xs text-muted-foreground/70">
                       {p.type === "CHILLER" ? "Chiller" : "Ice Water"}
                     </span>
+                    {scopeMode === "all" && p.team_name && <TeamBadge teamName={p.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
                   </span>
-                  <span className="font-medium text-yellow-600 dark:text-yellow-400">{p.points.toLocaleString()} pts</span>
+                  <span className="font-medium text-yellow-600 dark:text-yellow-400 shrink-0">{p.points.toLocaleString()} pts</span>
                 </div>
               ))}
             </div>

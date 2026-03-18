@@ -112,9 +112,9 @@ export interface MPromoOverview {
   pending_payouts_count: number;
   pending_payouts_amount: number;
   orders_today: number;
-  top_chillers: { id: number; name: string; value: number }[];
-  top_ice_water_sellers: { id: number; name: string; value: number }[];
-  top_loyalty: { id: number; name: string; type: PartnerType; points: number }[];
+  top_chillers: { id: number; name: string; value: number; team_name?: string }[];
+  top_ice_water_sellers: { id: number; name: string; value: number; team_name?: string }[];
+  top_loyalty: { id: number; name: string; type: PartnerType; points: number; team_name?: string }[];
   recent_activity: { id: number; type: "redemption" | "order"; description: string; time: string; partner_id?: number; partner_name?: string }[];
 }
 
