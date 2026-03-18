@@ -64,6 +64,8 @@ export interface PromoCode {
 export interface Redemption {
   id: number;
   date: string;
+  code_id: number;
+  code: string;
   partner_id: number;
   partner_name: string;
   partner_type: PartnerType;
