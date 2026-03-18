@@ -138,9 +138,12 @@ export default function MPromoOverview() {
             ) : data?.top_ice_water_sellers && data.top_ice_water_sellers.length > 0 ? (
               <div className="space-y-2">
                 {data.top_ice_water_sellers.map((p, i) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link></span>
-                    <span className="font-medium">GH₵{p.value.toLocaleString()}</span>
+                  <div key={p.id} className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-muted-foreground truncate">
+                      {i + 1}. <Link to={`/mpromo/partners/${p.id}`} className="text-primary hover:underline">{p.name}</Link>
+                      {scopeMode === "all" && p.team_name && <TeamBadge teamName={p.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
+                    </span>
+                    <span className="font-medium shrink-0">GH₵{p.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
