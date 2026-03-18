@@ -38,7 +38,7 @@ export default function MPromoCampaignCreate() {
 
   const targetTeam = teams.find((t) => t.id === targetTeamId);
 
-  const isStep1Valid = name.trim() && startDate && endDate;
+  const isStep1Valid = name.trim() && startDate && endDate && startDate <= endDate;
   const isStep2Valid =
     type === "MYSTERY_SHOPPER"
       ? rewardAmount > 0
@@ -125,6 +125,9 @@ export default function MPromoCampaignCreate() {
                 <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
               </div>
             </div>
+            {startDate && endDate && startDate > endDate && (
+              <p className="text-sm text-destructive">Start date cannot be after end date.</p>
+            )}
             <div className="flex justify-end">
               <Button disabled={!isStep1Valid} onClick={() => setStep(2)} className="gap-1.5">
                 Next <ArrowRight className="h-4 w-4" />
