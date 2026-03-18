@@ -85,15 +85,15 @@ export async function getOverview(scope?: MPromoScope): Promise<MPromoOverview> 
     const todayOrders = orders.filter((o) => o.date.startsWith(todayStr));
 
     // Top partners by redemption amount
-    const chillerMap = new Map<number, { name: string; value: number }>();
-    const iwsMap = new Map<number, { name: string; value: number }>();
+    const chillerMap = new Map<number, { name: string; value: number; team_name?: string }>();
+    const iwsMap = new Map<number, { name: string; value: number; team_name?: string }>();
     for (const r of redemptions) {
       const p = partners.find((p) => p.id === r.partner_id);
       if (!p) continue;
       const map = p.type === "CHILLER" ? chillerMap : iwsMap;
       const existing = map.get(r.partner_id);
       if (existing) existing.value += r.amount;
-      else map.set(r.partner_id, { name: r.partner_name, value: r.amount });
+      else map.set(r.partner_id, { name: r.partner_name, value: r.amount, team_name: p.team_name });
     }
 
     const topChillers = [...chillerMap.entries()]
