@@ -422,6 +422,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setActiveZone: setActiveZoneId,
     setShapeMode,
     updateZoneLabel,
+    updatePolygonPointCount,
     clearAll,
   };
 }
