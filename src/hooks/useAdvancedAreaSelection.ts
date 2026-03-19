@@ -322,7 +322,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         buildDragMarkers(poly, ll, z?.color ?? "#6366f1");
         setZones((prev) => recomputePartners(prev));
       };
-      map?.on("click", onMapClick);
+      map?.on("dblclick", onMapClick);
       dragMapClickRef.current = onMapClick;
 
       return;
