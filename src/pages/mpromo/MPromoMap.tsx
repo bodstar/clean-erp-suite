@@ -142,14 +142,34 @@ export default function MPromoMap() {
     };
   }, [loadPartners]);
 
+  // Auto-select partner from query param
+  useEffect(() => {
+    if (!initialPartnerId || partners.length === 0) return;
+    const pid = Number(initialPartnerId);
+    const found = partners.find((p) => p.id === pid);
+    if (found) {
+      setSelectedPartners([found]);
+      mapRef.current?.setView([found.latitude, found.longitude], 15);
+      // Clear the query param so it doesn't re-trigger
+      setSearchParams({}, { replace: true });
+    }
+  }, [initialPartnerId, partners]);
+
+  const selectedIdSet = new Set(selectedPartners.map((p) => p.id));
+
   // Update markers — hide when heatmap is on
   useEffect(() => {
     markersRef.current.clearLayers();
     if (heatmap) return; // no markers in heatmap mode
     partners.forEach((p) => {
-      const marker = L.marker([p.latitude, p.longitude], {
-        icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
-      });
+      const isSelected = selectedIdSet.has(p.id);
+      const icon = isSelected
+        ? selectedIcon
+        : p.type === "CHILLER"
+          ? chillerIcon
+          : iceWaterIcon;
+
+      const marker = L.marker([p.latitude, p.longitude], { icon, zIndexOffset: isSelected ? 1000 : 0 });
       marker.bindTooltip(
         `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
         { direction: "top", offset: [0, -30], className: "leaflet-tooltip" }
@@ -157,7 +177,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap]);
+  }, [partners, heatmap, selectedIdSet.size, ...Array.from(selectedIdSet)]);
 
   // Drag-selection logic
   useEffect(() => {
