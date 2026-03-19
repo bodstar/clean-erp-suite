@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { SquareDashedMousePointer } from "lucide-react";
+import { SquareDashedMousePointer, Shapes } from "lucide-react";
 import {
   Select,
   SelectContent,
