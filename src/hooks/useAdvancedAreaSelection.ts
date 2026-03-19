@@ -100,10 +100,15 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       layer: null,
       drawingLayers: [],
       partners: [],
+      polygonPointCount: 4,
     };
     setZones((prev) => [...prev, newZone]);
     setActiveZoneId(id);
   }, [zones.length]);
+
+  const updatePolygonPointCount = useCallback((id: string, count: number) => {
+    setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonPointCount: Math.max(3, count) } : z)));
+  }, []);
 
   const removeZone = useCallback(
     (id: string) => {
