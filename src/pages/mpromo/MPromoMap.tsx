@@ -328,7 +328,13 @@ export default function MPromoMap() {
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} areaSelect={areaSelect} onCompareStateChange={handleCompareStateChange} />
+        <MapPartnerPanel
+          partners={selectedPartners}
+          heatmap={heatmap}
+          areaSelect={areaSelect}
+          onCompareStateChange={handleCompareStateChange}
+          zones={advancedAreaSelect ? advancedSelection.zones : undefined}
+        />
       </div>
 
       {heatmap && (
