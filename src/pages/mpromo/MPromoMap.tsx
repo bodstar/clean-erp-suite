@@ -208,7 +208,7 @@ export default function MPromoMap() {
     if (!map) return;
     const container = map.getContainer();
 
-    if (!areaSelect || !heatmap) {
+    if (!areaSelect) {
       // Clean up
       container.style.cursor = "";
       map.dragging.enable();
