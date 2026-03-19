@@ -18,6 +18,7 @@ import type { MapPartner } from "@/types/mpromo";
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
+  areaSelect?: boolean;
   onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
 }
 
@@ -102,7 +103,8 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 }
 
 /* ─── Main panel ─── */
-export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: MapPartnerPanelProps) {
+export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateChange }: MapPartnerPanelProps) {
+  const listMode = heatmap || areaSelect;
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
   const comparePartners = Array.from(compareMap.values());
@@ -126,7 +128,7 @@ export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: Map
     return (
       <Card className="h-[500px] overflow-auto">
         <CardContent className="p-4 flex items-center justify-center h-full text-sm text-muted-foreground">
-          {heatmap
+          {listMode
             ? "Click a heat circle or drag-select an area to view partners"
             : "Click a marker to view partner details"}
         </CardContent>
@@ -134,8 +136,8 @@ export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: Map
     );
   }
 
-  // Heatmap OFF → single partner detail card
-  if (!heatmap) {
+  // List mode OFF → single partner detail card
+  if (!listMode) {
     return <SinglePartnerView partner={partners[0]} />;
   }
 

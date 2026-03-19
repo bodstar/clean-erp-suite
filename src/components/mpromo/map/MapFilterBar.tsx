@@ -88,35 +88,33 @@ export function MapFilterBar({
           Heatmap
         </Label>
       </div>
+      <Button
+        variant={areaSelect ? "default" : "outline"}
+        size="sm"
+        className="h-8 gap-1.5 text-xs"
+        onClick={() => onAreaSelectChange?.(!areaSelect)}
+      >
+        <SquareDashedMousePointer className="h-3.5 w-3.5" />
+        Select Area
+      </Button>
       {heatmap && (
-        <>
-          <div className="space-y-1">
-            <Label className="text-xs">Metric</Label>
-            <Select
-              value={heatMetric}
-              onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
-            >
-              <SelectTrigger className="w-40 h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="redemptions">Redemptions</SelectItem>
-                <SelectItem value="orders">Orders</SelectItem>
-                <SelectItem value="payouts">Pending Payouts</SelectItem>
-                <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            variant={areaSelect ? "default" : "outline"}
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={() => onAreaSelectChange?.(!areaSelect)}
+        <div className="space-y-1">
+          <Label className="text-xs">Metric</Label>
+          <Select
+            value={heatMetric}
+            onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
           >
-            <SquareDashedMousePointer className="h-3.5 w-3.5" />
-            Select Area
-          </Button>
-        </>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="redemptions">Redemptions</SelectItem>
+              <SelectItem value="orders">Orders</SelectItem>
+              <SelectItem value="payouts">Pending Payouts</SelectItem>
+              <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       )}
       {isLoading && <Skeleton className="h-4 w-16" />}
     </div>

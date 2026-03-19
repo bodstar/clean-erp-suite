@@ -183,7 +183,7 @@ export default function MPromoMap() {
       return;
     }
     
-    if (heatmap) return; // no markers in heatmap mode
+    if (heatmap || areaSelect) return; // no markers in heatmap/area-select mode
     partners.forEach((p) => {
       const isSelected = selectedIdSet.has(p.id);
       const icon = isSelected
@@ -200,7 +200,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap, selectedKey, isComparing, comparePartners]);
+  }, [partners, heatmap, areaSelect, selectedKey, isComparing, comparePartners]);
 
   // Drag-selection logic
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function MPromoMap() {
     if (!map) return;
     const container = map.getContainer();
 
-    if (!areaSelect || !heatmap) {
+    if (!areaSelect) {
       // Clean up
       container.style.cursor = "";
       map.dragging.enable();
@@ -306,7 +306,7 @@ export default function MPromoMap() {
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} onCompareStateChange={handleCompareStateChange} />
+        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} areaSelect={areaSelect} onCompareStateChange={handleCompareStateChange} />
       </div>
 
       {heatmap && (
