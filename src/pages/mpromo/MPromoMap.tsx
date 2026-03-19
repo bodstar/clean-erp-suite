@@ -57,6 +57,10 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
+  const handleAreaSelectChange = (value: boolean) => {
+    setAreaSelect(value);
+    if (!value) setSelectedPartners([]);
+  };
   const [isComparing, setIsComparing] = useState(false);
   const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -288,7 +292,7 @@ export default function MPromoMap() {
         onHeatMetricChange={setHeatMetric}
         isLoading={isLoading}
         areaSelect={areaSelect}
-        onAreaSelectChange={setAreaSelect}
+        onAreaSelectChange={handleAreaSelectChange}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
