@@ -12,6 +12,8 @@ export interface AreaZone {
   /** Temporary drawing artifacts (vertex markers, preview lines) */
   drawingLayers: L.Layer[];
   partners: MapPartner[];
+  /** Number of vertices to place before auto-closing polygon */
+  polygonPointCount: number;
 }
 
 export const ZONE_COLORS = [
