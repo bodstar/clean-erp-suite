@@ -49,6 +49,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
   const [zones, setZones] = useState<AreaZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
   const [lockedZoneIds, setLockedZoneIds] = useState<Set<string>>(new Set());
+  const [dragEditingZoneId, setDragEditingZoneId] = useState<string | null>(null);
 
   // Drawing state refs
   const isDraggingRef = useRef(false);
