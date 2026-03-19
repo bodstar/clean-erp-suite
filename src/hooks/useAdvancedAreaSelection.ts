@@ -48,6 +48,7 @@ function computePartnersInZone(zone: AreaZone, partners: MapPartner[]): MapPartn
 export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedAreaSelectionProps) {
   const [zones, setZones] = useState<AreaZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
+  const [lockedZoneIds, setLockedZoneIds] = useState<Set<string>>(new Set());
 
   // Drawing state refs
   const isDraggingRef = useRef(false);
