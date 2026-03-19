@@ -269,20 +269,40 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
   /** Finish drag-editing and re-lock the zone */
   const finishDragEdit = useCallback((id: string) => {
-    // Clean up drag node markers
+    // Remove drag event listeners but keep markers as new drawingLayers
+    const newDrawingLayers: L.Layer[] = [];
     dragNodeMarkersRef.current.forEach((m) => {
       (m as any)._dragCleanup?.();
+      // Create a static copy of the marker at its current position (non-interactive)
+      const pos = m.getLatLng();
+      const zone = zones.find((z) => z.id === id);
+      const color = zone?.color ?? "#6366f1";
+      const idx = dragNodeMarkersRef.current.indexOf(m);
+      const staticMarker = L.circleMarker(pos, {
+        radius: 6,
+        color,
+        fillColor: color,
+        fillOpacity: 1,
+        interactive: false,
+      }).bindTooltip(`${idx + 1}`, {
+        permanent: true,
+        direction: "center",
+        className: "leaflet-tooltip-polygon-vertex",
+      });
+      layerGroupRef.current.addLayer(staticMarker);
+      newDrawingLayers.push(staticMarker);
+      // Remove the draggable marker
       layerGroupRef.current.removeLayer(m);
     });
     dragNodeMarkersRef.current = [];
 
-    // Remove old drawing layers (original vertex markers) from the zone
+    // Remove old drawing layers, replace with new static ones
     setZones((prev) =>
       recomputePartners(
         prev.map((z) => {
           if (z.id !== id) return z;
           z.drawingLayers.forEach((l) => layerGroupRef.current.removeLayer(l));
-          return { ...z, drawingLayers: [] };
+          return { ...z, drawingLayers: newDrawingLayers };
         })
       )
     );
@@ -290,7 +310,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     // Re-lock
     setLockedZoneIds((prev) => new Set(prev).add(id));
     setDragEditingZoneId(null);
-  }, [recomputePartners]);
+  }, [recomputePartners, zones]);
 
   // Clear drawing artifacts helper
   const clearDrawingState = useCallback(() => {
