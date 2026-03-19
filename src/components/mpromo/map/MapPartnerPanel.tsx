@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, ArrowLeft, GitCompareArrows } from "lucide-react";
+import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,13 +12,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import type { MapPartner } from "@/types/mpromo";
 
 interface MapPartnerPanelProps {
   partners: MapPartner[];
+  heatmap: boolean;
 }
 
-export function MapPartnerPanel({ partners }: MapPartnerPanelProps) {
+/* ─── Single-partner detail card (marker click, heatmap OFF) ─── */
+function SinglePartnerView({ partner }: { partner: MapPartner }) {
+  return (
+    <Card className="h-[500px] overflow-auto">
+      <CardContent className="p-4 space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold">{partner.name}</h3>
+          <p className="text-xs text-muted-foreground capitalize">
+            {partner.type.replace("_", " ").toLowerCase()}
+          </p>
+          <StatusBadge status={partner.status} />
+        </div>
+
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{partner.location}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Phone className="h-3.5 w-3.5 shrink-0" />
+            <span>{partner.phone}</span>
+          </div>
+          {partner.last_activity && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Activity className="h-3.5 w-3.5 shrink-0" />
+              <span>Last active: {partner.last_activity}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Redemptions", count: partner.redemptions_count, amount: partner.redemptions_amount },
+            { label: "Orders", count: partner.orders_count, amount: partner.orders_amount },
+            { label: "Pending Payouts", count: partner.pending_payouts_count, amount: partner.pending_payouts_amount },
+          ].map((m) => (
+            <div key={m.label} className="rounded-md border border-border p-2 space-y-0.5">
+              <span className="text-[10px] text-muted-foreground">{m.label}</span>
+              <p className="text-xs font-medium">{m.count} · GH₵{m.amount.toLocaleString()}</p>
+            </div>
+          ))}
+          <div className="rounded-md border border-border p-2 space-y-0.5">
+            <span className="text-[10px] text-muted-foreground">Loyalty Points</span>
+            <p className="text-xs font-medium">{partner.loyalty_points.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <Link to={`/mpromo/partners/${partner.id}`}>
+          <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+            <Eye className="h-3.5 w-3.5" /> View Partner
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ─── Main panel ─── */
+export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
 
@@ -33,16 +93,25 @@ export function MapPartnerPanel({ partners }: MapPartnerPanelProps) {
 
   const comparePartners = partners.filter((p) => compareIds.has(p.id));
 
+  // Empty state
   if (partners.length === 0) {
     return (
       <Card className="h-[500px] overflow-auto">
         <CardContent className="p-4 flex items-center justify-center h-full text-sm text-muted-foreground">
-          Click a heat circle or drag-select an area to view partners
+          {heatmap
+            ? "Click a heat circle or drag-select an area to view partners"
+            : "Click a marker to view partner details"}
         </CardContent>
       </Card>
     );
   }
 
+  // Heatmap OFF → single partner detail card
+  if (!heatmap) {
+    return <SinglePartnerView partner={partners[0]} />;
+  }
+
+  // Heatmap ON → tabular view with compare
   if (showCompare && comparePartners.length >= 2) {
     return (
       <Card className="h-[500px] overflow-auto">
