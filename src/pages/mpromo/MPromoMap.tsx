@@ -315,7 +315,7 @@ export default function MPromoMap() {
         showMarkers={showMarkers}
         onShowMarkersChange={setShowMarkers}
         advancedAreaSelect={advancedAreaSelect}
-        onAdvancedAreaSelectChange={setAdvancedAreaSelect}
+        onAdvancedAreaSelectChange={handleAdvancedAreaSelectChange}
       />
 
       {advancedAreaSelect && (
