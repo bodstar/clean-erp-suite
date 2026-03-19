@@ -9,6 +9,8 @@ import type { MapPartner } from "@/types/mpromo";
 import { MapFilterBar, type HeatMetric } from "@/components/mpromo/map/MapFilterBar";
 import { MapPartnerPanel } from "@/components/mpromo/map/MapPartnerPanel";
 import { useMapHeatLayer, getHeatMetricIntensityLabel } from "@/components/mpromo/map/useMapHeatLayer";
+import { useAdvancedAreaSelection } from "@/hooks/useAdvancedAreaSelection";
+import { AdvancedAreaPanel } from "@/components/mpromo/map/AdvancedAreaPanel";
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
