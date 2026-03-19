@@ -294,6 +294,8 @@ export default function MPromoMap() {
         isLoading={isLoading}
         areaSelect={areaSelect}
         onAreaSelectChange={handleAreaSelectChange}
+        showMarkers={showMarkers}
+        onShowMarkersChange={setShowMarkers}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
