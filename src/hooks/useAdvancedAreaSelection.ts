@@ -245,14 +245,27 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         dragStartRef.current = null;
       };
 
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          isDraggingRef.current = false;
+          dragStartRef.current = null;
+          if (previewLayerRef.current) {
+            layerGroupRef.current.removeLayer(previewLayerRef.current);
+            previewLayerRef.current = null;
+          }
+        }
+      };
+
       map.on("mousedown", onMouseDown);
       map.on("mousemove", onMouseMove);
       map.on("mouseup", onMouseUp);
+      document.addEventListener("keydown", onKeyDown);
 
       return () => {
         map.off("mousedown", onMouseDown);
         map.off("mousemove", onMouseMove);
         map.off("mouseup", onMouseUp);
+        document.removeEventListener("keydown", onKeyDown);
         container.style.cursor = "";
         map.dragging.enable();
       };
