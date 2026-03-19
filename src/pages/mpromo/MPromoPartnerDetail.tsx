@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine } from "lucide-react";
+import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -211,17 +211,24 @@ export default function MPromoPartnerDetail() {
                 </div>
               </div>
             </div>
-            {canManage && (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
-                <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
-                <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
-                  {partner.status === "active"
-                    ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
-                    : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
+            <div className="flex flex-wrap gap-2">
+              {partner.latitude && partner.longitude && (
+                <Button variant="outline" size="sm" onClick={() => navigate(`/mpromo/map?partner=${partner.id}`)}>
+                  <Map className="h-4 w-4 mr-1.5" /> View on Map
                 </Button>
-              </div>
-            )}
+              )}
+              {canManage && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+                  <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
+                  <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
+                    {partner.status === "active"
+                      ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
+                      : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
