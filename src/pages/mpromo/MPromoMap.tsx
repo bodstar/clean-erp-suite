@@ -292,7 +292,7 @@ export default function MPromoMap() {
         onHeatMetricChange={setHeatMetric}
         isLoading={isLoading}
         areaSelect={areaSelect}
-        onAreaSelectChange={setAreaSelect}
+        onAreaSelectChange={handleAreaSelectChange}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
