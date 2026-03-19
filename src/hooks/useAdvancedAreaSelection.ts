@@ -48,6 +48,7 @@ function computePartnersInZone(zone: AreaZone, partners: MapPartner[]): MapPartn
 export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedAreaSelectionProps) {
   const [zones, setZones] = useState<AreaZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
+  const [lockedZoneIds, setLockedZoneIds] = useState<Set<string>>(new Set());
 
   // Drawing state refs
   const isDraggingRef = useRef(false);
@@ -126,6 +127,11 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         return prev.filter((z) => z.id !== id);
       });
       if (activeZoneId === id) setActiveZoneId(null);
+      setLockedZoneIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     },
     [activeZoneId]
   );
@@ -156,7 +162,17 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     });
     setZones([]);
     setActiveZoneId(null);
+    setLockedZoneIds(new Set());
   }, [zones]);
+
+  const unlockZone = useCallback((id: string) => {
+    setLockedZoneIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    setActiveZoneId(id);
+  }, []);
 
   // Clear drawing artifacts helper
   const clearDrawingState = useCallback(() => {
@@ -195,6 +211,9 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
           })
         )
       );
+      // Lock the zone after drawing is finalized
+      setLockedZoneIds((prev) => new Set(prev).add(activeZoneId));
+      setActiveZoneId(null);
     },
     [activeZoneId, recomputePartners]
   );
@@ -509,6 +528,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
   return {
     zones,
     activeZoneId,
+    lockedZoneIds,
     addZone,
     removeZone,
     setActiveZone: setActiveZoneId,
@@ -517,5 +537,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     updatePolygonPointCount,
     updatePolygonEndMode,
     clearAll,
+    unlockZone,
   };
 }
