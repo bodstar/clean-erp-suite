@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
-import type { AreaZone, ShapeMode } from "@/types/area-zone";
+import type { AreaZone, ShapeMode, PolygonEndMode } from "@/types/area-zone";
 import { ZONE_COLORS, ZONE_LABELS } from "@/types/area-zone";
 
 interface UseAdvancedAreaSelectionProps {
@@ -101,6 +101,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       drawingLayers: [],
       partners: [],
       polygonPointCount: 4,
+      polygonEndMode: "count",
     };
     setZones((prev) => [...prev, newZone]);
     setActiveZoneId(id);
@@ -108,6 +109,10 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
   const updatePolygonPointCount = useCallback((id: string, count: number) => {
     setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonPointCount: Math.max(3, count) } : z)));
+  }, []);
+
+  const updatePolygonEndMode = useCallback((id: string, mode: PolygonEndMode) => {
+    setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonEndMode: mode } : z)));
   }, []);
 
   const removeZone = useCallback(
@@ -323,6 +328,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     }
 
     if (zone.shapeMode === "polygon") {
+      const useCount = zone.polygonEndMode === "count";
       const targetCount = zone.polygonPointCount;
 
       const finalizePoly = () => {
@@ -352,12 +358,13 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         polyVerticesRef.current.push(e.latlng);
         const idx = polyVerticesRef.current.length;
 
+        const tooltipText = useCount ? `${idx}/${targetCount}` : `${idx}`;
         const marker = L.circleMarker(e.latlng, {
           radius: 6,
           color,
           fillColor: color,
           fillOpacity: 1,
-        }).bindTooltip(`${idx}/${targetCount}`, {
+        }).bindTooltip(tooltipText, {
           permanent: true,
           direction: "center",
           className: "leaflet-tooltip-polygon-vertex",
@@ -376,10 +383,16 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
           layerGroupRef.current.addLayer(polyPreviewLineRef.current);
         }
 
-        // Auto-finalize when target point count reached
-        if (idx >= targetCount) {
+        // Auto-finalize when target point count reached (count mode only)
+        if (useCount && idx >= targetCount) {
           finalizePoly();
         }
+      };
+
+      const onDblClick = (e: L.LeafletMouseEvent) => {
+        if (useCount) return;
+        L.DomEvent.stopPropagation(e);
+        finalizePoly();
       };
 
       const onMouseMove = (e: L.LeafletMouseEvent) => {
@@ -388,10 +401,12 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       };
 
       map.on("click", onClick);
+      map.on("dblclick", onDblClick);
       map.on("mousemove", onMouseMove);
 
       return () => {
         map.off("click", onClick);
+        map.off("dblclick", onDblClick);
         map.off("mousemove", onMouseMove);
         container.style.cursor = "";
         map.dragging.enable();
@@ -423,6 +438,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setShapeMode,
     updateZoneLabel,
     updatePolygonPointCount,
+    updatePolygonEndMode,
     clearAll,
   };
 }

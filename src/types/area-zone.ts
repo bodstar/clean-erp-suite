@@ -2,6 +2,7 @@ import type { MapPartner } from "@/types/mpromo";
 import L from "leaflet";
 
 export type ShapeMode = "rectangle" | "circle" | "polygon";
+export type PolygonEndMode = "count" | "doubleclick";
 
 export interface AreaZone {
   id: string;
@@ -14,6 +15,8 @@ export interface AreaZone {
   partners: MapPartner[];
   /** Number of vertices to place before auto-closing polygon */
   polygonPointCount: number;
+  /** How polygon drawing terminates */
+  polygonEndMode: PolygonEndMode;
 }
 
 export const ZONE_COLORS = [
