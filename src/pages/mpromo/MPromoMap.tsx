@@ -200,7 +200,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap, selectedKey, isComparing, comparePartners]);
+  }, [partners, heatmap, areaSelect, selectedKey, isComparing, comparePartners]);
 
   // Drag-selection logic
   useEffect(() => {
