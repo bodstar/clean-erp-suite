@@ -181,7 +181,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     dragNodeMarkersRef.current = [];
     // Remove map click handler
     if (dragMapClickRef.current && map) {
-      map.off("click", dragMapClickRef.current);
+      map.off("dblclick", dragMapClickRef.current);
       dragMapClickRef.current = null;
     }
   }, [map]);
