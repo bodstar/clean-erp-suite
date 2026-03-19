@@ -479,6 +479,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
       return () => {
         if (longPressTimer) clearTimeout(longPressTimer);
+        removeProgress();
         map.off("click", onClick);
         map.off("mousedown", onMouseDown);
         map.off("mouseup", onMouseUp);
