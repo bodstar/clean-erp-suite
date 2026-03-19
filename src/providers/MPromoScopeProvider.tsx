@@ -14,7 +14,7 @@ interface MPromoScopeContextType {
 const MPromoScopeContext = createContext<MPromoScopeContextType | undefined>(undefined);
 
 export function MPromoScopeProvider({ children }: { children: React.ReactNode }) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentTeamId } = useAuth();
   const canUseGlobalScope = hasPermission("mpromo.hq.global_view");
 
   const [scopeMode, _setScopeMode] = useState<ScopeMode>("current");
@@ -31,13 +31,16 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
   const setScopeMode = useCallback(
     (mode: ScopeMode) => {
       if (!canUseGlobalScope && mode !== "current") {
-        // Silently force to current for non-HQ users
         _setScopeMode("current");
         return;
       }
       _setScopeMode(mode);
+      // Auto-select current team when entering "target" mode without a selection
+      if (mode === "target" && !targetTeamId && currentTeamId) {
+        setTargetTeamId(currentTeamId);
+      }
     },
-    [canUseGlobalScope]
+    [canUseGlobalScope, targetTeamId, currentTeamId]
   );
 
   const scope: MPromoScope = {
