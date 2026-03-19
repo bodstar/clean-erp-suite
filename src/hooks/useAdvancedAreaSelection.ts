@@ -400,14 +400,29 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         polyPreviewLineRef.current.setLatLngs([...polyVerticesRef.current, e.latlng]);
       };
 
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape" && polyVerticesRef.current.length > 0) {
+          // Cancel in-progress polygon drawing
+          polyMarkersRef.current.forEach((l) => layerGroupRef.current.removeLayer(l));
+          polyMarkersRef.current = [];
+          polyVerticesRef.current = [];
+          if (polyPreviewLineRef.current) {
+            layerGroupRef.current.removeLayer(polyPreviewLineRef.current);
+            polyPreviewLineRef.current = null;
+          }
+        }
+      };
+
       map.on("click", onClick);
       map.on("dblclick", onDblClick);
       map.on("mousemove", onMouseMove);
+      document.addEventListener("keydown", onKeyDown);
 
       return () => {
         map.off("click", onClick);
         map.off("dblclick", onDblClick);
         map.off("mousemove", onMouseMove);
+        document.removeEventListener("keydown", onKeyDown);
         container.style.cursor = "";
         map.dragging.enable();
       };
