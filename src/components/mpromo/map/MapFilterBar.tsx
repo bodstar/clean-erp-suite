@@ -28,6 +28,8 @@ interface MapFilterBarProps {
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
+  showMarkers?: boolean;
+  onShowMarkersChange?: (value: boolean) => void;
 }
 
 export function MapFilterBar({
