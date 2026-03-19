@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star } from "lucide-react";
+import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star, X } from "lucide-react";
 import {
   Table,
   TableBody,
