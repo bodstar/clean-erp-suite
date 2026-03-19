@@ -111,6 +111,15 @@ export function MapFilterBar({
         <SquareDashedMousePointer className="h-3.5 w-3.5" />
         Select Area
       </Button>
+      <Button
+        variant={advancedAreaSelect ? "default" : "outline"}
+        size="sm"
+        className="h-8 gap-1.5 text-xs"
+        onClick={() => onAdvancedAreaSelectChange?.(!advancedAreaSelect)}
+      >
+        <Shapes className="h-3.5 w-3.5" />
+        Advanced Select
+      </Button>
       {heatmap && (
         <div className="space-y-1">
           <Label className="text-xs">Metric</Label>
