@@ -323,6 +323,7 @@ export default function MPromoMap() {
           zones={advancedSelection.zones}
           activeZoneId={advancedSelection.activeZoneId}
           lockedZoneIds={advancedSelection.lockedZoneIds}
+          dragEditingZoneId={advancedSelection.dragEditingZoneId}
           onAddZone={advancedSelection.addZone}
           onRemoveZone={advancedSelection.removeZone}
           onSetActiveZone={advancedSelection.setActiveZone}
@@ -332,6 +333,7 @@ export default function MPromoMap() {
           onUpdatePolygonEndMode={advancedSelection.updatePolygonEndMode}
           onClearAll={advancedSelection.clearAll}
           onUnlockZone={advancedSelection.unlockZone}
+          onFinishDragEdit={advancedSelection.finishDragEdit}
         />
       )}
 
