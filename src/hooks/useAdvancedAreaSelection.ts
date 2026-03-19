@@ -185,7 +185,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         next.delete(id);
         return next;
       });
-      // Don't set activeZoneId — we use a special drag editing state
+      setDragEditingZoneId(id);
       // Instead, add draggable markers on each vertex
       const polygon = zone.layer as L.Polygon;
       const latlngs = (polygon.getLatLngs()[0] as L.LatLng[]).slice();
