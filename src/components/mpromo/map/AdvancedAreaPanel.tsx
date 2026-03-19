@@ -25,6 +25,7 @@ export function AdvancedAreaPanel({
   onSetActiveZone,
   onSetShapeMode,
   onUpdateLabel,
+  onUpdatePolygonPointCount,
   onClearAll,
 }: AdvancedAreaPanelProps) {
   return (
