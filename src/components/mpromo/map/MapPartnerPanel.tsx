@@ -233,6 +233,24 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
                   <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
                 </Button>
               )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-7 gap-1 text-xs">
+                    <Download className="h-3.5 w-3.5" /> Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportZonesCSV(zonesWithPartners)}>
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportZonesExcel(zonesWithPartners)}>
+                    Export as Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportZonesPDF(zonesWithPartners)}>
+                    Export as PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
