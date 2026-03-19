@@ -22,7 +22,7 @@ export function MapPartnerPanel({ partners }: MapPartnerPanelProps) {
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
 
-  const toggleCompare = (id: string) => {
+  const toggleCompare = (id: number) => {
     setCompareIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
