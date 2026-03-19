@@ -79,9 +79,8 @@ export async function exportZonesExcel(zones: AreaZone[]) {
 }
 
 export async function exportZonesPDF(zones: AreaZone[]) {
-  const jsPDFModule = await import("jspdf");
-  const autoTableModule = await import("jspdf-autotable");
-  const jsPDF = jsPDFModule.default;
+  const { default: jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
 
   const doc = new jsPDF({ orientation: "landscape" });
   doc.setFontSize(14);
@@ -90,7 +89,7 @@ export async function exportZonesPDF(zones: AreaZone[]) {
   doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 21);
 
   const rows = flattenZones(zones);
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 26,
     head: [HEADERS],
     body: rows.map((r) => Object.values(r)),
