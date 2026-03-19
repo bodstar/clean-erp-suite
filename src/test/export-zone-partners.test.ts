@@ -34,7 +34,7 @@ const mockZone: AreaZone = {
       id: 2,
       name: "Partner Two",
       type: "CHILLER",
-      status: "inactive",
+      status: "suspended",
       location: "Kumasi, Ghana",
       phone: "+233987654321",
       latitude: 6.6885,
