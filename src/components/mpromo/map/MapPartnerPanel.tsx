@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity } from "lucide-react";
+import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -67,8 +67,31 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
           </div>
         </div>
 
-        <Link to={`/mpromo/partners/${partner.id}`}>
-          <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <Link to={`/mpromo/partners/${partner.id}?tab=redemptions`}>
+            <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+              <Receipt className="h-3.5 w-3.5" /> Redemptions
+            </Button>
+          </Link>
+          <Link to={`/mpromo/partners/${partner.id}?tab=orders`}>
+            <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+              <ShoppingCart className="h-3.5 w-3.5" /> Orders
+            </Button>
+          </Link>
+          <Link to={`/mpromo/partners/${partner.id}?tab=points`}>
+            <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+              <Star className="h-3.5 w-3.5" /> Loyalty Pts
+            </Button>
+          </Link>
+          <Link to={`/mpromo/partners/${partner.id}`}>
+            <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 text-xs">
+              <Wallet className="h-3.5 w-3.5" /> Payouts
+            </Button>
+          </Link>
+        </div>
+
+        <Link to={`/mpromo/partners/${partner.id}`} className="block pt-1">
+          <Button variant="default" size="sm" className="w-full h-8 gap-1.5 text-xs">
             <Eye className="h-3.5 w-3.5" /> View Partner
           </Button>
         </Link>
