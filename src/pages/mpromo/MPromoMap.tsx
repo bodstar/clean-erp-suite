@@ -321,7 +321,7 @@ export default function MPromoMap() {
           onUpdateLabel={advancedSelection.updateZoneLabel}
           onClearAll={advancedSelection.clearAll}
         />
-      )
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div
