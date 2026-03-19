@@ -18,6 +18,7 @@ import type { MapPartner } from "@/types/mpromo";
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
+  areaSelect?: boolean;
   onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
 }
 
