@@ -419,11 +419,29 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       };
 
       let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+      let progressEl: HTMLDivElement | null = null;
 
-      const onMouseDown = () => {
+      const removeProgress = () => {
+        if (progressEl) {
+          progressEl.remove();
+          progressEl = null;
+        }
+      };
+
+      const onMouseDown = (e: L.LeafletMouseEvent) => {
         if (useCount || polyVerticesRef.current.length < 3) return;
+
+        // Create visual progress ring at click position
+        const point = map!.latLngToContainerPoint(e.latlng);
+        progressEl = document.createElement("div");
+        progressEl.className = "longpress-progress-ring";
+        progressEl.style.left = `${point.x}px`;
+        progressEl.style.top = `${point.y}px`;
+        container.appendChild(progressEl);
+
         longPressTimer = setTimeout(() => {
           longPressTimer = null;
+          removeProgress();
           finalizePoly();
         }, 3000);
       };
@@ -433,6 +451,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
           clearTimeout(longPressTimer);
           longPressTimer = null;
         }
+        removeProgress();
       };
 
       const onMouseMove = (e: L.LeafletMouseEvent) => {
@@ -460,6 +479,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
       return () => {
         if (longPressTimer) clearTimeout(longPressTimer);
+        removeProgress();
         map.off("click", onClick);
         map.off("mousedown", onMouseDown);
         map.off("mouseup", onMouseUp);
