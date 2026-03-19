@@ -175,7 +175,7 @@ export function AdvancedAreaPanel({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
                     title="Finish editing"
                     onClick={(e) => {
                       e.stopPropagation();
