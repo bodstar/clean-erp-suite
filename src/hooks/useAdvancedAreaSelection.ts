@@ -736,13 +736,22 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     };
   }, [map, active, activeZoneId, zones, finalizeShape]);
 
-  // When deactivated, re-enable map dragging but keep zones visible
+  // Show/hide zone layers based on active state
   useEffect(() => {
     if (!map) return;
     if (!active) {
       map.getContainer().style.cursor = "";
       map.dragging.enable();
       clearDrawingState();
+      // Hide zones by removing layer group from map
+      if (map.hasLayer(layerGroupRef.current)) {
+        layerGroupRef.current.remove();
+      }
+    } else {
+      // Show zones by re-adding layer group to map
+      if (!map.hasLayer(layerGroupRef.current)) {
+        layerGroupRef.current.addTo(map);
+      }
     }
   }, [active, map, clearDrawingState]);
 

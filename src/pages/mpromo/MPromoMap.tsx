@@ -71,8 +71,6 @@ export default function MPromoMap() {
     if (value) {
       setAreaSelect(false);
       setSelectedPartners([]);
-    } else {
-      advancedSelection.clearAll();
     }
   };
   const [isComparing, setIsComparing] = useState(false);
