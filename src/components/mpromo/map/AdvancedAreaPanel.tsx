@@ -13,6 +13,7 @@ interface AdvancedAreaPanelProps {
   onSetActiveZone: (id: string | null) => void;
   onSetShapeMode: (id: string, mode: ShapeMode) => void;
   onUpdateLabel: (id: string, label: string) => void;
+  onUpdatePolygonPointCount: (id: string, count: number) => void;
   onClearAll: () => void;
 }
 
