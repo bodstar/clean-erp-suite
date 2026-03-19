@@ -229,6 +229,7 @@ export default function MPromoPartnerDetail() {
                 </>
               )}
             </div>
+          </div>
         </CardContent>
       </Card>
 
