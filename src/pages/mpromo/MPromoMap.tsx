@@ -60,6 +60,7 @@ export default function MPromoMap() {
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
+  const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
   const handleAreaSelectChange = (value: boolean) => {
     setAreaSelect(value);
     if (!value) setSelectedPartners([]);
@@ -67,6 +68,13 @@ export default function MPromoMap() {
   const [isComparing, setIsComparing] = useState(false);
   const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Advanced area selection hook
+  const advancedSelection = useAdvancedAreaSelection({
+    map: mapRef.current,
+    partners,
+    active: advancedAreaSelect,
+  });
 
   // Drag selection refs
   const isDraggingRef = useRef(false);
