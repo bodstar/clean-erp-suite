@@ -48,6 +48,8 @@ export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
       return "Order";
     case "payouts":
       return "Payout";
+    case "loyalty_points":
+      return "Loyalty Points";
   }
 }
 

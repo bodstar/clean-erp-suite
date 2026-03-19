@@ -96,6 +96,7 @@ export function MapFilterBar({
               <SelectItem value="redemptions">Redemptions</SelectItem>
               <SelectItem value="orders">Orders</SelectItem>
               <SelectItem value="payouts">Pending Payouts</SelectItem>
+              <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
             </SelectContent>
           </Select>
         </div>
