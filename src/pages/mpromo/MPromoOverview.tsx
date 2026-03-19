@@ -214,7 +214,7 @@ export default function MPromoOverview() {
                         {a.partner_id && a.partner_name
                           ? <>{a.description.split(a.partner_name)[0]}<Link to={`/mpromo/partners/${a.partner_id}`} className="text-primary hover:underline">{a.partner_name}</Link>{a.description.split(a.partner_name).slice(1).join(a.partner_name)}</>
                           : a.description}
-                        {scopeMode !== "current" && a.team_name && <TeamBadge teamName={a.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
+                        {scopeMode === "all" && a.team_name && <TeamBadge teamName={a.team_name} className="ml-1.5 text-[10px] px-1.5 py-0" />}
                       </p>
                       <p className="text-xs text-muted-foreground">{a.time}</p>
                     </div>
