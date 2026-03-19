@@ -18,6 +18,7 @@ import type { MapPartner } from "@/types/mpromo";
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
+  onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
 }
 
 /* ─── Single-partner detail card (marker click, heatmap OFF) ─── */
