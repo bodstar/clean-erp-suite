@@ -160,7 +160,7 @@ export function AdvancedAreaPanel({
                   <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
                 )}
                 {isDragEditing && (
-                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-500 text-amber-600">
+                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-warning text-warning-foreground">
                     <Move className="h-2.5 w-2.5 mr-0.5" /> Dragging
                   </Badge>
                 )}
