@@ -196,6 +196,9 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
           })
         )
       );
+      // Lock the zone after drawing is finalized
+      setLockedZoneIds((prev) => new Set(prev).add(activeZoneId));
+      setActiveZoneId(null);
     },
     [activeZoneId, recomputePartners]
   );
