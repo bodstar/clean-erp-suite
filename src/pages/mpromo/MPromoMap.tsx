@@ -63,7 +63,15 @@ export default function MPromoMap() {
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
   const handleAreaSelectChange = (value: boolean) => {
     setAreaSelect(value);
+    if (value) setAdvancedAreaSelect(false);
     if (!value) setSelectedPartners([]);
+  };
+  const handleAdvancedAreaSelectChange = (value: boolean) => {
+    setAdvancedAreaSelect(value);
+    if (value) {
+      setAreaSelect(false);
+      setSelectedPartners([]);
+    }
   };
   const [isComparing, setIsComparing] = useState(false);
   const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
