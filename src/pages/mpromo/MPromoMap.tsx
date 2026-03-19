@@ -178,7 +178,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap, selectedIdSet.size, ...Array.from(selectedIdSet)]);
+  }, [partners, heatmap, selectedKey]);
 
   // Drag-selection logic
   useEffect(() => {
