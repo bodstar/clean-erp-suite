@@ -127,6 +127,11 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         return prev.filter((z) => z.id !== id);
       });
       if (activeZoneId === id) setActiveZoneId(null);
+      setLockedZoneIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     },
     [activeZoneId]
   );
