@@ -91,7 +91,7 @@ export function AdvancedAreaPanel({
                   isActive
                     ? "border-primary bg-primary/5"
                     : isDragEditing
-                      ? "border-amber-500 bg-amber-500/5"
+                    ? "border-accent bg-accent/5"
                       : isLocked
                         ? "border-border bg-muted/30"
                         : "border-border hover:bg-muted/50"
