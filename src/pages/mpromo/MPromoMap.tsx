@@ -269,12 +269,9 @@ export default function MPromoMap() {
       map.off("mouseup", onMouseUp);
       container.style.cursor = "";
       map.dragging.enable();
-      if (selectionRectRef.current) {
-        selectionRectRef.current.remove();
-        selectionRectRef.current = null;
-      }
+      // Don't remove rectangle on cleanup — only remove when areaSelect is toggled off (handled above)
     };
-  }, [areaSelect, heatmap, partners]);
+  }, [areaSelect, partners]);
 
   return (
     <div className="space-y-4">
