@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
-import type { AreaZone, ShapeMode, PolygonEndMode } from "@/types/area-zone";
+import type { AreaZone, ShapeMode, PolygonEndMode, PolygonEditMode } from "@/types/area-zone";
 import { ZONE_COLORS, ZONE_LABELS } from "@/types/area-zone";
 
 interface UseAdvancedAreaSelectionProps {
@@ -49,6 +49,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
   const [zones, setZones] = useState<AreaZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
   const [lockedZoneIds, setLockedZoneIds] = useState<Set<string>>(new Set());
+  const [dragEditingZoneId, setDragEditingZoneId] = useState<string | null>(null);
 
   // Drawing state refs
   const isDraggingRef = useRef(false);
@@ -165,14 +166,121 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setLockedZoneIds(new Set());
   }, [zones]);
 
-  const unlockZone = useCallback((id: string) => {
+  // Draggable node refs for polygon editing
+  const dragNodeMarkersRef = useRef<L.CircleMarker[]>([]);
+
+  const clearDragNodes = useCallback(() => {
+    dragNodeMarkersRef.current.forEach((m) => layerGroupRef.current.removeLayer(m));
+    dragNodeMarkersRef.current = [];
+  }, []);
+
+  const unlockZone = useCallback((id: string, editMode?: PolygonEditMode) => {
+    const zone = zones.find((z) => z.id === id);
+    if (!zone) return;
+
+    if (zone.shapeMode === "polygon" && editMode === "drag" && zone.layer) {
+      // Drag mode: keep shape, add draggable vertex markers
+      setLockedZoneIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setDragEditingZoneId(id);
+      // Instead, add draggable markers on each vertex
+      const polygon = zone.layer as L.Polygon;
+      const latlngs = (polygon.getLatLngs()[0] as L.LatLng[]).slice();
+      
+      clearDragNodes();
+      
+      latlngs.forEach((ll, i) => {
+        const marker = L.circleMarker(ll, {
+          radius: 8,
+          color: zone.color,
+          fillColor: "#fff",
+          fillOpacity: 1,
+          weight: 2,
+          interactive: true,
+          bubblingMouseEvents: false,
+        } as L.CircleMarkerOptions);
+        
+        marker.bindTooltip(`${i + 1}`, {
+          permanent: true,
+          direction: "center",
+          className: "leaflet-tooltip-polygon-vertex",
+        });
+
+        // Make draggable by handling map events
+        let isDragging = false;
+        
+        marker.on("mousedown", (e: L.LeafletEvent) => {
+          L.DomEvent.stopPropagation(e as unknown as Event);
+          isDragging = true;
+          map?.dragging.disable();
+        });
+
+        const onMouseMove = (e: L.LeafletMouseEvent) => {
+          if (!isDragging) return;
+          marker.setLatLng(e.latlng);
+          latlngs[i] = e.latlng;
+          polygon.setLatLngs(latlngs);
+        };
+
+        const onMouseUp = () => {
+          if (!isDragging) return;
+          isDragging = false;
+          map?.dragging.enable();
+          // Recompute partners after drag
+          setZones((prev) => recomputePartners(prev));
+        };
+
+        map?.on("mousemove", onMouseMove);
+        map?.on("mouseup", onMouseUp);
+        
+        // Store cleanup refs on marker
+        (marker as any)._dragCleanup = () => {
+          map?.off("mousemove", onMouseMove);
+          map?.off("mouseup", onMouseUp);
+        };
+
+        layerGroupRef.current.addLayer(marker);
+        dragNodeMarkersRef.current.push(marker);
+      });
+      
+      return;
+    }
+
+    // Default: redraw mode (or non-polygon shapes)
+    if (zone.shapeMode === "polygon" && editMode === "redraw" && zone.layer) {
+      // Clear existing shape for redraw
+      layerGroupRef.current.removeLayer(zone.layer as L.Layer);
+      zone.drawingLayers.forEach((l) => layerGroupRef.current.removeLayer(l));
+      setZones((prev) =>
+        prev.map((z) => (z.id === id ? { ...z, layer: null, drawingLayers: [], partners: [] } : z))
+      );
+    }
+
     setLockedZoneIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
       return next;
     });
     setActiveZoneId(id);
-  }, []);
+  }, [zones, map, clearDragNodes, recomputePartners]);
+
+  /** Finish drag-editing and re-lock the zone */
+  const finishDragEdit = useCallback((id: string) => {
+    // Clean up drag node markers
+    dragNodeMarkersRef.current.forEach((m) => {
+      (m as any)._dragCleanup?.();
+      layerGroupRef.current.removeLayer(m);
+    });
+    dragNodeMarkersRef.current = [];
+    
+    // Re-lock and recompute
+    setLockedZoneIds((prev) => new Set(prev).add(id));
+    setDragEditingZoneId(null);
+    setZones((prev) => recomputePartners(prev));
+  }, [recomputePartners]);
 
   // Clear drawing artifacts helper
   const clearDrawingState = useCallback(() => {
@@ -529,6 +637,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     zones,
     activeZoneId,
     lockedZoneIds,
+    dragEditingZoneId,
     addZone,
     removeZone,
     setActiveZone: setActiveZoneId,
@@ -538,5 +647,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     updatePolygonEndMode,
     clearAll,
     unlockZone,
+    finishDragEdit,
   };
 }

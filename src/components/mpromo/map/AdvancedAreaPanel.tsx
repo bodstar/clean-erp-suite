@@ -1,16 +1,19 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Square, Circle, Pentagon, X, Pencil, Lock } from "lucide-react";
+import { Plus, Trash2, Square, Circle, Pentagon, X, Pencil, Lock, Check, Move, RefreshCw } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import type { AreaZone, ShapeMode, PolygonEndMode } from "@/types/area-zone";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { AreaZone, ShapeMode, PolygonEndMode, PolygonEditMode } from "@/types/area-zone";
 
 interface AdvancedAreaPanelProps {
   zones: AreaZone[];
   activeZoneId: string | null;
   lockedZoneIds: Set<string>;
+  dragEditingZoneId: string | null;
   onAddZone: () => void;
   onRemoveZone: (id: string) => void;
   onSetActiveZone: (id: string | null) => void;
@@ -19,13 +22,15 @@ interface AdvancedAreaPanelProps {
   onUpdatePolygonPointCount: (id: string, count: number) => void;
   onUpdatePolygonEndMode: (id: string, mode: PolygonEndMode) => void;
   onClearAll: () => void;
-  onUnlockZone: (id: string) => void;
+  onUnlockZone: (id: string, editMode?: PolygonEditMode) => void;
+  onFinishDragEdit: (id: string) => void;
 }
 
 export function AdvancedAreaPanel({
   zones,
   activeZoneId,
   lockedZoneIds,
+  dragEditingZoneId,
   onAddZone,
   onRemoveZone,
   onSetActiveZone,
@@ -35,6 +40,7 @@ export function AdvancedAreaPanel({
   onUpdatePolygonEndMode,
   onClearAll,
   onUnlockZone,
+  onFinishDragEdit,
 }: AdvancedAreaPanelProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-3 space-y-3">
@@ -74,18 +80,24 @@ export function AdvancedAreaPanel({
           const isActive = zone.id === activeZoneId;
           const isLocked = lockedZoneIds.has(zone.id);
           const hasShape = zone.layer !== null;
+          const isDragEditing = zone.id === dragEditingZoneId;
+          const isPolygon = zone.shapeMode === "polygon";
+          const isDisabled = isLocked || isDragEditing;
+
           return (
             <div key={zone.id} className="space-y-1.5">
               <div
                 className={`flex items-center gap-2 rounded-md border px-2.5 py-2 cursor-pointer transition-colors ${
                   isActive
                     ? "border-primary bg-primary/5"
-                    : isLocked
-                      ? "border-border bg-muted/30"
-                      : "border-border hover:bg-muted/50"
+                    : isDragEditing
+                    ? "border-accent bg-accent/5"
+                      : isLocked
+                        ? "border-border bg-muted/30"
+                        : "border-border hover:bg-muted/50"
                 }`}
                 onClick={() => {
-                  if (isLocked) return; // Locked zones can't be activated
+                  if (isLocked || isDragEditing) return;
                   onSetActiveZone(isActive ? null : zone.id);
                 }}
               >
@@ -101,7 +113,7 @@ export function AdvancedAreaPanel({
                   value={zone.label}
                   onChange={(e) => onUpdateLabel(zone.id, e.target.value)}
                   onClick={(e) => e.stopPropagation()}
-                  disabled={isLocked}
+                  disabled={isDisabled}
                 />
 
                 {/* Shape mode toggle */}
@@ -110,7 +122,7 @@ export function AdvancedAreaPanel({
                   size="sm"
                   value={zone.shapeMode}
                   onValueChange={(v) => {
-                    if (v && !isLocked) onSetShapeMode(zone.id, v as ShapeMode);
+                    if (v && !isDisabled) onSetShapeMode(zone.id, v as ShapeMode);
                   }}
                   className="gap-0"
                 >
@@ -119,7 +131,7 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Rectangle"
                     onClick={(e) => e.stopPropagation()}
-                    disabled={isLocked}
+                    disabled={isDisabled}
                   >
                     <Square className="h-3 w-3" />
                   </ToggleGroupItem>
@@ -128,7 +140,7 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Circle"
                     onClick={(e) => e.stopPropagation()}
-                    disabled={isLocked}
+                    disabled={isDisabled}
                   >
                     <Circle className="h-3 w-3" />
                   </ToggleGroupItem>
@@ -137,15 +149,20 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Polygon (point-by-point)"
                     onClick={(e) => e.stopPropagation()}
-                    disabled={isLocked}
+                    disabled={isDisabled}
                   >
                     <Pentagon className="h-3 w-3" />
                   </ToggleGroupItem>
                 </ToggleGroup>
 
-                {/* Lock indicator */}
+                {/* Lock / Drag-edit indicator */}
                 {isLocked && (
                   <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
+                )}
+                {isDragEditing && (
+                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-warning text-warning-foreground">
+                    <Move className="h-2.5 w-2.5 mr-0.5" /> Dragging
+                  </Badge>
                 )}
 
                 {/* Partner count */}
@@ -153,20 +170,43 @@ export function AdvancedAreaPanel({
                   {zone.partners.length} pts
                 </Badge>
 
-                {/* Edit / Unlock button */}
-                {hasShape && isLocked && (
+                {/* Finish drag edit button */}
+                {isDragEditing && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
-                    title="Edit zone"
+                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
+                    title="Finish editing"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onUnlockZone(zone.id);
+                      onFinishDragEdit(zone.id);
                     }}
                   >
-                    <Pencil className="h-3 w-3" />
+                    <Check className="h-3.5 w-3.5" />
                   </Button>
+                )}
+
+                {/* Edit / Unlock button */}
+                {hasShape && isLocked && !isDragEditing && (
+                  isPolygon ? (
+                    <PolygonEditPopover
+                      zoneId={zone.id}
+                      onUnlockZone={onUnlockZone}
+                    />
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                      title="Edit zone"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUnlockZone(zone.id);
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )
                 )}
 
                 {/* Delete */}
@@ -184,7 +224,7 @@ export function AdvancedAreaPanel({
               </div>
 
               {/* Polygon options row */}
-              {zone.shapeMode === "polygon" && isActive && !isLocked && (
+              {zone.shapeMode === "polygon" && isActive && !isLocked && !isDragEditing && (
                 <div
                   className="flex items-center gap-3 pl-8 text-xs"
                   onClick={(e) => e.stopPropagation()}
@@ -224,5 +264,64 @@ export function AdvancedAreaPanel({
         })}
       </div>
     </div>
+  );
+}
+
+/** Popover for polygon edit mode choice */
+function PolygonEditPopover({
+  zoneId,
+  onUnlockZone,
+}: {
+  zoneId: string;
+  onUnlockZone: (id: string, editMode?: PolygonEditMode) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+          title="Edit zone"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Pencil className="h-3 w-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-1.5" align="end" side="bottom">
+        <div className="space-y-0.5">
+          <button
+            className="flex items-center gap-2 w-full rounded-md px-2.5 py-2 text-xs hover:bg-muted transition-colors text-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onUnlockZone(zoneId, "drag");
+            }}
+          >
+            <Move className="h-3.5 w-3.5 text-muted-foreground" />
+            <div>
+              <div className="font-medium text-foreground">Drag nodes</div>
+              <div className="text-muted-foreground text-[10px]">Move existing vertices</div>
+            </div>
+          </button>
+          <button
+            className="flex items-center gap-2 w-full rounded-md px-2.5 py-2 text-xs hover:bg-muted transition-colors text-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onUnlockZone(zoneId, "redraw");
+            }}
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+            <div>
+              <div className="font-medium text-foreground">Redraw</div>
+              <div className="text-muted-foreground text-[10px]">Draw new points from scratch</div>
+            </div>
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
