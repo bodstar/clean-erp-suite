@@ -253,7 +253,7 @@ export default function MPromoMap() {
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partners={selectedPartners} />
+        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} />
       </div>
 
       {heatmap && (
