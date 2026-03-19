@@ -157,7 +157,17 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     });
     setZones([]);
     setActiveZoneId(null);
+    setLockedZoneIds(new Set());
   }, [zones]);
+
+  const unlockZone = useCallback((id: string) => {
+    setLockedZoneIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    setActiveZoneId(id);
+  }, []);
 
   // Clear drawing artifacts helper
   const clearDrawingState = useCallback(() => {
