@@ -1,55 +1,35 @@
 
 
-## Plan: Heatmap-Only Mode with Multi-Partner Selection & Comparison
+## Build Heatmap Layer for M-Promo Map
 
-### Overview
-When heatmap is enabled, hide individual location markers and make heat circles clickable to show partners within that circle's area. Add drag-selection (lasso/rectangle) to select partners in a region. Add a compare mode for selected partners.
+### Summary
+Implement a canvas-based heatmap overlay that visualizes redemption intensity across partner locations. When the "Heatmap" toggle is enabled, colored intensity circles overlay the map using each partner's `redemptions_amount` as the weight. Markers remain visible underneath.
+
+### Approach
+Since `leaflet.heat` is a third-party plugin that would require an npm install and has compatibility concerns, we will implement a **lightweight custom canvas heatmap layer** using Leaflet's `L.CircleMarker` approach — drawing semi-transparent, gradient circles sized and colored by redemption amount. This avoids external dependencies entirely.
+
+Alternatively, we can use a simple `L.CircleMarker`-based approach:
+- Each partner gets a translucent circle whose radius and color intensity scale with `redemptions_amount`
+- Low redemptions = small green circle, high redemptions = large red circle
+- Circles are added to a separate `LayerGroup` that is toggled by the heatmap switch
 
 ### Changes
 
-#### 1. Hide markers when heatmap is on
-**File: `src/pages/mpromo/MPromoMap.tsx`**
-- In the "Update markers" `useEffect`, skip adding markers entirely when `heatmap` is `true` (currently they render at 0.5 opacity).
+**1. `src/pages/mpromo/MPromoMap.tsx`**
+- Add a new `heatLayerRef = useRef<L.LayerGroup>()` for heatmap circles
+- Add the layer group to the map on init
+- New `useEffect` that reacts to `[partners, heatmap]`:
+  - Clears the heat layer
+  - If `heatmap` is true, iterates partners and adds `L.circleMarker` at each location with:
+    - `radius`: scaled from `redemptions_amount` (min 8, max 40)
+    - `fillColor`: gradient from green (low) → yellow (mid) → red (high)
+    - `fillOpacity`: 0.45
+    - `stroke`: false
+  - Each circle gets a tooltip showing partner name and redemption amount
+- When heatmap is on, optionally reduce marker opacity so circles are more visible
+- Remove the placeholder text at the bottom
+- Add a legend below the map showing the color scale (green → yellow → red) with labels "Low" / "Medium" / "High"
 
-#### 2. Make heat circles clickable — show partners in radius
-**File: `src/components/mpromo/map/useMapHeatLayer.ts`**
-- Add an `onCircleClick` callback prop to the hook options.
-- On each circle marker, attach a click handler that finds all partners whose lat/lng falls within the circle's radius and passes that list to the callback.
-- Export a helper to compute which partners fall within a given circle (using `L.Map.distance` or the Haversine formula based on the circle's pixel radius converted to meters at current zoom).
-
-**File: `src/pages/mpromo/MPromoMap.tsx`**
-- Pass an `onCircleClick` callback to `useMapHeatLayer` that sets `selectedPartners` (new state: `MapPartner[]`).
-
-#### 3. Drag-selection (rectangle select) on map
-**File: `src/pages/mpromo/MPromoMap.tsx`**
-- Add a "Select Area" toggle button to the filter bar or map overlay.
-- When active, enable a custom rectangle-draw interaction: on `mousedown` + drag, draw a `L.Rectangle` overlay; on `mouseup`, compute which partners fall within the rectangle bounds and populate `selectedPartners`.
-- Use a ref for the selection rectangle and clean up on deactivate.
-
-**File: `src/components/mpromo/map/MapFilterBar.tsx`**
-- Add a new prop `areaSelect` / `onAreaSelectChange` for the toggle control, rendered as a button with a selection icon.
-
-#### 4. Redesign MapPartnerPanel to show multiple partners
-**File: `src/components/mpromo/map/MapPartnerPanel.tsx`**
-- Change props from `partner: MapPartner | null` to `partners: MapPartner[]` plus `comparePartners: MapPartner[]` and selection callbacks.
-- **List view**: When `partners` has items, render a scrollable table with columns: Name, Type, Status, Location, Redemptions, Orders, Payouts, Loyalty Points, and action buttons (View Partner, etc.). Each row has a checkbox for comparison selection.
-- **Compare view**: When 2+ partners are checked for comparison, show a "Compare" button. Clicking it switches to a side-by-side comparison layout (vertical cards or a comparison table) showing all partner metrics aligned for easy comparison. Include a "Back to list" button.
-- **Empty state**: "Click a heat circle or drag-select an area to view partners."
-
-#### 5. Wire it all together in MPromoMap
-**File: `src/pages/mpromo/MPromoMap.tsx`**
-- Replace `selectedPartner: MapPartner | null` with `selectedPartners: MapPartner[]`.
-- Add `comparePartners: MapPartner[]` state for the comparison selection.
-- Pass both to the redesigned `MapPartnerPanel`.
-
-### Technical Details
-- Circle click partner detection: Convert the circle's pixel radius to meters using `map.containerPointToLatLng` at the circle center, then filter partners by distance.
-- Drag selection: Use native Leaflet DOM events with `L.DomEvent` to capture shift+drag or a toggled mode; draw `L.Rectangle` and use `bounds.contains(partnerLatLng)` to filter.
-- No new dependencies needed — all done with Leaflet's built-in APIs.
-
-### Files to modify
-1. `src/components/mpromo/map/MapFilterBar.tsx` — add area-select toggle
-2. `src/components/mpromo/map/useMapHeatLayer.ts` — add circle click callback
-3. `src/components/mpromo/map/MapPartnerPanel.tsx` — redesign for multi-partner list, table, and compare mode
-4. `src/pages/mpromo/MPromoMap.tsx` — orchestrate new state and interactions
+### Files modified
+- `src/pages/mpromo/MPromoMap.tsx`
 
