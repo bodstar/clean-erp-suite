@@ -15,7 +15,7 @@ const mockZone: AreaZone = {
     {
       id: 1,
       name: "Partner One",
-      type: "RETAIL_SHOP",
+      type: "CHILLER",
       status: "active",
       location: "Accra, Ghana",
       phone: "+233123456789",
