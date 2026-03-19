@@ -128,7 +128,7 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
     return (
       <Card className="h-[500px] overflow-auto">
         <CardContent className="p-4 flex items-center justify-center h-full text-sm text-muted-foreground">
-          {heatmap
+          {listMode
             ? "Click a heat circle or drag-select an area to view partners"
             : "Click a marker to view partner details"}
         </CardContent>
