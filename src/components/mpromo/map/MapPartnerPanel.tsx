@@ -213,16 +213,28 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
           <span className="text-xs font-medium text-muted-foreground">
             {partners.length} partner{partners.length !== 1 ? "s" : ""}
           </span>
-          {compareMap.size >= 2 && (
-            <Button
-              variant="default"
-              size="sm"
-              className="h-7 gap-1 text-xs"
-              onClick={() => setShowCompare(true)}
-            >
-              <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
-            </Button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {compareMap.size > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 text-xs text-muted-foreground"
+                onClick={() => setCompareMap(new Map())}
+              >
+                <X className="h-3.5 w-3.5" /> Clear ({compareMap.size})
+              </Button>
+            )}
+            {compareMap.size >= 2 && (
+              <Button
+                variant="default"
+                size="sm"
+                className="h-7 gap-1 text-xs"
+                onClick={() => setShowCompare(true)}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
+              </Button>
+            )}
+          </div>
         </div>
         <Table>
           <TableHeader>
