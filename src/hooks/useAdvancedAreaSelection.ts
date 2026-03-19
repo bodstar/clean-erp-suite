@@ -111,6 +111,10 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonPointCount: Math.max(3, count) } : z)));
   }, []);
 
+  const updatePolygonEndMode = useCallback((id: string, mode: PolygonEndMode) => {
+    setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonEndMode: mode } : z)));
+  }, []);
+
   const removeZone = useCallback(
     (id: string) => {
       setZones((prev) => {
