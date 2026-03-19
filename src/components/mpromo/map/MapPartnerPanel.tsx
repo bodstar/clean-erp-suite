@@ -114,7 +114,7 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
     });
   };
 
-  const compareIds = compareMap;
+  
   const comparePartners = Array.from(compareMap.values());
 
   // Empty state
