@@ -3,6 +3,7 @@ import L from "leaflet";
 
 export type ShapeMode = "rectangle" | "circle" | "polygon";
 export type PolygonEndMode = "count" | "doubleclick";
+export type PolygonEditMode = "drag" | "redraw";
 
 export interface AreaZone {
   id: string;

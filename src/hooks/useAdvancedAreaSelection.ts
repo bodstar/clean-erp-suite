@@ -635,6 +635,9 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     zones,
     activeZoneId,
     lockedZoneIds,
+    dragEditingZoneIds: new Set(dragNodeMarkersRef.current.length > 0 
+      ? zones.filter(z => !lockedZoneIds.has(z.id) && z.id !== activeZoneId && z.layer && z.shapeMode === "polygon").map(z => z.id)
+      : []),
     addZone,
     removeZone,
     setActiveZone: setActiveZoneId,
@@ -644,5 +647,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     updatePolygonEndMode,
     clearAll,
     unlockZone,
+    finishDragEdit,
   };
 }
