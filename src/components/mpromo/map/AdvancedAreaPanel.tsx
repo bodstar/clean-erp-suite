@@ -124,6 +124,21 @@ export function AdvancedAreaPanel({
                 </ToggleGroupItem>
               </ToggleGroup>
 
+              {/* Polygon point count */}
+              {zone.shapeMode === "polygon" && (
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <Input
+                    type="number"
+                    min={3}
+                    max={20}
+                    className="h-6 w-12 text-xs px-1.5 text-center bg-transparent border-border"
+                    value={zone.polygonPointCount}
+                    onChange={(e) => onUpdatePolygonPointCount(zone.id, parseInt(e.target.value) || 3)}
+                  />
+                  <span className="text-[10px] text-muted-foreground">pts</span>
+                </div>
+              )}
+
               {/* Partner count */}
               <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ml-auto">
                 {zone.partners.length} pts
