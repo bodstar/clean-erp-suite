@@ -438,6 +438,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setShapeMode,
     updateZoneLabel,
     updatePolygonPointCount,
+    updatePolygonEndMode,
     clearAll,
   };
 }
