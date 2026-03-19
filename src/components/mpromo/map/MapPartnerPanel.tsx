@@ -103,7 +103,8 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 }
 
 /* ─── Main panel ─── */
-export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: MapPartnerPanelProps) {
+export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateChange }: MapPartnerPanelProps) {
+  const listMode = heatmap || areaSelect;
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
   const comparePartners = Array.from(compareMap.values());
