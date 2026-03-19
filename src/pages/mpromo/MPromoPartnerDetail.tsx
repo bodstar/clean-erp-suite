@@ -213,15 +213,22 @@ export default function MPromoPartnerDetail() {
             </div>
             {canManage && (
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
-                <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
-                <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
-                  {partner.status === "active"
-                    ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
-                    : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
-                </Button>
-              </div>
-            )}
+                {partner.latitude && partner.longitude && (
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/mpromo/map?partner=${partner.id}`)}>
+                    <Map className="h-4 w-4 mr-1.5" /> View on Map
+                  </Button>
+                )}
+                {canManage && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+                    <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
+                    <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
+                      {partner.status === "active"
+                        ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
+                        : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
+                    </Button>
+                  </>
+                )}
           </div>
         </CardContent>
       </Card>
