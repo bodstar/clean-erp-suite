@@ -329,12 +329,28 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         }
       };
 
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          circleStartRef.current = null;
+          if (previewLayerRef.current) {
+            layerGroupRef.current.removeLayer(previewLayerRef.current);
+            previewLayerRef.current = null;
+          }
+          if (circleDotRef.current) {
+            layerGroupRef.current.removeLayer(circleDotRef.current);
+            circleDotRef.current = null;
+          }
+        }
+      };
+
       map.on("click", onClick);
       map.on("mousemove", onMouseMove);
+      document.addEventListener("keydown", onKeyDown);
 
       return () => {
         map.off("click", onClick);
         map.off("mousemove", onMouseMove);
+        document.removeEventListener("keydown", onKeyDown);
         container.style.cursor = "";
         map.dragging.enable();
       };
