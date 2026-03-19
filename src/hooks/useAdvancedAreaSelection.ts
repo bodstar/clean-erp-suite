@@ -389,10 +389,21 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         }
       };
 
-      const onDblClick = (e: L.LeafletMouseEvent) => {
-        if (useCount) return;
-        L.DomEvent.stopPropagation(e);
-        finalizePoly();
+      let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const onMouseDown = () => {
+        if (useCount || polyVerticesRef.current.length < 3) return;
+        longPressTimer = setTimeout(() => {
+          longPressTimer = null;
+          finalizePoly();
+        }, 3000);
+      };
+
+      const onMouseUp = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
       };
 
       const onMouseMove = (e: L.LeafletMouseEvent) => {
@@ -402,7 +413,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
       const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape" && polyVerticesRef.current.length > 0) {
-          // Cancel in-progress polygon drawing
           polyMarkersRef.current.forEach((l) => layerGroupRef.current.removeLayer(l));
           polyMarkersRef.current = [];
           polyVerticesRef.current = [];
@@ -414,13 +424,16 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       };
 
       map.on("click", onClick);
-      map.on("dblclick", onDblClick);
+      map.on("mousedown", onMouseDown);
+      map.on("mouseup", onMouseUp);
       map.on("mousemove", onMouseMove);
       document.addEventListener("keydown", onKeyDown);
 
       return () => {
+        if (longPressTimer) clearTimeout(longPressTimer);
         map.off("click", onClick);
-        map.off("dblclick", onDblClick);
+        map.off("mousedown", onMouseDown);
+        map.off("mouseup", onMouseUp);
         map.off("mousemove", onMouseMove);
         document.removeEventListener("keydown", onKeyDown);
         container.style.cursor = "";

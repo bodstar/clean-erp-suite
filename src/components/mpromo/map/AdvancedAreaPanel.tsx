@@ -177,7 +177,7 @@ export function AdvancedAreaPanel({
                     <div className="flex items-center gap-1.5">
                       <RadioGroupItem value="doubleclick" id={`${zone.id}-dblclick`} className="h-3 w-3" />
                       <Label htmlFor={`${zone.id}-dblclick`} className="text-xs text-muted-foreground cursor-pointer">
-                        Double-click to finish
+                        Long-press to finish
                       </Label>
                     </div>
                   </RadioGroup>
