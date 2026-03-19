@@ -40,13 +40,19 @@ export default function MPromoMap() {
 
   const [partners, setPartners] = useState<MapPartner[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPartner, setSelectedPartner] = useState<MapPartner | null>(null);
+  const [selectedPartners, setSelectedPartners] = useState<MapPartner[]>([]);
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
+  const [areaSelect, setAreaSelect] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Drag selection refs
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef<L.LatLng | null>(null);
+  const selectionRectRef = useRef<L.Rectangle | null>(null);
 
   const isDark = theme === "dark";
   const tileUrl = isDark
@@ -75,8 +81,13 @@ export default function MPromoMap() {
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(mapRef.current);
   }, [tileUrl]);
 
+  // Circle click handler
+  const handleCircleClick = useCallback((nearby: MapPartner[]) => {
+    setSelectedPartners(nearby);
+  }, []);
+
   // Heatmap hook
-  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric });
+  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, onCircleClick: handleCircleClick });
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -121,22 +132,103 @@ export default function MPromoMap() {
     };
   }, [loadPartners]);
 
-  // Update markers
+  // Update markers — hide when heatmap is on
   useEffect(() => {
     markersRef.current.clearLayers();
+    if (heatmap) return; // no markers in heatmap mode
     partners.forEach((p) => {
       const marker = L.marker([p.latitude, p.longitude], {
         icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
-        opacity: heatmap ? 0.5 : 1,
       });
       marker.bindTooltip(
         `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
         { direction: "top", offset: [0, -30], className: "leaflet-tooltip" }
       );
-      marker.on("click", () => setSelectedPartner(p));
+      marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
   }, [partners, heatmap]);
+
+  // Drag-selection logic
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const container = map.getContainer();
+
+    if (!areaSelect || !heatmap) {
+      // Clean up
+      container.style.cursor = "";
+      map.dragging.enable();
+      if (selectionRectRef.current) {
+        selectionRectRef.current.remove();
+        selectionRectRef.current = null;
+      }
+      return;
+    }
+
+    container.style.cursor = "crosshair";
+    map.dragging.disable();
+
+    const onMouseDown = (e: L.LeafletMouseEvent) => {
+      isDraggingRef.current = true;
+      dragStartRef.current = e.latlng;
+      if (selectionRectRef.current) {
+        selectionRectRef.current.remove();
+        selectionRectRef.current = null;
+      }
+    };
+
+    const onMouseMove = (e: L.LeafletMouseEvent) => {
+      if (!isDraggingRef.current || !dragStartRef.current) return;
+      const bounds = L.latLngBounds(dragStartRef.current, e.latlng);
+      if (selectionRectRef.current) {
+        selectionRectRef.current.setBounds(bounds);
+      } else {
+        selectionRectRef.current = L.rectangle(bounds, {
+          color: "hsl(var(--primary))",
+          weight: 2,
+          fillOpacity: 0.15,
+          dashArray: "6",
+        }).addTo(map);
+      }
+    };
+
+    const onMouseUp = (e: L.LeafletMouseEvent) => {
+      if (!isDraggingRef.current || !dragStartRef.current) return;
+      isDraggingRef.current = false;
+      const bounds = L.latLngBounds(dragStartRef.current, e.latlng);
+      dragStartRef.current = null;
+
+      const inBounds = partners.filter((p) =>
+        bounds.contains(L.latLng(p.latitude, p.longitude))
+      );
+      setSelectedPartners(inBounds);
+
+      // Remove rectangle after short delay
+      setTimeout(() => {
+        if (selectionRectRef.current) {
+          selectionRectRef.current.remove();
+          selectionRectRef.current = null;
+        }
+      }, 1500);
+    };
+
+    map.on("mousedown", onMouseDown);
+    map.on("mousemove", onMouseMove);
+    map.on("mouseup", onMouseUp);
+
+    return () => {
+      map.off("mousedown", onMouseDown);
+      map.off("mousemove", onMouseMove);
+      map.off("mouseup", onMouseUp);
+      container.style.cursor = "";
+      map.dragging.enable();
+      if (selectionRectRef.current) {
+        selectionRectRef.current.remove();
+        selectionRectRef.current = null;
+      }
+    };
+  }, [areaSelect, heatmap, partners]);
 
   return (
     <div className="space-y-4">
@@ -152,6 +244,8 @@ export default function MPromoMap() {
         heatMetric={heatMetric}
         onHeatMetricChange={setHeatMetric}
         isLoading={isLoading}
+        areaSelect={areaSelect}
+        onAreaSelectChange={setAreaSelect}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
@@ -159,7 +253,7 @@ export default function MPromoMap() {
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partner={selectedPartner} />
+        <MapPartnerPanel partners={selectedPartners} />
       </div>
 
       {heatmap && (

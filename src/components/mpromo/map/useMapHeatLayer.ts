@@ -53,14 +53,23 @@ export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
   }
 }
 
+/** Convert a circle marker's pixel radius to meters at its position */
+function pixelRadiusToMeters(map: L.Map, center: L.LatLng, pixelRadius: number): number {
+  const centerPoint = map.latLngToContainerPoint(center);
+  const edgePoint = L.point(centerPoint.x + pixelRadius, centerPoint.y);
+  const edgeLatLng = map.containerPointToLatLng(edgePoint);
+  return center.distanceTo(edgeLatLng);
+}
+
 interface UseMapHeatLayerOptions {
   map: L.Map | null;
   partners: MapPartner[];
   heatmap: boolean;
   heatMetric: HeatMetric;
+  onCircleClick?: (partners: MapPartner[]) => void;
 }
 
-export function useMapHeatLayer({ map, partners, heatmap, heatMetric }: UseMapHeatLayerOptions) {
+export function useMapHeatLayer({ map, partners, heatmap, heatMetric, onCircleClick }: UseMapHeatLayerOptions) {
   const heatLayerRef = useRef<L.LayerGroup>(L.layerGroup());
 
   // Add layer to map once
@@ -75,7 +84,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric }: UseMapHe
   // Render heat circles
   useEffect(() => {
     heatLayerRef.current.clearLayers();
-    if (!heatmap || partners.length === 0) return;
+    if (!heatmap || partners.length === 0 || !map) return;
 
     const label = getMetricLabel(heatMetric);
     const amounts = partners.map((p) => getMetricValue(p, heatMetric));
@@ -85,6 +94,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric }: UseMapHe
       const val = getMetricValue(p, heatMetric);
       const ratio = maxAmount > 0 ? val / maxAmount : 0;
       const radius = 8 + ratio * 32;
+      const center = L.latLng(p.latitude, p.longitude);
       const circle = L.circleMarker([p.latitude, p.longitude], {
         radius,
         fillColor: getHeatColor(ratio),
@@ -96,7 +106,18 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric }: UseMapHe
         `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
         { direction: "top" }
       );
+
+      circle.on("click", () => {
+        if (!onCircleClick || !map) return;
+        const metersRadius = pixelRadiusToMeters(map, center, radius);
+        const nearby = partners.filter((other) => {
+          const otherLatLng = L.latLng(other.latitude, other.longitude);
+          return center.distanceTo(otherLatLng) <= metersRadius;
+        });
+        onCircleClick(nearby);
+      });
+
       heatLayerRef.current.addLayer(circle);
     });
-  }, [partners, heatmap, heatMetric]);
+  }, [partners, heatmap, heatMetric, map, onCircleClick]);
 }
