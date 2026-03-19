@@ -373,7 +373,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
     // Remove map click handler
     if (dragMapClickRef.current && map) {
-      map.off("click", dragMapClickRef.current);
+      map.off("dblclick", dragMapClickRef.current);
       dragMapClickRef.current = null;
     }
 
