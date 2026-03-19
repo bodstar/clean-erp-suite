@@ -181,7 +181,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     dragNodeMarkersRef.current = [];
     // Remove map click handler
     if (dragMapClickRef.current && map) {
-      map.off("click", dragMapClickRef.current);
+      map.off("dblclick", dragMapClickRef.current);
       dragMapClickRef.current = null;
     }
   }, [map]);
@@ -322,7 +322,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         buildDragMarkers(poly, ll, z?.color ?? "#6366f1");
         setZones((prev) => recomputePartners(prev));
       };
-      map?.on("click", onMapClick);
+      map?.on("dblclick", onMapClick);
       dragMapClickRef.current = onMapClick;
 
       return;
@@ -373,7 +373,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
     // Remove map click handler
     if (dragMapClickRef.current && map) {
-      map.off("click", dragMapClickRef.current);
+      map.off("dblclick", dragMapClickRef.current);
       dragMapClickRef.current = null;
     }
 

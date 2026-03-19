@@ -263,7 +263,7 @@ export function AdvancedAreaPanel({
               {/* Drag edit hints */}
               {isDragEditing && (
                 <div className="flex items-center gap-3 pl-8 text-[10px] text-muted-foreground">
-                  <span>Click map to <strong>add</strong> vertex</span>
+                  <span>Double-click map to <strong>add</strong> vertex</span>
                   <span>•</span>
                   <span>Right-click node to <strong>remove</strong></span>
                 </div>
