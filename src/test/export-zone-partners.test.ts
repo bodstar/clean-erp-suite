@@ -76,19 +76,8 @@ describe("exportZonesCSV", () => {
     vi.spyOn(document.body, "removeChild").mockImplementation((el) => el);
   });
 
-  it("generates CSV with correct headers", async () => {
+  it("generates CSV file with correct filename", async () => {
     const { exportZonesCSV } = await import("@/lib/export-zone-partners");
-
-    // Capture blob content via createObjectURL
-    let blobContent = "";
-    global.URL.createObjectURL = vi.fn((blob: Blob) => {
-      // Read blob via FileReader alternative - use constructor arg
-      const reader = new FileReaderSync();
-      blobContent = reader.readAsText(blob);
-      return "blob:mock";
-    });
-
-    // FileReaderSync may not be available in jsdom, so test the function doesn't throw
     expect(() => exportZonesCSV([mockZone])).not.toThrow();
     expect(downloadedFilename).toBe("zone-partners.csv");
   });
