@@ -98,6 +98,11 @@ export default function MPromoMap() {
     setSelectedPartners(nearby);
   }, []);
 
+  const handleCompareStateChange = useCallback((comparing: boolean, partners: MapPartner[]) => {
+    setIsComparing(comparing);
+    setComparePartners(partners);
+  }, []);
+
   // Heatmap hook
   useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, onCircleClick: handleCircleClick });
 
