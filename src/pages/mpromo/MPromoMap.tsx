@@ -188,7 +188,7 @@ export default function MPromoMap() {
       return;
     }
     
-    if (heatmap || !showMarkers) return; // no markers when hidden
+    if (!showMarkers) return; // markers controlled solely by the toggle
     partners.forEach((p) => {
       const isSelected = selectedIdSet.has(p.id);
       const icon = isSelected
