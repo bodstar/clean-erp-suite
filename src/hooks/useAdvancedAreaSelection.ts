@@ -523,6 +523,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
   return {
     zones,
     activeZoneId,
+    lockedZoneIds,
     addZone,
     removeZone,
     setActiveZone: setActiveZoneId,
@@ -531,5 +532,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     updatePolygonPointCount,
     updatePolygonEndMode,
     clearAll,
+    unlockZone,
   };
 }
