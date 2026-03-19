@@ -50,6 +50,8 @@ export function MapFilterBar({
   onAreaSelectChange,
   showMarkers,
   onShowMarkersChange,
+  advancedAreaSelect,
+  onAdvancedAreaSelectChange,
 }: MapFilterBarProps) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
