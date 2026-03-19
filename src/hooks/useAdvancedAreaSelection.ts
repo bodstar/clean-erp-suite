@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
-import type { AreaZone, ShapeMode, PolygonEndMode } from "@/types/area-zone";
+import type { AreaZone, ShapeMode, PolygonEndMode, PolygonEditMode } from "@/types/area-zone";
 import { ZONE_COLORS, ZONE_LABELS } from "@/types/area-zone";
 
 interface UseAdvancedAreaSelectionProps {
