@@ -168,10 +168,124 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
 
   // Draggable node refs for polygon editing
   const dragNodeMarkersRef = useRef<L.CircleMarker[]>([]);
+  const dragLatlngsRef = useRef<L.LatLng[]>([]);
+  const dragPolygonRef = useRef<L.Polygon | null>(null);
+  const dragZoneIdRef = useRef<string | null>(null);
+  const dragMapClickRef = useRef<((e: L.LeafletMouseEvent) => void) | null>(null);
 
   const clearDragNodes = useCallback(() => {
-    dragNodeMarkersRef.current.forEach((m) => layerGroupRef.current.removeLayer(m));
+    dragNodeMarkersRef.current.forEach((m) => {
+      (m as any)._dragCleanup?.();
+      layerGroupRef.current.removeLayer(m);
+    });
     dragNodeMarkersRef.current = [];
+    // Remove map click handler
+    if (dragMapClickRef.current && map) {
+      map.off("click", dragMapClickRef.current);
+      dragMapClickRef.current = null;
+    }
+  }, [map]);
+
+  /** Build draggable vertex markers for the current polygon */
+  const buildDragMarkers = useCallback((polygon: L.Polygon, latlngs: L.LatLng[], color: string) => {
+    // Clear existing drag markers
+    dragNodeMarkersRef.current.forEach((m) => {
+      (m as any)._dragCleanup?.();
+      layerGroupRef.current.removeLayer(m);
+    });
+    dragNodeMarkersRef.current = [];
+
+    latlngs.forEach((ll, i) => {
+      const marker = L.circleMarker(ll, {
+        radius: 8,
+        color,
+        fillColor: "#fff",
+        fillOpacity: 1,
+        weight: 2,
+        interactive: true,
+        bubblingMouseEvents: false,
+      } as L.CircleMarkerOptions);
+
+      marker.bindTooltip(`${i + 1}`, {
+        permanent: true,
+        direction: "center",
+        className: "leaflet-tooltip-polygon-vertex",
+      });
+
+      // Make draggable
+      let isDragging = false;
+
+      marker.on("mousedown", (e: L.LeafletEvent) => {
+        L.DomEvent.stopPropagation(e as unknown as Event);
+        isDragging = true;
+        map?.dragging.disable();
+      });
+
+      const onMouseMove = (e: L.LeafletMouseEvent) => {
+        if (!isDragging) return;
+        marker.setLatLng(e.latlng);
+        latlngs[i] = e.latlng;
+        dragLatlngsRef.current = latlngs;
+        polygon.setLatLngs(latlngs);
+      };
+
+      const onMouseUp = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        map?.dragging.enable();
+        setZones((prev) => recomputePartners(prev));
+      };
+
+      // Right-click to remove vertex (min 3)
+      marker.on("contextmenu", (e: L.LeafletEvent) => {
+        L.DomEvent.stopPropagation(e as unknown as Event);
+        L.DomEvent.preventDefault(e as unknown as Event);
+        if (latlngs.length <= 3) return; // Can't have fewer than 3 vertices
+        latlngs.splice(i, 1);
+        dragLatlngsRef.current = latlngs;
+        polygon.setLatLngs(latlngs);
+        // Rebuild markers with updated indices
+        buildDragMarkers(polygon, latlngs, color);
+        setZones((prev) => recomputePartners(prev));
+      });
+
+      map?.on("mousemove", onMouseMove);
+      map?.on("mouseup", onMouseUp);
+
+      (marker as any)._dragCleanup = () => {
+        map?.off("mousemove", onMouseMove);
+        map?.off("mouseup", onMouseUp);
+      };
+
+      layerGroupRef.current.addLayer(marker);
+      dragNodeMarkersRef.current.push(marker);
+    });
+  }, [map, recomputePartners]);
+
+  /** Find the nearest edge and return the insert index */
+  const findInsertIndex = useCallback((point: L.LatLng, latlngs: L.LatLng[]): number => {
+    let minDist = Infinity;
+    let insertAt = latlngs.length;
+
+    for (let i = 0; i < latlngs.length; i++) {
+      const a = latlngs[i];
+      const b = latlngs[(i + 1) % latlngs.length];
+      // Project point onto segment a-b
+      const dx = b.lng - a.lng;
+      const dy = b.lat - a.lat;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) continue;
+      let t = ((point.lng - a.lng) * dx + (point.lat - a.lat) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      const projLat = a.lat + t * dy;
+      const projLng = a.lng + t * dx;
+      const dist = Math.sqrt((point.lat - projLat) ** 2 + (point.lng - projLng) ** 2);
+      if (dist < minDist) {
+        minDist = dist;
+        insertAt = i + 1;
+      }
+    }
+    return insertAt;
   }, []);
 
   const unlockZone = useCallback((id: string, editMode?: PolygonEditMode) => {
@@ -179,79 +293,43 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     if (!zone) return;
 
     if (zone.shapeMode === "polygon" && editMode === "drag" && zone.layer) {
-      // Drag mode: keep shape, add draggable vertex markers
       setLockedZoneIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
         return next;
       });
       setDragEditingZoneId(id);
-      // Instead, add draggable markers on each vertex
+
       const polygon = zone.layer as L.Polygon;
       const latlngs = (polygon.getLatLngs()[0] as L.LatLng[]).slice();
-      
+      dragLatlngsRef.current = latlngs;
+      dragPolygonRef.current = polygon;
+      dragZoneIdRef.current = id;
+
       clearDragNodes();
-      
-      latlngs.forEach((ll, i) => {
-        const marker = L.circleMarker(ll, {
-          radius: 8,
-          color: zone.color,
-          fillColor: "#fff",
-          fillOpacity: 1,
-          weight: 2,
-          interactive: true,
-          bubblingMouseEvents: false,
-        } as L.CircleMarkerOptions);
-        
-        marker.bindTooltip(`${i + 1}`, {
-          permanent: true,
-          direction: "center",
-          className: "leaflet-tooltip-polygon-vertex",
-        });
+      buildDragMarkers(polygon, latlngs, zone.color);
 
-        // Make draggable by handling map events
-        let isDragging = false;
-        
-        marker.on("mousedown", (e: L.LeafletEvent) => {
-          L.DomEvent.stopPropagation(e as unknown as Event);
-          isDragging = true;
-          map?.dragging.disable();
-        });
+      // Map click to add vertex
+      const onMapClick = (e: L.LeafletMouseEvent) => {
+        const ll = dragLatlngsRef.current;
+        const poly = dragPolygonRef.current;
+        if (!poly || ll.length === 0) return;
+        const insertAt = findInsertIndex(e.latlng, ll);
+        ll.splice(insertAt, 0, e.latlng);
+        dragLatlngsRef.current = ll;
+        poly.setLatLngs(ll);
+        const z = zones.find((z) => z.id === dragZoneIdRef.current);
+        buildDragMarkers(poly, ll, z?.color ?? "#6366f1");
+        setZones((prev) => recomputePartners(prev));
+      };
+      map?.on("click", onMapClick);
+      dragMapClickRef.current = onMapClick;
 
-        const onMouseMove = (e: L.LeafletMouseEvent) => {
-          if (!isDragging) return;
-          marker.setLatLng(e.latlng);
-          latlngs[i] = e.latlng;
-          polygon.setLatLngs(latlngs);
-        };
-
-        const onMouseUp = () => {
-          if (!isDragging) return;
-          isDragging = false;
-          map?.dragging.enable();
-          // Recompute partners after drag
-          setZones((prev) => recomputePartners(prev));
-        };
-
-        map?.on("mousemove", onMouseMove);
-        map?.on("mouseup", onMouseUp);
-        
-        // Store cleanup refs on marker
-        (marker as any)._dragCleanup = () => {
-          map?.off("mousemove", onMouseMove);
-          map?.off("mouseup", onMouseUp);
-        };
-
-        layerGroupRef.current.addLayer(marker);
-        dragNodeMarkersRef.current.push(marker);
-      });
-      
       return;
     }
 
     // Default: redraw mode (or non-polygon shapes)
     if (zone.shapeMode === "polygon" && editMode === "redraw" && zone.layer) {
-      // Clear existing shape for redraw
       layerGroupRef.current.removeLayer(zone.layer as L.Layer);
       zone.drawingLayers.forEach((l) => layerGroupRef.current.removeLayer(l));
       setZones((prev) =>
@@ -265,19 +343,17 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       return next;
     });
     setActiveZoneId(id);
-  }, [zones, map, clearDragNodes, recomputePartners]);
+  }, [zones, map, clearDragNodes, buildDragMarkers, findInsertIndex, recomputePartners]);
 
   /** Finish drag-editing and re-lock the zone */
   const finishDragEdit = useCallback((id: string) => {
-    // Remove drag event listeners but keep markers as new drawingLayers
     const newDrawingLayers: L.Layer[] = [];
-    dragNodeMarkersRef.current.forEach((m) => {
+    const zone = zones.find((z) => z.id === id);
+    const color = zone?.color ?? "#6366f1";
+
+    dragNodeMarkersRef.current.forEach((m, idx) => {
       (m as any)._dragCleanup?.();
-      // Create a static copy of the marker at its current position (non-interactive)
       const pos = m.getLatLng();
-      const zone = zones.find((z) => z.id === id);
-      const color = zone?.color ?? "#6366f1";
-      const idx = dragNodeMarkersRef.current.indexOf(m);
       const staticMarker = L.circleMarker(pos, {
         radius: 6,
         color,
@@ -291,12 +367,20 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       });
       layerGroupRef.current.addLayer(staticMarker);
       newDrawingLayers.push(staticMarker);
-      // Remove the draggable marker
       layerGroupRef.current.removeLayer(m);
     });
     dragNodeMarkersRef.current = [];
 
-    // Remove old drawing layers, replace with new static ones
+    // Remove map click handler
+    if (dragMapClickRef.current && map) {
+      map.off("click", dragMapClickRef.current);
+      dragMapClickRef.current = null;
+    }
+
+    dragPolygonRef.current = null;
+    dragZoneIdRef.current = null;
+    dragLatlngsRef.current = [];
+
     setZones((prev) =>
       recomputePartners(
         prev.map((z) => {
@@ -307,10 +391,9 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       )
     );
 
-    // Re-lock
     setLockedZoneIds((prev) => new Set(prev).add(id));
     setDragEditingZoneId(null);
-  }, [recomputePartners, zones]);
+  }, [recomputePartners, zones, map]);
 
   // Clear drawing artifacts helper
   const clearDrawingState = useCallback(() => {
