@@ -322,14 +322,16 @@ export default function MPromoMap() {
         <AdvancedAreaPanel
           zones={advancedSelection.zones}
           activeZoneId={advancedSelection.activeZoneId}
+          lockedZoneIds={advancedSelection.lockedZoneIds}
           onAddZone={advancedSelection.addZone}
           onRemoveZone={advancedSelection.removeZone}
           onSetActiveZone={advancedSelection.setActiveZone}
           onSetShapeMode={advancedSelection.setShapeMode}
           onUpdateLabel={advancedSelection.updateZoneLabel}
-           onUpdatePolygonPointCount={advancedSelection.updatePolygonPointCount}
-           onUpdatePolygonEndMode={advancedSelection.updatePolygonEndMode}
-           onClearAll={advancedSelection.clearAll}
+          onUpdatePolygonPointCount={advancedSelection.updatePolygonPointCount}
+          onUpdatePolygonEndMode={advancedSelection.updatePolygonEndMode}
+          onClearAll={advancedSelection.clearAll}
+          onUnlockZone={advancedSelection.unlockZone}
         />
       )}
 

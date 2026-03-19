@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Square, Circle, Pentagon, X } from "lucide-react";
+import { Plus, Trash2, Square, Circle, Pentagon, X, Pencil, Lock } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import type { AreaZone, ShapeMode, PolygonEndMode } from "@/types/area-zone";
 interface AdvancedAreaPanelProps {
   zones: AreaZone[];
   activeZoneId: string | null;
+  lockedZoneIds: Set<string>;
   onAddZone: () => void;
   onRemoveZone: (id: string) => void;
   onSetActiveZone: (id: string | null) => void;
@@ -18,11 +19,13 @@ interface AdvancedAreaPanelProps {
   onUpdatePolygonPointCount: (id: string, count: number) => void;
   onUpdatePolygonEndMode: (id: string, mode: PolygonEndMode) => void;
   onClearAll: () => void;
+  onUnlockZone: (id: string) => void;
 }
 
 export function AdvancedAreaPanel({
   zones,
   activeZoneId,
+  lockedZoneIds,
   onAddZone,
   onRemoveZone,
   onSetActiveZone,
@@ -31,6 +34,7 @@ export function AdvancedAreaPanel({
   onUpdatePolygonPointCount,
   onUpdatePolygonEndMode,
   onClearAll,
+  onUnlockZone,
 }: AdvancedAreaPanelProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-3 space-y-3">
@@ -68,15 +72,22 @@ export function AdvancedAreaPanel({
       <div className="space-y-2">
         {zones.map((zone) => {
           const isActive = zone.id === activeZoneId;
+          const isLocked = lockedZoneIds.has(zone.id);
+          const hasShape = zone.layer !== null;
           return (
             <div key={zone.id} className="space-y-1.5">
               <div
                 className={`flex items-center gap-2 rounded-md border px-2.5 py-2 cursor-pointer transition-colors ${
                   isActive
                     ? "border-primary bg-primary/5"
-                    : "border-border hover:bg-muted/50"
+                    : isLocked
+                      ? "border-border bg-muted/30"
+                      : "border-border hover:bg-muted/50"
                 }`}
-                onClick={() => onSetActiveZone(isActive ? null : zone.id)}
+                onClick={() => {
+                  if (isLocked) return; // Locked zones can't be activated
+                  onSetActiveZone(isActive ? null : zone.id);
+                }}
               >
                 {/* Color swatch */}
                 <div
@@ -90,6 +101,7 @@ export function AdvancedAreaPanel({
                   value={zone.label}
                   onChange={(e) => onUpdateLabel(zone.id, e.target.value)}
                   onClick={(e) => e.stopPropagation()}
+                  disabled={isLocked}
                 />
 
                 {/* Shape mode toggle */}
@@ -98,7 +110,7 @@ export function AdvancedAreaPanel({
                   size="sm"
                   value={zone.shapeMode}
                   onValueChange={(v) => {
-                    if (v) onSetShapeMode(zone.id, v as ShapeMode);
+                    if (v && !isLocked) onSetShapeMode(zone.id, v as ShapeMode);
                   }}
                   className="gap-0"
                 >
@@ -107,6 +119,7 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Rectangle"
                     onClick={(e) => e.stopPropagation()}
+                    disabled={isLocked}
                   >
                     <Square className="h-3 w-3" />
                   </ToggleGroupItem>
@@ -115,6 +128,7 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Circle"
                     onClick={(e) => e.stopPropagation()}
+                    disabled={isLocked}
                   >
                     <Circle className="h-3 w-3" />
                   </ToggleGroupItem>
@@ -123,15 +137,37 @@ export function AdvancedAreaPanel({
                     className="h-6 w-6 p-0 data-[state=on]:bg-primary/15"
                     title="Polygon (point-by-point)"
                     onClick={(e) => e.stopPropagation()}
+                    disabled={isLocked}
                   >
                     <Pentagon className="h-3 w-3" />
                   </ToggleGroupItem>
                 </ToggleGroup>
 
+                {/* Lock indicator */}
+                {isLocked && (
+                  <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
+                )}
+
                 {/* Partner count */}
                 <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ml-auto">
                   {zone.partners.length} pts
                 </Badge>
+
+                {/* Edit / Unlock button */}
+                {hasShape && isLocked && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                    title="Edit zone"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnlockZone(zone.id);
+                    }}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                )}
 
                 {/* Delete */}
                 <Button
@@ -148,7 +184,7 @@ export function AdvancedAreaPanel({
               </div>
 
               {/* Polygon options row */}
-              {zone.shapeMode === "polygon" && isActive && (
+              {zone.shapeMode === "polygon" && isActive && !isLocked && (
                 <div
                   className="flex items-center gap-3 pl-8 text-xs"
                   onClick={(e) => e.stopPropagation()}
