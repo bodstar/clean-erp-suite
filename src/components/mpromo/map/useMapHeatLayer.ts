@@ -22,6 +22,8 @@ function getMetricValue(p: MapPartner, metric: HeatMetric): number {
       return p.orders_amount;
     case "payouts":
       return p.pending_payouts_amount;
+    case "loyalty_points":
+      return p.loyalty_points;
   }
 }
 
