@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star, X } from "lucide-react";
+import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star, X, ChevronDown, ChevronRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,13 +13,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { MapPartner } from "@/types/mpromo";
+import type { AreaZone } from "@/types/area-zone";
 
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
   areaSelect?: boolean;
   onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
+  zones?: AreaZone[];
 }
 
 /* ─── Single-partner detail card (marker click, heatmap OFF) ─── */
