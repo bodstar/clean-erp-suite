@@ -57,6 +57,8 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Drag selection refs
