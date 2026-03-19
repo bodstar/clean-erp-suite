@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +18,7 @@ import type { MapPartner } from "@/types/mpromo";
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
+  onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
 }
 
 /* ─── Single-partner detail card (marker click, heatmap OFF) ─── */
@@ -101,9 +102,15 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 }
 
 /* ─── Main panel ─── */
-export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
+export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: MapPartnerPanelProps) {
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
+  const comparePartners = Array.from(compareMap.values());
+
+  // Notify parent when compare state changes
+  useEffect(() => {
+    onCompareStateChange?.(showCompare && comparePartners.length >= 2, comparePartners);
+  }, [showCompare, compareMap]);
 
   const toggleCompare = (partner: MapPartner) => {
     setCompareMap((prev) => {
@@ -113,9 +120,6 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
       return next;
     });
   };
-
-  
-  const comparePartners = Array.from(compareMap.values());
 
   // Empty state
   if (partners.length === 0) {

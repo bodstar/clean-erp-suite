@@ -57,6 +57,8 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Drag selection refs
@@ -94,6 +96,11 @@ export default function MPromoMap() {
   // Circle click handler
   const handleCircleClick = useCallback((nearby: MapPartner[]) => {
     setSelectedPartners(nearby);
+  }, []);
+
+  const handleCompareStateChange = useCallback((comparing: boolean, partners: MapPartner[]) => {
+    setIsComparing(comparing);
+    setComparePartners(partners);
   }, []);
 
   // Heatmap hook
@@ -158,9 +165,24 @@ export default function MPromoMap() {
   const selectedKey = selectedPartners.map((p) => p.id).sort().join(",");
   const selectedIdSet = new Set(selectedPartners.map((p) => p.id));
 
-  // Update markers — hide when heatmap is on
+  // Update markers — hide when heatmap is on (unless comparing)
   useEffect(() => {
     markersRef.current.clearLayers();
+    
+    // In compare mode, show only compared partners as markers
+    if (isComparing && comparePartners.length >= 2) {
+      comparePartners.forEach((p) => {
+        const icon = p.type === "CHILLER" ? chillerIcon : iceWaterIcon;
+        const marker = L.marker([p.latitude, p.longitude], { icon, zIndexOffset: 500 });
+        marker.bindTooltip(
+          `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
+          { direction: "top", offset: [0, -30], className: "leaflet-tooltip" }
+        );
+        markersRef.current.addLayer(marker);
+      });
+      return;
+    }
+    
     if (heatmap) return; // no markers in heatmap mode
     partners.forEach((p) => {
       const isSelected = selectedIdSet.has(p.id);
@@ -178,7 +200,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap, selectedKey]);
+  }, [partners, heatmap, selectedKey, isComparing, comparePartners]);
 
   // Drag-selection logic
   useEffect(() => {
@@ -284,7 +306,7 @@ export default function MPromoMap() {
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} />
+        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} onCompareStateChange={handleCompareStateChange} />
       </div>
 
       {heatmap && (
