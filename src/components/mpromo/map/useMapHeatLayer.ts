@@ -91,7 +91,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric }: UseMapHe
         fillOpacity: 0.45,
         stroke: false,
       });
-      const formattedVal = metric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
+      const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
       circle.bindTooltip(
         `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
         { direction: "top" }
