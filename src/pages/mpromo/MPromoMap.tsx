@@ -183,7 +183,7 @@ export default function MPromoMap() {
       return;
     }
     
-    if (heatmap) return; // no markers in heatmap mode
+    if (heatmap || areaSelect) return; // no markers in heatmap/area-select mode
     partners.forEach((p) => {
       const isSelected = selectedIdSet.has(p.id);
       const icon = isSelected
