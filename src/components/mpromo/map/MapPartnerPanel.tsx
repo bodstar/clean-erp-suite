@@ -19,7 +19,7 @@ interface MapPartnerPanelProps {
 }
 
 export function MapPartnerPanel({ partners }: MapPartnerPanelProps) {
-  const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+  const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
 
   const toggleCompare = (id: string) => {
