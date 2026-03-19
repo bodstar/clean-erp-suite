@@ -136,8 +136,8 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
     );
   }
 
-  // Heatmap OFF → single partner detail card
-  if (!heatmap) {
+  // List mode OFF → single partner detail card
+  if (!listMode) {
     return <SinglePartnerView partner={partners[0]} />;
   }
 
