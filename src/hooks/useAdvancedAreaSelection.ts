@@ -278,6 +278,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     
     // Re-lock and recompute
     setLockedZoneIds((prev) => new Set(prev).add(id));
+    setDragEditingZoneId(null);
     setZones((prev) => recomputePartners(prev));
   }, [recomputePartners]);
 
