@@ -256,14 +256,7 @@ export default function MPromoMap() {
         bounds.contains(L.latLng(p.latitude, p.longitude))
       );
       setSelectedPartners(inBounds);
-
-      // Remove rectangle after short delay
-      setTimeout(() => {
-        if (selectionRectRef.current) {
-          selectionRectRef.current.remove();
-          selectionRectRef.current = null;
-        }
-      }, 1500);
+      // Keep the rectangle visible on the map
     };
 
     map.on("mousedown", onMouseDown);
