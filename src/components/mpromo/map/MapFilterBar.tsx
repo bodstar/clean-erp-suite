@@ -92,6 +92,12 @@ export function MapFilterBar({
           Heatmap
         </Label>
       </div>
+      <div className="flex items-center gap-2">
+        <Switch id="show-markers" checked={showMarkers ?? true} onCheckedChange={(v) => onShowMarkersChange?.(v)} />
+        <Label htmlFor="show-markers" className="text-xs">
+          Markers
+        </Label>
+      </div>
       <Button
         variant={areaSelect ? "default" : "outline"}
         size="sm"
