@@ -237,8 +237,8 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
               <TableRow key={p.id}>
                 <TableCell className="px-2">
                   <Checkbox
-                    checked={compareIds.has(p.id)}
-                    onCheckedChange={() => toggleCompare(p.id)}
+                    checked={compareMap.has(p.id)}
+                    onCheckedChange={() => toggleCompare(p)}
                   />
                 </TableCell>
                 <TableCell className="text-xs px-2 font-medium">{p.name}</TableCell>
