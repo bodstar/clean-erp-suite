@@ -155,6 +155,7 @@ export default function MPromoMap() {
     }
   }, [initialPartnerId, partners]);
 
+  const selectedKey = selectedPartners.map((p) => p.id).sort().join(",");
   const selectedIdSet = new Set(selectedPartners.map((p) => p.id));
 
   // Update markers — hide when heatmap is on
