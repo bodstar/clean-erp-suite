@@ -46,6 +46,8 @@ export function MapFilterBar({
   isLoading,
   areaSelect,
   onAreaSelectChange,
+  showMarkers,
+  onShowMarkersChange,
 }: MapFilterBarProps) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
