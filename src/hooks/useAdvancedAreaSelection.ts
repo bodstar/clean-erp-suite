@@ -275,11 +275,21 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       layerGroupRef.current.removeLayer(m);
     });
     dragNodeMarkersRef.current = [];
-    
-    // Re-lock and recompute
+
+    // Remove old drawing layers (original vertex markers) from the zone
+    setZones((prev) =>
+      recomputePartners(
+        prev.map((z) => {
+          if (z.id !== id) return z;
+          z.drawingLayers.forEach((l) => layerGroupRef.current.removeLayer(l));
+          return { ...z, drawingLayers: [] };
+        })
+      )
+    );
+
+    // Re-lock
     setLockedZoneIds((prev) => new Set(prev).add(id));
     setDragEditingZoneId(null);
-    setZones((prev) => recomputePartners(prev));
   }, [recomputePartners]);
 
   // Clear drawing artifacts helper
