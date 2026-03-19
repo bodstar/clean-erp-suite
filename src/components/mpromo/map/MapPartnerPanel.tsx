@@ -105,6 +105,7 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: MapPartnerPanelProps) {
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
+  const comparePartners = Array.from(compareMap.values());
 
   // Notify parent when compare state changes
   useEffect(() => {
@@ -119,9 +120,6 @@ export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: Map
       return next;
     });
   };
-
-  
-  const comparePartners = Array.from(compareMap.values());
 
   // Empty state
   if (partners.length === 0) {
