@@ -102,9 +102,14 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 }
 
 /* ─── Main panel ─── */
-export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
+export function MapPartnerPanel({ partners, heatmap, onCompareStateChange }: MapPartnerPanelProps) {
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
+
+  // Notify parent when compare state changes
+  useEffect(() => {
+    onCompareStateChange?.(showCompare && comparePartners.length >= 2, comparePartners);
+  }, [showCompare, compareMap]);
 
   const toggleCompare = (partner: MapPartner) => {
     setCompareMap((prev) => {
