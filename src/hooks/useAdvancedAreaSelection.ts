@@ -323,17 +323,41 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     }
 
     if (zone.shapeMode === "polygon") {
+      const targetCount = zone.polygonPointCount;
+
+      const finalizePoly = () => {
+        if (polyVerticesRef.current.length < 3) return;
+
+        const polygon = L.polygon(polyVerticesRef.current, {
+          color,
+          weight: 2,
+          fillOpacity: 0.15,
+          fillColor: color,
+        });
+        layerGroupRef.current.addLayer(polygon);
+
+        const savedMarkers = [...polyMarkersRef.current];
+
+        if (polyPreviewLineRef.current) {
+          layerGroupRef.current.removeLayer(polyPreviewLineRef.current);
+          polyPreviewLineRef.current = null;
+        }
+
+        finalizeShape(polygon, savedMarkers);
+        polyVerticesRef.current = [];
+        polyMarkersRef.current = [];
+      };
+
       const onClick = (e: L.LeafletMouseEvent) => {
         polyVerticesRef.current.push(e.latlng);
         const idx = polyVerticesRef.current.length;
 
-        // Add numbered vertex marker
         const marker = L.circleMarker(e.latlng, {
           radius: 6,
           color,
           fillColor: color,
           fillOpacity: 1,
-        }).bindTooltip(String(idx), {
+        }).bindTooltip(`${idx}/${targetCount}`, {
           permanent: true,
           direction: "center",
           className: "leaflet-tooltip-polygon-vertex",
@@ -341,7 +365,6 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         layerGroupRef.current.addLayer(marker);
         polyMarkersRef.current.push(marker);
 
-        // Update preview polyline
         if (polyPreviewLineRef.current) {
           polyPreviewLineRef.current.setLatLngs(polyVerticesRef.current);
         } else {
@@ -352,53 +375,24 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
           });
           layerGroupRef.current.addLayer(polyPreviewLineRef.current);
         }
+
+        // Auto-finalize when target point count reached
+        if (idx >= targetCount) {
+          finalizePoly();
+        }
       };
 
       const onMouseMove = (e: L.LeafletMouseEvent) => {
         if (polyVerticesRef.current.length === 0 || !polyPreviewLineRef.current) return;
-        // Show line from last vertex to cursor
         polyPreviewLineRef.current.setLatLngs([...polyVerticesRef.current, e.latlng]);
-      };
-
-      const onDblClick = (e: L.LeafletMouseEvent) => {
-        L.DomEvent.stopPropagation(e as unknown as Event);
-        L.DomEvent.preventDefault(e as unknown as Event);
-
-        if (polyVerticesRef.current.length < 3) return;
-
-        // Create final polygon
-        const polygon = L.polygon(polyVerticesRef.current, {
-          color,
-          weight: 2,
-          fillOpacity: 0.15,
-          fillColor: color,
-        });
-        layerGroupRef.current.addLayer(polygon);
-
-        // Keep vertex markers as drawing layers for reference
-        const savedMarkers = [...polyMarkersRef.current];
-
-        // Remove preview line
-        if (polyPreviewLineRef.current) {
-          layerGroupRef.current.removeLayer(polyPreviewLineRef.current);
-          polyPreviewLineRef.current = null;
-        }
-
-        finalizeShape(polygon, savedMarkers);
-
-        // Reset
-        polyVerticesRef.current = [];
-        polyMarkersRef.current = [];
       };
 
       map.on("click", onClick);
       map.on("mousemove", onMouseMove);
-      map.on("dblclick", onDblClick);
 
       return () => {
         map.off("click", onClick);
         map.off("mousemove", onMouseMove);
-        map.off("dblclick", onDblClick);
         container.style.cursor = "";
         map.dragging.enable();
       };
