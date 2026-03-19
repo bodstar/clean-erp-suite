@@ -57,6 +57,7 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(true);
   const handleAreaSelectChange = (value: boolean) => {
     setAreaSelect(value);
     if (!value) setSelectedPartners([]);
