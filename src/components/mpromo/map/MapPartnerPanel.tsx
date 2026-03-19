@@ -207,14 +207,14 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
           <span className="text-xs font-medium text-muted-foreground">
             {partners.length} partner{partners.length !== 1 ? "s" : ""}
           </span>
-          {compareIds.size >= 2 && (
+          {compareMap.size >= 2 && (
             <Button
               variant="default"
               size="sm"
               className="h-7 gap-1 text-xs"
               onClick={() => setShowCompare(true)}
             >
-              <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareIds.size})
+              <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
             </Button>
           )}
         </div>
