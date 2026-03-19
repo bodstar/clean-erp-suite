@@ -35,6 +35,8 @@ function getMetricLabel(metric: HeatMetric): string {
       return "Orders";
     case "payouts":
       return "Pending Payouts";
+    case "loyalty_points":
+      return "Loyalty Points";
   }
 }
 
