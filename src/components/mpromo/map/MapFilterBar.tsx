@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { SquareDashedMousePointer } from "lucide-react";
+import { SquareDashedMousePointer, Shapes } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -30,6 +30,8 @@ interface MapFilterBarProps {
   onAreaSelectChange?: (value: boolean) => void;
   showMarkers?: boolean;
   onShowMarkersChange?: (value: boolean) => void;
+  advancedAreaSelect?: boolean;
+  onAdvancedAreaSelectChange?: (value: boolean) => void;
 }
 
 export function MapFilterBar({
@@ -48,6 +50,8 @@ export function MapFilterBar({
   onAreaSelectChange,
   showMarkers,
   onShowMarkersChange,
+  advancedAreaSelect,
+  onAdvancedAreaSelectChange,
 }: MapFilterBarProps) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
@@ -106,6 +110,15 @@ export function MapFilterBar({
       >
         <SquareDashedMousePointer className="h-3.5 w-3.5" />
         Select Area
+      </Button>
+      <Button
+        variant={advancedAreaSelect ? "default" : "outline"}
+        size="sm"
+        className="h-8 gap-1.5 text-xs"
+        onClick={() => onAdvancedAreaSelectChange?.(!advancedAreaSelect)}
+      >
+        <Shapes className="h-3.5 w-3.5" />
+        Advanced Select
       </Button>
       {heatmap && (
         <div className="space-y-1">

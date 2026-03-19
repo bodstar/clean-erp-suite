@@ -9,6 +9,8 @@ import type { MapPartner } from "@/types/mpromo";
 import { MapFilterBar, type HeatMetric } from "@/components/mpromo/map/MapFilterBar";
 import { MapPartnerPanel } from "@/components/mpromo/map/MapPartnerPanel";
 import { useMapHeatLayer, getHeatMetricIntensityLabel } from "@/components/mpromo/map/useMapHeatLayer";
+import { useAdvancedAreaSelection } from "@/hooks/useAdvancedAreaSelection";
+import { AdvancedAreaPanel } from "@/components/mpromo/map/AdvancedAreaPanel";
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -58,6 +60,7 @@ export default function MPromoMap() {
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
+  const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
   const handleAreaSelectChange = (value: boolean) => {
     setAreaSelect(value);
     if (!value) setSelectedPartners([]);
@@ -65,6 +68,13 @@ export default function MPromoMap() {
   const [isComparing, setIsComparing] = useState(false);
   const [comparePartners, setComparePartners] = useState<MapPartner[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Advanced area selection hook
+  const advancedSelection = useAdvancedAreaSelection({
+    map: mapRef.current,
+    partners,
+    active: advancedAreaSelect,
+  });
 
   // Drag selection refs
   const isDraggingRef = useRef(false);
@@ -296,14 +306,35 @@ export default function MPromoMap() {
         onAreaSelectChange={handleAreaSelectChange}
         showMarkers={showMarkers}
         onShowMarkersChange={setShowMarkers}
+        advancedAreaSelect={advancedAreaSelect}
+        onAdvancedAreaSelectChange={setAdvancedAreaSelect}
       />
+
+      {advancedAreaSelect && (
+        <AdvancedAreaPanel
+          zones={advancedSelection.zones}
+          activeZoneId={advancedSelection.activeZoneId}
+          onAddZone={advancedSelection.addZone}
+          onRemoveZone={advancedSelection.removeZone}
+          onSetActiveZone={advancedSelection.setActiveZone}
+          onSetShapeMode={advancedSelection.setShapeMode}
+          onUpdateLabel={advancedSelection.updateZoneLabel}
+          onClearAll={advancedSelection.clearAll}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div
           ref={mapContainerRef}
           className="rounded-lg border border-border overflow-hidden h-[500px] relative z-0"
         />
-        <MapPartnerPanel partners={selectedPartners} heatmap={heatmap} areaSelect={areaSelect} onCompareStateChange={handleCompareStateChange} />
+        <MapPartnerPanel
+          partners={selectedPartners}
+          heatmap={heatmap}
+          areaSelect={areaSelect}
+          onCompareStateChange={handleCompareStateChange}
+          zones={advancedAreaSelect ? advancedSelection.zones : undefined}
+        />
       </div>
 
       {heatmap && (

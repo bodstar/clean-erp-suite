@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
-import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star, X } from "lucide-react";
+import { Eye, ArrowLeft, GitCompareArrows, MapPin, Phone, Activity, Receipt, ShoppingCart, Wallet, Star, X, ChevronDown, ChevronRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,13 +13,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { MapPartner } from "@/types/mpromo";
+import type { AreaZone } from "@/types/area-zone";
 
 interface MapPartnerPanelProps {
   partners: MapPartner[];
   heatmap: boolean;
   areaSelect?: boolean;
   onCompareStateChange?: (isComparing: boolean, comparePartners: MapPartner[]) => void;
+  zones?: AreaZone[];
 }
 
 /* ─── Single-partner detail card (marker click, heatmap OFF) ─── */
@@ -103,7 +106,7 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 }
 
 /* ─── Main panel ─── */
-export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateChange }: MapPartnerPanelProps) {
+export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateChange, zones }: MapPartnerPanelProps) {
   const listMode = heatmap || areaSelect;
   const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
@@ -122,6 +125,60 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
       return next;
     });
   };
+
+  // Zone-grouped view when advanced selection has zones with partners
+  const zonesWithPartners = zones?.filter((z) => z.partners.length > 0) ?? [];
+  const hasZoneData = zonesWithPartners.length > 0;
+
+  if (hasZoneData) {
+    return (
+      <Card className="h-[500px] overflow-auto">
+        <CardContent className="p-4 space-y-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            {zonesWithPartners.reduce((sum, z) => sum + z.partners.length, 0)} partners across {zonesWithPartners.length} zone{zonesWithPartners.length !== 1 ? "s" : ""}
+          </span>
+          {zonesWithPartners.map((zone) => (
+            <Collapsible key={zone.id} defaultOpen>
+              <CollapsibleTrigger className="flex items-center gap-2 w-full text-left py-1.5 px-1 rounded hover:bg-muted/50 transition-colors group">
+                <ChevronDown className="h-3 w-3 text-muted-foreground group-data-[state=closed]:hidden" />
+                <ChevronRight className="h-3 w-3 text-muted-foreground group-data-[state=open]:hidden" />
+                <div
+                  className="h-3 w-3 rounded-full shrink-0"
+                  style={{ backgroundColor: zone.color }}
+                />
+                <span className="text-xs font-medium">{zone.label}</span>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {zone.partners.length} partner{zone.partners.length !== 1 ? "s" : ""}
+                </span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="ml-4 mt-1 space-y-1">
+                  {zone.partners.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded border border-border px-2 py-1.5 text-xs"
+                    >
+                      <div className="space-y-0.5">
+                        <p className="font-medium">{p.name}</p>
+                        <p className="text-[10px] text-muted-foreground capitalize">
+                          {p.type.replace("_", " ").toLowerCase()} · {p.status}
+                        </p>
+                      </div>
+                      <Link to={`/mpromo/partners/${p.id}`}>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Empty state
   if (partners.length === 0) {
