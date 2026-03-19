@@ -42,6 +42,8 @@ const selectedIcon = new L.Icon({
 export default function MPromoMap() {
   const { theme } = useTheme();
   const { scopeMode, targetTeamId } = useMPromoScope();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPartnerId = searchParams.get("partner");
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
