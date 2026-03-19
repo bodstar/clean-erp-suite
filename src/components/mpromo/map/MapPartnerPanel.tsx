@@ -102,19 +102,20 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 
 /* ─── Main panel ─── */
 export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
-  const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
+  const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
 
-  const toggleCompare = (id: number) => {
-    setCompareIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+  const toggleCompare = (partner: MapPartner) => {
+    setCompareMap((prev) => {
+      const next = new Map(prev);
+      if (next.has(partner.id)) next.delete(partner.id);
+      else next.set(partner.id, partner);
       return next;
     });
   };
 
-  const comparePartners = partners.filter((p) => compareIds.has(p.id));
+  const compareIds = compareMap;
+  const comparePartners = Array.from(compareMap.values());
 
   // Empty state
   if (partners.length === 0) {
