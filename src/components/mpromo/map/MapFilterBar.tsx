@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type HeatMetric = "redemptions" | "orders" | "payouts";
+export type HeatMetric = "redemptions" | "orders" | "payouts" | "loyalty_points";
 
 interface MapFilterBarProps {
   typeFilter: string;
