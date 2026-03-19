@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -20,20 +21,29 @@ L.Icon.Default.mergeOptions({
 const chillerIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+  iconSize: [20, 33],
+  iconAnchor: [10, 33],
 });
 
 const iceWaterIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+  iconSize: [20, 33],
+  iconAnchor: [10, 33],
+});
+
+const selectedIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [30, 49],
+  iconAnchor: [15, 49],
 });
 
 export default function MPromoMap() {
   const { theme } = useTheme();
   const { scopeMode, targetTeamId } = useMPromoScope();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPartnerId = searchParams.get("partner");
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -132,14 +142,35 @@ export default function MPromoMap() {
     };
   }, [loadPartners]);
 
+  // Auto-select partner from query param
+  useEffect(() => {
+    if (!initialPartnerId || partners.length === 0) return;
+    const pid = Number(initialPartnerId);
+    const found = partners.find((p) => p.id === pid);
+    if (found) {
+      setSelectedPartners([found]);
+      mapRef.current?.setView([found.latitude, found.longitude], 15);
+      // Clear the query param so it doesn't re-trigger
+      setSearchParams({}, { replace: true });
+    }
+  }, [initialPartnerId, partners]);
+
+  const selectedKey = selectedPartners.map((p) => p.id).sort().join(",");
+  const selectedIdSet = new Set(selectedPartners.map((p) => p.id));
+
   // Update markers — hide when heatmap is on
   useEffect(() => {
     markersRef.current.clearLayers();
     if (heatmap) return; // no markers in heatmap mode
     partners.forEach((p) => {
-      const marker = L.marker([p.latitude, p.longitude], {
-        icon: p.type === "CHILLER" ? chillerIcon : iceWaterIcon,
-      });
+      const isSelected = selectedIdSet.has(p.id);
+      const icon = isSelected
+        ? selectedIcon
+        : p.type === "CHILLER"
+          ? chillerIcon
+          : iceWaterIcon;
+
+      const marker = L.marker([p.latitude, p.longitude], { icon, zIndexOffset: isSelected ? 1000 : 0 });
       marker.bindTooltip(
         `<strong>${p.name}</strong><br/><span style="opacity:0.7">${p.location}</span>`,
         { direction: "top", offset: [0, -30], className: "leaflet-tooltip" }
@@ -147,7 +178,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap]);
+  }, [partners, heatmap, selectedKey]);
 
   // Drag-selection logic
   useEffect(() => {
