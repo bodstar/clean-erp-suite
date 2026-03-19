@@ -131,12 +131,104 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
   const hasZoneData = zonesWithPartners.length > 0;
 
   if (hasZoneData) {
+    const allZonePartners = zonesWithPartners.flatMap((z) => z.partners);
+
+    // Compare view across all zones
+    if (showCompare && comparePartners.length >= 2) {
+      return (
+        <Card className="h-[500px] overflow-auto">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 text-xs"
+                onClick={() => setShowCompare(false)}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Back
+              </Button>
+              <span className="text-xs font-medium text-muted-foreground">
+                Comparing {comparePartners.length} partners
+              </span>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs px-2">Metric</TableHead>
+                  {comparePartners.map((p) => (
+                    <TableHead key={p.id} className="text-xs px-2">{p.name}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {([
+                  ["Type", (p: MapPartner) => p.type.replace("_", " ")],
+                  ["Status", (p: MapPartner) => p.status],
+                  ["Location", (p: MapPartner) => p.location],
+                  ["Phone", (p: MapPartner) => p.phone],
+                  ["Redemptions", (p: MapPartner) => `${p.redemptions_count} · GH₵${p.redemptions_amount.toLocaleString()}`],
+                  ["Orders", (p: MapPartner) => `${p.orders_count} · GH₵${p.orders_amount.toLocaleString()}`],
+                  ["Payouts", (p: MapPartner) => `${p.pending_payouts_count} · GH₵${p.pending_payouts_amount.toLocaleString()}`],
+                  ["Loyalty Pts", (p: MapPartner) => p.loyalty_points.toLocaleString()],
+                  ["Last Activity", (p: MapPartner) => p.last_activity || "—"],
+                ] as [string, (p: MapPartner) => string][]).map(([label, fn]) => (
+                  <TableRow key={label}>
+                    <TableCell className="text-xs px-2 font-medium text-muted-foreground">{label}</TableCell>
+                    {comparePartners.map((p) => (
+                      <TableCell key={p.id} className="text-xs px-2">{fn(p)}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+                <TableRow>
+                  <TableCell className="text-xs px-2 font-medium text-muted-foreground">Actions</TableCell>
+                  {comparePartners.map((p) => (
+                    <TableCell key={p.id} className="text-xs px-2">
+                      <Link to={`/mpromo/partners/${p.id}`}>
+                        <Button variant="outline" size="sm" className="h-6 gap-1 text-[10px]">
+                          <Eye className="h-3 w-3" /> View
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card className="h-[500px] overflow-auto">
-        <CardContent className="p-4 space-y-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            {zonesWithPartners.reduce((sum, z) => sum + z.partners.length, 0)} partners across {zonesWithPartners.length} zone{zonesWithPartners.length !== 1 ? "s" : ""}
-          </span>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">
+              {allZonePartners.length} partner{allZonePartners.length !== 1 ? "s" : ""} across {zonesWithPartners.length} zone{zonesWithPartners.length !== 1 ? "s" : ""}
+            </span>
+            <div className="flex items-center gap-1.5">
+              {compareMap.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 text-xs text-muted-foreground"
+                  onClick={() => setCompareMap(new Map())}
+                >
+                  <X className="h-3.5 w-3.5" /> Clear ({compareMap.size})
+                </Button>
+              )}
+              {compareMap.size >= 2 && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-7 gap-1 text-xs"
+                  onClick={() => setShowCompare(true)}
+                >
+                  <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
+                </Button>
+              )}
+            </div>
+          </div>
+
           {zonesWithPartners.map((zone) => (
             <Collapsible key={zone.id} defaultOpen>
               <CollapsibleTrigger className="flex items-center gap-2 w-full text-left py-1.5 px-1 rounded hover:bg-muted/50 transition-colors group">
@@ -152,26 +244,53 @@ export function MapPartnerPanel({ partners, heatmap, areaSelect, onCompareStateC
                 </span>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="ml-4 mt-1 space-y-1">
-                  {zone.partners.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between rounded border border-border px-2 py-1.5 text-xs"
-                    >
-                      <div className="space-y-0.5">
-                        <p className="font-medium">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground capitalize">
-                          {p.type.replace("_", " ").toLowerCase()} · {p.status}
-                        </p>
-                      </div>
-                      <Link to={`/mpromo/partners/${p.id}`}>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-8 px-2"></TableHead>
+                      <TableHead className="text-xs px-2">Name</TableHead>
+                      <TableHead className="text-xs px-2">Type</TableHead>
+                      <TableHead className="text-xs px-2">Status</TableHead>
+                      <TableHead className="text-xs px-2">Redemptions</TableHead>
+                      <TableHead className="text-xs px-2">Orders</TableHead>
+                      <TableHead className="text-xs px-2">Payouts</TableHead>
+                      <TableHead className="text-xs px-2">Loyalty</TableHead>
+                      <TableHead className="text-xs px-2"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {zone.partners.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="px-2">
+                          <Checkbox
+                            checked={compareMap.has(p.id)}
+                            onCheckedChange={() => toggleCompare(p)}
+                          />
+                        </TableCell>
+                        <TableCell className="text-xs px-2 font-medium">{p.name}</TableCell>
+                        <TableCell className="text-xs px-2 capitalize">{p.type.replace("_", " ").toLowerCase()}</TableCell>
+                        <TableCell className="text-xs px-2 capitalize">{p.status}</TableCell>
+                        <TableCell className="text-xs px-2">
+                          {p.redemptions_count} · GH₵{p.redemptions_amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-xs px-2">
+                          {p.orders_count} · GH₵{p.orders_amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-xs px-2">
+                          {p.pending_payouts_count} · GH₵{p.pending_payouts_amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-xs px-2">{p.loyalty_points.toLocaleString()}</TableCell>
+                        <TableCell className="px-2">
+                          <Link to={`/mpromo/partners/${p.id}`}>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CollapsibleContent>
             </Collapsible>
           ))}
