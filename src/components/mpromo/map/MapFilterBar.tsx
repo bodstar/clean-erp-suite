@@ -28,6 +28,8 @@ interface MapFilterBarProps {
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
+  showMarkers?: boolean;
+  onShowMarkersChange?: (value: boolean) => void;
 }
 
 export function MapFilterBar({
@@ -44,6 +46,8 @@ export function MapFilterBar({
   isLoading,
   areaSelect,
   onAreaSelectChange,
+  showMarkers,
+  onShowMarkersChange,
 }: MapFilterBarProps) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
@@ -86,6 +90,12 @@ export function MapFilterBar({
         <Switch id="heatmap" checked={heatmap} onCheckedChange={onHeatmapChange} />
         <Label htmlFor="heatmap" className="text-xs">
           Heatmap
+        </Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch id="show-markers" checked={showMarkers ?? true} onCheckedChange={(v) => onShowMarkersChange?.(v)} />
+        <Label htmlFor="show-markers" className="text-xs">
+          Markers
         </Label>
       </div>
       <Button

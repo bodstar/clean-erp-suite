@@ -57,6 +57,7 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [areaSelect, setAreaSelect] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(true);
   const handleAreaSelectChange = (value: boolean) => {
     setAreaSelect(value);
     if (!value) setSelectedPartners([]);
@@ -187,7 +188,7 @@ export default function MPromoMap() {
       return;
     }
     
-    if (heatmap || areaSelect) return; // no markers in heatmap/area-select mode
+    if (heatmap || areaSelect || !showMarkers) return; // no markers when hidden
     partners.forEach((p) => {
       const isSelected = selectedIdSet.has(p.id);
       const icon = isSelected
@@ -204,7 +205,7 @@ export default function MPromoMap() {
       marker.on("click", () => setSelectedPartners([p]));
       markersRef.current.addLayer(marker);
     });
-  }, [partners, heatmap, areaSelect, selectedKey, isComparing, comparePartners]);
+  }, [partners, heatmap, areaSelect, showMarkers, selectedKey, isComparing, comparePartners]);
 
   // Drag-selection logic
   useEffect(() => {
@@ -293,6 +294,8 @@ export default function MPromoMap() {
         isLoading={isLoading}
         areaSelect={areaSelect}
         onAreaSelectChange={handleAreaSelectChange}
+        showMarkers={showMarkers}
+        onShowMarkersChange={setShowMarkers}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
