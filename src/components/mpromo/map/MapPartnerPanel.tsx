@@ -102,19 +102,20 @@ function SinglePartnerView({ partner }: { partner: MapPartner }) {
 
 /* ─── Main panel ─── */
 export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
-  const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
+  const [compareMap, setCompareMap] = useState<Map<number, MapPartner>>(new Map());
   const [showCompare, setShowCompare] = useState(false);
 
-  const toggleCompare = (id: number) => {
-    setCompareIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+  const toggleCompare = (partner: MapPartner) => {
+    setCompareMap((prev) => {
+      const next = new Map(prev);
+      if (next.has(partner.id)) next.delete(partner.id);
+      else next.set(partner.id, partner);
       return next;
     });
   };
 
-  const comparePartners = partners.filter((p) => compareIds.has(p.id));
+  
+  const comparePartners = Array.from(compareMap.values());
 
   // Empty state
   if (partners.length === 0) {
@@ -206,14 +207,14 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
           <span className="text-xs font-medium text-muted-foreground">
             {partners.length} partner{partners.length !== 1 ? "s" : ""}
           </span>
-          {compareIds.size >= 2 && (
+          {compareMap.size >= 2 && (
             <Button
               variant="default"
               size="sm"
               className="h-7 gap-1 text-xs"
               onClick={() => setShowCompare(true)}
             >
-              <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareIds.size})
+              <GitCompareArrows className="h-3.5 w-3.5" /> Compare ({compareMap.size})
             </Button>
           )}
         </div>
@@ -236,8 +237,8 @@ export function MapPartnerPanel({ partners, heatmap }: MapPartnerPanelProps) {
               <TableRow key={p.id}>
                 <TableCell className="px-2">
                   <Checkbox
-                    checked={compareIds.has(p.id)}
-                    onCheckedChange={() => toggleCompare(p.id)}
+                    checked={compareMap.has(p.id)}
+                    onCheckedChange={() => toggleCompare(p)}
                   />
                 </TableCell>
                 <TableCell className="text-xs px-2 font-medium">{p.name}</TableCell>
