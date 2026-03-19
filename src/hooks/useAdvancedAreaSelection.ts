@@ -101,6 +101,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
       drawingLayers: [],
       partners: [],
       polygonPointCount: 4,
+      polygonEndMode: "count",
     };
     setZones((prev) => [...prev, newZone]);
     setActiveZoneId(id);
