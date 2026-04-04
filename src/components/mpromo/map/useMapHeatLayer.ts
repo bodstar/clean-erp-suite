@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import "leaflet.heat";
 import type { MapPartner } from "@/types/mpromo";
-import type { HeatMetric } from "./MapFilterBar";
+import type { HeatMetric, HeatStyle } from "./MapFilterBar";
 
 function getHeatColor(ratio: number): string {
   if (ratio < 0.5) {
@@ -66,58 +67,93 @@ interface UseMapHeatLayerOptions {
   partners: MapPartner[];
   heatmap: boolean;
   heatMetric: HeatMetric;
+  heatStyle: HeatStyle;
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
-export function useMapHeatLayer({ map, partners, heatmap, heatMetric, onCircleClick }: UseMapHeatLayerOptions) {
-  const heatLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, onCircleClick }: UseMapHeatLayerOptions) {
+  const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const smoothLayerRef = useRef<L.Layer | null>(null);
 
-  // Add layer to map once
+  // Add circle layer group to map once
   useEffect(() => {
     if (!map) return;
-    heatLayerRef.current.addTo(map);
+    circleLayerRef.current.addTo(map);
     return () => {
-      heatLayerRef.current.remove();
+      circleLayerRef.current.remove();
+      if (smoothLayerRef.current) {
+        map.removeLayer(smoothLayerRef.current);
+        smoothLayerRef.current = null;
+      }
     };
   }, [map]);
 
-  // Render heat circles
+  // Render heat visualization
   useEffect(() => {
-    heatLayerRef.current.clearLayers();
+    // Clear both layers
+    circleLayerRef.current.clearLayers();
+    if (smoothLayerRef.current && map) {
+      map.removeLayer(smoothLayerRef.current);
+      smoothLayerRef.current = null;
+    }
+
     if (!heatmap || partners.length === 0 || !map) return;
 
-    const label = getMetricLabel(heatMetric);
     const amounts = partners.map((p) => getMetricValue(p, heatMetric));
     const maxAmount = Math.max(...amounts, 1);
 
-    partners.forEach((p) => {
-      const val = getMetricValue(p, heatMetric);
-      const ratio = maxAmount > 0 ? val / maxAmount : 0;
-      const radius = 8 + ratio * 32;
-      const center = L.latLng(p.latitude, p.longitude);
-      const circle = L.circleMarker([p.latitude, p.longitude], {
-        radius,
-        fillColor: getHeatColor(ratio),
-        fillOpacity: 0.45,
-        stroke: false,
+    if (heatStyle === "smooth") {
+      // Use leaflet.heat smooth density heatmap
+      const heatData: [number, number, number][] = partners.map((p) => {
+        const val = getMetricValue(p, heatMetric);
+        const intensity = maxAmount > 0 ? val / maxAmount : 0;
+        return [p.latitude, p.longitude, intensity];
       });
-      const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
-      circle.bindTooltip(
-        `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
-        { direction: "top" }
-      );
 
-      circle.on("click", () => {
-        if (!onCircleClick || !map) return;
-        const metersRadius = pixelRadiusToMeters(map, center, radius);
-        const nearby = partners.filter((other) => {
-          const otherLatLng = L.latLng(other.latitude, other.longitude);
-          return center.distanceTo(otherLatLng) <= metersRadius;
+      smoothLayerRef.current = (L as any).heatLayer(heatData, {
+        radius: 30,
+        blur: 20,
+        maxZoom: 17,
+        max: 1,
+        gradient: {
+          0.0: "green",
+          0.5: "yellow",
+          1.0: "red",
+        },
+      }).addTo(map);
+    } else {
+      // Circle marker approach
+      const label = getMetricLabel(heatMetric);
+
+      partners.forEach((p) => {
+        const val = getMetricValue(p, heatMetric);
+        const ratio = maxAmount > 0 ? val / maxAmount : 0;
+        const radius = 8 + ratio * 32;
+        const center = L.latLng(p.latitude, p.longitude);
+        const circle = L.circleMarker([p.latitude, p.longitude], {
+          radius,
+          fillColor: getHeatColor(ratio),
+          fillOpacity: 0.45,
+          stroke: false,
         });
-        onCircleClick(nearby);
-      });
+        const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
+        circle.bindTooltip(
+          `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
+          { direction: "top" }
+        );
 
-      heatLayerRef.current.addLayer(circle);
-    });
-  }, [partners, heatmap, heatMetric, map, onCircleClick]);
+        circle.on("click", () => {
+          if (!onCircleClick || !map) return;
+          const metersRadius = pixelRadiusToMeters(map, center, radius);
+          const nearby = partners.filter((other) => {
+            const otherLatLng = L.latLng(other.latitude, other.longitude);
+            return center.distanceTo(otherLatLng) <= metersRadius;
+          });
+          onCircleClick(nearby);
+        });
+
+        circleLayerRef.current.addLayer(circle);
+      });
+    }
+  }, [partners, heatmap, heatMetric, heatStyle, map, onCircleClick]);
 }

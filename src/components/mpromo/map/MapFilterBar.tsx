@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 
 export type HeatMetric = "redemptions" | "orders" | "payouts" | "loyalty_points";
+export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
   typeFilter: string;
@@ -25,6 +26,8 @@ interface MapFilterBarProps {
   onHeatmapChange: (value: boolean) => void;
   heatMetric: HeatMetric;
   onHeatMetricChange: (value: HeatMetric) => void;
+  heatStyle: HeatStyle;
+  onHeatStyleChange: (value: HeatStyle) => void;
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
@@ -45,6 +48,8 @@ export function MapFilterBar({
   onHeatmapChange,
   heatMetric,
   onHeatMetricChange,
+  heatStyle,
+  onHeatStyleChange,
   isLoading,
   areaSelect,
   onAreaSelectChange,
@@ -121,23 +126,40 @@ export function MapFilterBar({
         Advanced Select
       </Button>
       {heatmap && (
-        <div className="space-y-1">
-          <Label className="text-xs">Metric</Label>
-          <Select
-            value={heatMetric}
-            onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
-          >
-            <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="redemptions">Redemptions</SelectItem>
-              <SelectItem value="orders">Orders</SelectItem>
-              <SelectItem value="payouts">Pending Payouts</SelectItem>
-              <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          <div className="space-y-1">
+            <Label className="text-xs">Metric</Label>
+            <Select
+              value={heatMetric}
+              onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
+            >
+              <SelectTrigger className="w-40 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="redemptions">Redemptions</SelectItem>
+                <SelectItem value="orders">Orders</SelectItem>
+                <SelectItem value="payouts">Pending Payouts</SelectItem>
+                <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Style</Label>
+            <Select
+              value={heatStyle}
+              onValueChange={(v) => onHeatStyleChange(v as HeatStyle)}
+            >
+              <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="circles">Circles</SelectItem>
+                <SelectItem value="smooth">Smooth</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
       )}
       {isLoading && <Skeleton className="h-4 w-16" />}
     </div>

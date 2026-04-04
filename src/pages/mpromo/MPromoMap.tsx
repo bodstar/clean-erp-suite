@@ -6,7 +6,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getMapPartners } from "@/lib/api/mpromo";
 import type { MapPartner } from "@/types/mpromo";
-import { MapFilterBar, type HeatMetric } from "@/components/mpromo/map/MapFilterBar";
+import { MapFilterBar, type HeatMetric, type HeatStyle } from "@/components/mpromo/map/MapFilterBar";
 import { MapPartnerPanel } from "@/components/mpromo/map/MapPartnerPanel";
 import { useMapHeatLayer, getHeatMetricIntensityLabel } from "@/components/mpromo/map/useMapHeatLayer";
 import { useAdvancedAreaSelection } from "@/hooks/useAdvancedAreaSelection";
@@ -58,6 +58,7 @@ export default function MPromoMap() {
   const [search, setSearch] = useState("");
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
+  const [heatStyle, setHeatStyle] = useState<HeatStyle>("circles");
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
@@ -127,7 +128,7 @@ export default function MPromoMap() {
   }, []);
 
   // Heatmap hook
-  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, onCircleClick: handleCircleClick });
+  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, heatStyle, onCircleClick: handleCircleClick });
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -309,6 +310,8 @@ export default function MPromoMap() {
         onHeatmapChange={setHeatmap}
         heatMetric={heatMetric}
         onHeatMetricChange={setHeatMetric}
+        heatStyle={heatStyle}
+        onHeatStyleChange={setHeatStyle}
         isLoading={isLoading}
         areaSelect={areaSelect}
         onAreaSelectChange={handleAreaSelectChange}
