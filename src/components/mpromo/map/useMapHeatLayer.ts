@@ -110,17 +110,24 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         return [p.latitude, p.longitude, intensity];
       });
 
-      smoothLayerRef.current = (L as any).heatLayer(heatData, {
-        radius: 30,
-        blur: 20,
-        maxZoom: 17,
-        max: 1,
-        gradient: {
-          0.0: "green",
-          0.5: "yellow",
-          1.0: "red",
-        },
-      }).addTo(map);
+      console.log("[HeatLayer] smooth mode, data points:", heatData.length, "heatLayer exists:", typeof (L as any).heatLayer);
+
+      if (typeof (L as any).heatLayer === "function") {
+        smoothLayerRef.current = (L as any).heatLayer(heatData, {
+          radius: 30,
+          blur: 20,
+          maxZoom: 17,
+          max: 1,
+          gradient: {
+            0.0: "green",
+            0.5: "yellow",
+            1.0: "red",
+          },
+        }).addTo(map);
+        console.log("[HeatLayer] smooth layer added to map");
+      } else {
+        console.error("[HeatLayer] L.heatLayer is not available — leaflet.heat may not be loaded");
+      }
     } else {
       // Circle marker approach
       const label = getMetricLabel(heatMetric);
