@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Eye } from "lucide-react";
+import type { FormField, FormFieldType, FormStatus, HeatmapMetricDef } from "@/types/market-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,8 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormFieldEditor } from "@/components/mpromo/FormFieldEditor";
+import { HeatmapMetricsEditor } from "@/components/mpromo/HeatmapMetricsEditor";
 import { createForm, getForm, updateForm } from "@/lib/api/market-data";
-import type { FormField, FormFieldType, FormStatus } from "@/types/market-data";
 import { toast } from "sonner";
 
 export default function MPromoFormBuilder() {
@@ -28,6 +29,7 @@ export default function MPromoFormBuilder() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<FormStatus>("draft");
   const [fields, setFields] = useState<FormField[]>([]);
+  const [heatmapMetrics, setHeatmapMetrics] = useState<HeatmapMetricDef[]>([]);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -39,6 +41,7 @@ export default function MPromoFormBuilder() {
       setDescription(form.description);
       setStatus(form.status);
       setFields(form.fields);
+      setHeatmapMetrics(form.heatmapMetrics ?? []);
     });
   }, [id, isEdit, navigate]);
 
@@ -71,10 +74,10 @@ export default function MPromoFormBuilder() {
     setSaving(true);
     try {
       if (isEdit) {
-        await updateForm(id, { name, description, status, fields });
+        await updateForm(id, { name, description, status, fields, heatmapMetrics });
         toast.success("Form updated");
       } else {
-        await createForm({ name, description, status, fields });
+        await createForm({ name, description, status, fields, heatmapMetrics });
         toast.success("Form created");
       }
       navigate("/mpromo/market-data");
@@ -155,6 +158,12 @@ export default function MPromoFormBuilder() {
               </Button>
             </CardContent>
           </Card>
+
+          <HeatmapMetricsEditor
+            fields={fields}
+            metrics={heatmapMetrics}
+            onChange={setHeatmapMetrics}
+          />
         </div>
 
         {/* Preview */}

@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getFormHeatMetricOptions } from "@/lib/api/market-data";
+import { getFormHeatMetricOptions, getGroupByValues } from "@/lib/api/market-data";
+import type { HeatmapMetricDef } from "@/types/market-data";
 
 export type HeatMetric = string;
 export type HeatStyle = "circles" | "smooth";
@@ -46,8 +47,10 @@ interface MapFilterBarProps {
   onAdvancedAreaSelectChange?: (value: boolean) => void;
   heatFormId: string;
   onHeatFormIdChange: (value: string) => void;
-  heatFieldId: string;
-  onHeatFieldIdChange: (value: string) => void;
+  heatMetricId: string;
+  onHeatMetricIdChange: (value: string) => void;
+  heatGroupValue: string;
+  onHeatGroupValueChange: (value: string) => void;
 }
 
 export function MapFilterBar({
@@ -78,27 +81,34 @@ export function MapFilterBar({
   onAdvancedAreaSelectChange,
   heatFormId,
   onHeatFormIdChange,
-  heatFieldId,
-  onHeatFieldIdChange,
+  heatMetricId,
+  onHeatMetricIdChange,
+  heatGroupValue,
+  onHeatGroupValueChange,
 }: MapFilterBarProps) {
-  const [formMetrics, setFormMetrics] = useState<{ formId: string; formName: string; fieldId: string; fieldLabel: string }[]>([]);
+  const [formOptions, setFormOptions] = useState<{ formId: string; formName: string; metrics: HeatmapMetricDef[] }[]>([]);
+  const [groupValues, setGroupValues] = useState<string[]>([]);
 
   useEffect(() => {
-    setFormMetrics(getFormHeatMetricOptions());
+    setFormOptions(getFormHeatMetricOptions());
   }, []);
 
-  // Group form metrics by form
-  const formGroups = formMetrics.reduce<Record<string, { formName: string; fields: { fieldId: string; fieldLabel: string }[] }>>((acc, m) => {
-    if (!acc[m.formId]) acc[m.formId] = { formName: m.formName, fields: [] };
-    acc[m.formId].fields.push({ fieldId: m.fieldId, fieldLabel: m.fieldLabel });
-    return acc;
-  }, {});
+  // Load group values when metric changes
+  useEffect(() => {
+    if (heatFormId && heatMetricId) {
+      const vals = getGroupByValues(heatFormId, heatMetricId);
+      setGroupValues(vals);
+    } else {
+      setGroupValues([]);
+    }
+  }, [heatFormId, heatMetricId]);
 
-  const isMarketDataMode = heatMetric === "market_data";
-  const selectedFormFields = heatFormId ? (formGroups[heatFormId]?.fields ?? []) : [];
+  const isMarketDataMode = heatMetric === "market_data" || heatMetric.startsWith("form_metric:");
+  const selectedForm = formOptions.find((f) => f.formId === heatFormId);
+  const selectedMetricDef = selectedForm?.metrics.find((m) => m.id === heatMetricId);
+  const hasGroupBy = !!selectedMetricDef?.groupByFieldId;
 
-  // Derive the display metric category
-  const metricCategory = heatMetric.startsWith("form_field:") ? "market_data" : heatMetric;
+  const metricCategory = heatMetric.startsWith("form_metric:") ? "market_data" : heatMetric;
 
   const handleMetricCategoryChange = (value: string) => {
     if (value === "market_data") {
@@ -106,20 +116,37 @@ export function MapFilterBar({
     } else {
       onHeatMetricChange(value);
       onHeatFormIdChange("");
-      onHeatFieldIdChange("");
+      onHeatMetricIdChange("");
+      onHeatGroupValueChange("");
     }
   };
 
   const handleFormChange = (formId: string) => {
     onHeatFormIdChange(formId);
-    onHeatFieldIdChange("");
-    onHeatMetricChange("market_data"); // keep as market_data until field selected
+    onHeatMetricIdChange("");
+    onHeatGroupValueChange("");
+    onHeatMetricChange("market_data");
   };
 
-  const handleFieldChange = (fieldId: string) => {
-    onHeatFieldIdChange(fieldId);
-    if (heatFormId && fieldId) {
-      onHeatMetricChange(`form_field:${heatFormId}:${fieldId}`);
+  const handleMetricIdChange = (metricId: string) => {
+    onHeatMetricIdChange(metricId);
+    onHeatGroupValueChange("");
+    if (heatFormId && metricId) {
+      // Check if this metric has group-by; if not, set the composite key now
+      const form = formOptions.find((f) => f.formId === heatFormId);
+      const metric = form?.metrics.find((m) => m.id === metricId);
+      if (metric && !metric.groupByFieldId) {
+        onHeatMetricChange(`form_metric:${heatFormId}:${metricId}`);
+      } else {
+        onHeatMetricChange("market_data"); // wait for group value
+      }
+    }
+  };
+
+  const handleGroupValueChange = (value: string) => {
+    onHeatGroupValueChange(value);
+    if (heatFormId && heatMetricId) {
+      onHeatMetricChange(`form_metric:${heatFormId}:${heatMetricId}:${value}`);
     }
   };
 
@@ -210,7 +237,7 @@ export function MapFilterBar({
               </SelectContent>
             </Select>
           </div>
-          {(isMarketDataMode || heatMetric.startsWith("form_field:")) && (
+          {isMarketDataMode && (
             <>
               <div className="space-y-1">
                 <Label className="text-xs">Form</Label>
@@ -219,25 +246,43 @@ export function MapFilterBar({
                     <SelectValue placeholder="Select form…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(formGroups).map(([formId, { formName }]) => (
-                      <SelectItem key={formId} value={formId}>
-                        {formName}
+                    {formOptions.map((f) => (
+                      <SelectItem key={f.formId} value={f.formId}>
+                        {f.formName}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              {heatFormId && (
+              {heatFormId && selectedForm && (
                 <div className="space-y-1">
-                  <Label className="text-xs">Field</Label>
-                  <Select value={heatFieldId} onValueChange={handleFieldChange}>
-                    <SelectTrigger className="w-44 h-8 text-xs">
-                      <SelectValue placeholder="Select field…" />
+                  <Label className="text-xs">Metric</Label>
+                  <Select value={heatMetricId} onValueChange={handleMetricIdChange}>
+                    <SelectTrigger className="w-48 h-8 text-xs">
+                      <SelectValue placeholder="Select metric…" />
                     </SelectTrigger>
                     <SelectContent>
-                      {selectedFormFields.map((f) => (
-                        <SelectItem key={f.fieldId} value={f.fieldId}>
-                          {f.fieldLabel}
+                      {selectedForm.metrics.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {heatMetricId && hasGroupBy && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Group Value</Label>
+                  <Select value={heatGroupValue} onValueChange={handleGroupValueChange}>
+                    <SelectTrigger className="w-40 h-8 text-xs">
+                      <SelectValue placeholder="Select…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">All (aggregated)</SelectItem>
+                      {groupValues.map((v) => (
+                        <SelectItem key={v} value={v}>
+                          {v}
                         </SelectItem>
                       ))}
                     </SelectContent>

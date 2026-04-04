@@ -1,5 +1,6 @@
 export type FormFieldType = "text" | "number" | "select" | "checkbox" | "date" | "textarea";
 export type FormStatus = "draft" | "active" | "archived";
+export type HeatmapAggregation = "latest" | "sum" | "average" | "min" | "max" | "count" | "count_distinct";
 
 export interface FormField {
   id: string;
@@ -12,12 +13,21 @@ export interface FormField {
   order: number;
 }
 
+export interface HeatmapMetricDef {
+  id: string;
+  name: string;
+  valueFieldId: string;
+  aggregation: HeatmapAggregation;
+  groupByFieldId?: string;
+}
+
 export interface FormDefinition {
   id: string;
   name: string;
   description: string;
   status: FormStatus;
   fields: FormField[];
+  heatmapMetrics?: HeatmapMetricDef[];
   created_at: string;
   updated_at: string;
   team_id?: number;
