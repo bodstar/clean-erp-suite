@@ -41,6 +41,7 @@ export default function MPromoFormBuilder() {
       setDescription(form.description);
       setStatus(form.status);
       setFields(form.fields);
+      setHeatmapMetrics(form.heatmapMetrics ?? []);
     });
   }, [id, isEdit, navigate]);
 
