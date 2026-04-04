@@ -33,6 +33,8 @@ interface MapFilterBarProps {
   onHeatRadiusChange: (value: number) => void;
   heatBlur: number;
   onHeatBlurChange: (value: number) => void;
+  heatOpacity: number;
+  onHeatOpacityChange: (value: number) => void;
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
