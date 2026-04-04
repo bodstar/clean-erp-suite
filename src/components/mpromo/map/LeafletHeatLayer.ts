@@ -183,10 +183,11 @@ class HeatLayer extends L.Layer {
   private _animateZoom(e: L.ZoomAnimEvent) {
     if (!this._map || !this._canvas) return;
     const scale = this._map.getZoomScale(e.zoom);
-    const offset = this._map
+    const mapAny = this._map as any;
+    const offset = mapAny
       ._getCenterOffset(e.center)
       ._multiplyBy(-scale)
-      .subtract(this._map._getMapPanePos());
+      .subtract(mapAny._getMapPanePos());
 
     L.DomUtil.setTransform(this._canvas, offset, scale);
   }
