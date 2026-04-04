@@ -201,7 +201,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         // Position canvas at the map pane origin
         const topLeft = map.containerPointToLayerPoint([0, 0]);
         canvasRef.current.style.transform = `translate(${topLeft.x}px, ${topLeft.y}px)`;
-        drawSmoothHeatmap(map, canvasRef.current, heatData, 30, 20, gradient);
+        drawSmoothHeatmap(map, canvasRef.current, heatData, heatRadius, heatBlur, gradient);
       };
 
       redraw();
