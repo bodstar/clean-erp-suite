@@ -61,6 +61,8 @@ export function MapFilterBar({
   onHeatRadiusChange,
   heatBlur,
   onHeatBlurChange,
+  heatOpacity,
+  onHeatOpacityChange,
   isLoading,
   areaSelect,
   onAreaSelectChange,
