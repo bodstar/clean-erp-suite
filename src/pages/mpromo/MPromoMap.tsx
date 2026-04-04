@@ -59,6 +59,8 @@ export default function MPromoMap() {
   const [heatmap, setHeatmap] = useState(false);
   const [heatMetric, setHeatMetric] = useState<HeatMetric>("redemptions");
   const [heatStyle, setHeatStyle] = useState<HeatStyle>("circles");
+  const [heatRadius, setHeatRadius] = useState(30);
+  const [heatBlur, setHeatBlur] = useState(20);
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
