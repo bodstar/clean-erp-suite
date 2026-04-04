@@ -75,6 +75,19 @@ export function MapFilterBar({
   advancedAreaSelect,
   onAdvancedAreaSelectChange,
 }: MapFilterBarProps) {
+  const [formMetrics, setFormMetrics] = useState<{ formId: string; formName: string; fieldId: string; fieldLabel: string }[]>([]);
+
+  useEffect(() => {
+    setFormMetrics(getFormHeatMetricOptions());
+  }, []);
+
+  // Group form metrics by form
+  const formGroups = formMetrics.reduce<Record<string, { formName: string; fields: { fieldId: string; fieldLabel: string }[] }>>((acc, m) => {
+    if (!acc[m.formId]) acc[m.formId] = { formName: m.formName, fields: [] };
+    acc[m.formId].fields.push({ fieldId: m.fieldId, fieldLabel: m.fieldLabel });
+    return acc;
+  }, {});
+
   return (
     <div className="flex flex-wrap gap-3 items-end">
       <div className="space-y-1">
