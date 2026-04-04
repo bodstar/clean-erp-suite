@@ -53,7 +53,10 @@ export default function MPromoPartnerDetail() {
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [adjustPointsOpen, setAdjustPointsOpen] = useState(false);
-
+  const [forms, setForms] = useState<FormDefinition[]>([]);
+  const [formSubmissions, setFormSubmissions] = useState<Record<string, FormSubmission[]>>({});
+  const [submitFormTarget, setSubmitFormTarget] = useState<FormDefinition | null>(null);
+  const [openForms, setOpenForms] = useState<Record<string, boolean>>({});
   useEffect(() => {
     if (!id) return;
     const partnerId = Number(id);
