@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
+import { getFormDataForHeatmap, getFormHeatMetricOptions } from "@/lib/api/market-data";
 
 function getHeatColor(ratio: number): string {
   if (ratio < 0.5) {
