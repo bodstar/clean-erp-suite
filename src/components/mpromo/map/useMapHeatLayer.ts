@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import { createHeatLayer } from "./LeafletHeatLayer";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
 
@@ -62,6 +61,63 @@ function pixelRadiusToMeters(map: L.Map, center: L.LatLng, pixelRadius: number):
   return center.distanceTo(edgeLatLng);
 }
 
+/** Draw a smooth density heatmap directly onto a canvas overlay */
+function drawSmoothHeatmap(
+  map: L.Map,
+  canvas: HTMLCanvasElement,
+  data: { lat: number; lng: number; intensity: number }[],
+  radius: number,
+  blur: number,
+  gradient: Record<number, string>
+) {
+  const size = map.getSize();
+  canvas.width = size.x;
+  canvas.height = size.y;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.clearRect(0, 0, size.x, size.y);
+
+  // Draw intensity circles (grayscale)
+  data.forEach((d) => {
+    const point = map.latLngToContainerPoint([d.lat, d.lng]);
+    const grad = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, radius + blur);
+    grad.addColorStop(0, `rgba(0,0,0,${Math.min(d.intensity, 1)})`);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(point.x - radius - blur, point.y - radius - blur, (radius + blur) * 2, (radius + blur) * 2);
+  });
+
+  // Colorize: create gradient palette
+  const paletteCanvas = document.createElement("canvas");
+  paletteCanvas.width = 256;
+  paletteCanvas.height = 1;
+  const pCtx = paletteCanvas.getContext("2d")!;
+  const pGrad = pCtx.createLinearGradient(0, 0, 256, 0);
+  for (const [stop, color] of Object.entries(gradient)) {
+    pGrad.addColorStop(Number(stop), color);
+  }
+  pCtx.fillStyle = pGrad;
+  pCtx.fillRect(0, 0, 256, 1);
+  const palette = pCtx.getImageData(0, 0, 256, 1).data;
+
+  // Replace grayscale with color from palette
+  const imageData = ctx.getImageData(0, 0, size.x, size.y);
+  const pixels = imageData.data;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const alpha = pixels[i + 3]; // grayscale alpha = intensity
+    if (alpha > 0) {
+      const idx = alpha * 4;
+      pixels[i] = palette[idx];
+      pixels[i + 1] = palette[idx + 1];
+      pixels[i + 2] = palette[idx + 2];
+      pixels[i + 3] = Math.min(alpha * 2, 200); // semi-transparent
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
 interface UseMapHeatLayerOptions {
   map: L.Map | null;
   partners: MapPartner[];
@@ -73,7 +129,8 @@ interface UseMapHeatLayerOptions {
 
 export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, onCircleClick }: UseMapHeatLayerOptions) {
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
-  const smoothLayerRef = useRef<L.Layer | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const moveHandlerRef = useRef<(() => void) | null>(null);
 
   // Add circle layer group to map once
   useEffect(() => {
@@ -81,20 +138,33 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
     circleLayerRef.current.addTo(map);
     return () => {
       circleLayerRef.current.remove();
-      if (smoothLayerRef.current) {
-        map.removeLayer(smoothLayerRef.current);
-        smoothLayerRef.current = null;
+      // Clean up canvas overlay
+      if (canvasRef.current) {
+        canvasRef.current.remove();
+        canvasRef.current = null;
+      }
+      if (moveHandlerRef.current) {
+        map.off("moveend", moveHandlerRef.current);
+        map.off("zoomend", moveHandlerRef.current);
+        moveHandlerRef.current = null;
       }
     };
   }, [map]);
 
   // Render heat visualization
   useEffect(() => {
-    // Clear both layers
+    // Clear circle layers
     circleLayerRef.current.clearLayers();
-    if (smoothLayerRef.current && map) {
-      map.removeLayer(smoothLayerRef.current);
-      smoothLayerRef.current = null;
+
+    // Clean up smooth canvas
+    if (canvasRef.current) {
+      canvasRef.current.remove();
+      canvasRef.current = null;
+    }
+    if (moveHandlerRef.current && map) {
+      map.off("moveend", moveHandlerRef.current);
+      map.off("zoomend", moveHandlerRef.current);
+      moveHandlerRef.current = null;
     }
 
     if (!heatmap || partners.length === 0 || !map) return;
@@ -103,29 +173,39 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
     const maxAmount = Math.max(...amounts, 1);
 
     if (heatStyle === "smooth") {
-      const heatData: [number, number, number][] = partners.map((p) => {
+      const heatData = partners.map((p) => {
         const val = getMetricValue(p, heatMetric);
         const intensity = maxAmount > 0 ? val / maxAmount : 0;
-        return [p.latitude, p.longitude, intensity];
+        return { lat: p.latitude, lng: p.longitude, intensity };
       });
 
-      try {
-        const layer = createHeatLayer(heatData, {
-          radius: 30,
-          blur: 20,
-          maxZoom: 17,
-          max: 1,
-          gradient: {
-            0.0: "green",
-            0.5: "yellow",
-            1.0: "red",
-          },
-        });
-        layer.addTo(map);
-        smoothLayerRef.current = layer;
-      } catch (e) {
-        console.warn("[HeatLayer] Failed to add smooth heat layer:", e);
-      }
+      // Create canvas overlay
+      const pane = map.getPane("overlayPane");
+      if (!pane) return;
+
+      const canvas = document.createElement("canvas");
+      canvas.style.position = "absolute";
+      canvas.style.top = "0";
+      canvas.style.left = "0";
+      canvas.style.pointerEvents = "none";
+      canvas.className = "leaflet-zoom-hide";
+      pane.appendChild(canvas);
+      canvasRef.current = canvas;
+
+      const gradient = { 0.0: "green", 0.5: "yellow", 1.0: "red" };
+
+      const redraw = () => {
+        if (!canvasRef.current || !map) return;
+        // Position canvas at the map pane origin
+        const topLeft = map.containerPointToLayerPoint([0, 0]);
+        canvasRef.current.style.transform = `translate(${topLeft.x}px, ${topLeft.y}px)`;
+        drawSmoothHeatmap(map, canvasRef.current, heatData, 30, 20, gradient);
+      };
+
+      redraw();
+      moveHandlerRef.current = redraw;
+      map.on("moveend", redraw);
+      map.on("zoomend", redraw);
     } else {
       // Circle marker approach
       const label = getMetricLabel(heatMetric);
