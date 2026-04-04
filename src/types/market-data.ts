@@ -7,6 +7,8 @@ export interface FormField {
   type: FormFieldType;
   required: boolean;
   options?: string[]; // for select type
+  allowCustomOption?: boolean; // for select: respondents can add their own option
+  allowMultiSelect?: boolean; // for select: allow multiple selections
   order: number;
 }
 
