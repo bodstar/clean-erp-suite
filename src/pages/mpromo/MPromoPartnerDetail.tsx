@@ -294,6 +294,7 @@ export default function MPromoPartnerDetail() {
           <TabsTrigger value="points">Points History</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="market-data">Market Data</TabsTrigger>
         </TabsList>
         <TabsContent value="activity" className="mt-4">
           <Card>
