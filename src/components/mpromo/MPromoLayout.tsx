@@ -10,6 +10,7 @@ import {
   Map,
   MapPin,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
