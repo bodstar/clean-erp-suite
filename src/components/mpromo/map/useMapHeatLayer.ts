@@ -192,6 +192,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       canvas.style.left = "0";
       canvas.style.pointerEvents = "none";
       canvas.className = "leaflet-zoom-hide";
+      canvas.style.opacity = String(heatOpacity);
       pane.appendChild(canvas);
       canvasRef.current = canvas;
 
