@@ -349,6 +349,56 @@ export default function MPromoPartnerDetail() {
         <TabsContent value="orders" className="mt-4">
           <DataTable columns={orderCols} data={orders} emptyMessage="No orders yet." />
         </TabsContent>
+        <TabsContent value="market-data" className="mt-4">
+          {forms.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-sm text-muted-foreground">No active forms available.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {forms.map((form) => (
+                <Collapsible
+                  key={form.id}
+                  open={openForms[form.id] ?? true}
+                  onOpenChange={(v) => setOpenForms((prev) => ({ ...prev, [form.id]: v }))}
+                >
+                  <Card>
+                    <CardContent className="p-4">
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
+                        {openForms[form.id] !== false ? (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="text-sm font-semibold text-foreground">{form.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {formSubmissions[form.id]?.length ?? 0} submissions
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs ml-2"
+                          onClick={(e) => { e.stopPropagation(); setSubmitFormTarget(form); }}
+                        >
+                          + Submit
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <FormSubmissionsTable
+                          form={form}
+                          submissions={formSubmissions[form.id] ?? []}
+                          showPartner={false}
+                        />
+                      </CollapsibleContent>
+                    </CardContent>
+                  </Card>
+                </Collapsible>
+              ))}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       <MapPickerModal
