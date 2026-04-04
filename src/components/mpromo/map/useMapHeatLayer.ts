@@ -124,6 +124,8 @@ interface UseMapHeatLayerOptions {
   heatmap: boolean;
   heatMetric: HeatMetric;
   heatStyle: HeatStyle;
+  heatRadius: number;
+  heatBlur: number;
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
