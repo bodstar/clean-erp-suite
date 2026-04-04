@@ -61,6 +61,7 @@ export default function MPromoMap() {
   const [heatStyle, setHeatStyle] = useState<HeatStyle>("circles");
   const [heatRadius, setHeatRadius] = useState(30);
   const [heatBlur, setHeatBlur] = useState(20);
+  const [heatOpacity, setHeatOpacity] = useState(0.7);
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
@@ -130,7 +131,7 @@ export default function MPromoMap() {
   }, []);
 
   // Heatmap hook
-  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, onCircleClick: handleCircleClick });
+  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick: handleCircleClick });
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -318,6 +319,8 @@ export default function MPromoMap() {
         onHeatRadiusChange={setHeatRadius}
         heatBlur={heatBlur}
         onHeatBlurChange={setHeatBlur}
+        heatOpacity={heatOpacity}
+        onHeatOpacityChange={setHeatOpacity}
         isLoading={isLoading}
         areaSelect={areaSelect}
         onAreaSelectChange={handleAreaSelectChange}

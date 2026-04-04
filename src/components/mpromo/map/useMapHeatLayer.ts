@@ -112,7 +112,7 @@ function drawSmoothHeatmap(
       pixels[i] = palette[idx];
       pixels[i + 1] = palette[idx + 1];
       pixels[i + 2] = palette[idx + 2];
-      pixels[i + 3] = Math.min(alpha * 2, 200); // semi-transparent
+      pixels[i + 3] = Math.min(alpha * 2, 200); // will be scaled by canvas opacity
     }
   }
   ctx.putImageData(imageData, 0, 0);
@@ -126,10 +126,11 @@ interface UseMapHeatLayerOptions {
   heatStyle: HeatStyle;
   heatRadius: number;
   heatBlur: number;
+  heatOpacity: number;
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
-export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, onCircleClick }: UseMapHeatLayerOptions) {
+export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick }: UseMapHeatLayerOptions) {
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveHandlerRef = useRef<(() => void) | null>(null);
@@ -191,6 +192,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       canvas.style.left = "0";
       canvas.style.pointerEvents = "none";
       canvas.className = "leaflet-zoom-hide";
+      canvas.style.opacity = String(heatOpacity);
       pane.appendChild(canvas);
       canvasRef.current = canvas;
 
@@ -220,7 +222,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         const circle = L.circleMarker([p.latitude, p.longitude], {
           radius,
           fillColor: getHeatColor(ratio),
-          fillOpacity: 0.45,
+          fillOpacity: 0.45 * heatOpacity,
           stroke: false,
         });
         const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
@@ -242,5 +244,5 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         circleLayerRef.current.addLayer(circle);
       });
     }
-  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, map, onCircleClick]);
+  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick]);
 }
