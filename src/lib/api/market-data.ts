@@ -1,4 +1,4 @@
-import type { FormDefinition, FormSubmission, FormField } from "@/types/market-data";
+import type { FormDefinition, FormSubmission, HeatmapMetricDef } from "@/types/market-data";
 import { demoForms, demoSubmissions } from "@/lib/demo/market-data";
 
 // In-memory stores (client-side demo)
@@ -54,37 +54,120 @@ export async function createSubmission(data: Omit<FormSubmission, "id">): Promis
   return sub;
 }
 
-/** Get aggregated form data for map heatmap: formId → fieldId → partnerId → latest numeric value */
-export function getFormDataForHeatmap(): Record<string, Record<string, Record<number, number>>> {
-  const result: Record<string, Record<string, Record<number, number>>> = {};
-
-  // Group submissions by form_id, then by partner_id, take latest
-  const byFormPartner = new Map<string, Map<number, FormSubmission>>();
-  for (const sub of submissions) {
-    if (!byFormPartner.has(sub.form_id)) byFormPartner.set(sub.form_id, new Map());
-    const partnerMap = byFormPartner.get(sub.form_id)!;
-    const existing = partnerMap.get(sub.partner_id);
-    if (!existing || sub.submitted_at > existing.submitted_at) {
-      partnerMap.set(sub.partner_id, sub);
-    }
-  }
-
+/** Get heatmap metric definitions from active forms */
+export function getFormHeatMetricOptions(): { formId: string; formName: string; metrics: HeatmapMetricDef[] }[] {
+  const result: { formId: string; formName: string; metrics: HeatmapMetricDef[] }[] = [];
   for (const form of forms) {
     if (form.status !== "active") continue;
-    const numericFields = form.fields.filter((f) => f.type === "number");
-    if (numericFields.length === 0) continue;
+    if (!form.heatmapMetrics || form.heatmapMetrics.length === 0) continue;
+    result.push({ formId: form.id, formName: form.name, metrics: form.heatmapMetrics });
+  }
+  return result;
+}
 
-    result[form.id] = {};
-    for (const field of numericFields) {
-      result[form.id][field.id] = {};
-      const partnerMap = byFormPartner.get(form.id);
-      if (partnerMap) {
-        for (const [partnerId, sub] of partnerMap) {
-          const val = Number(sub.values[field.id]);
-          if (!isNaN(val)) {
-            result[form.id][field.id][partnerId] = val;
-          }
+/** Get unique group-by values for a specific metric from submissions */
+export function getGroupByValues(formId: string, metricId: string): string[] {
+  const form = forms.find((f) => f.id === formId);
+  if (!form) return [];
+  const metric = form.heatmapMetrics?.find((m) => m.id === metricId);
+  if (!metric?.groupByFieldId) return [];
+
+  const values = new Set<string>();
+  for (const sub of submissions) {
+    if (sub.form_id !== formId) continue;
+    const val = sub.values[metric.groupByFieldId];
+    if (val !== undefined && val !== null && val !== "") {
+      values.add(String(val));
+    }
+  }
+  return Array.from(values).sort();
+}
+
+/** Compute aggregated heatmap data for a specific metric definition */
+export function getFormMetricHeatmapData(
+  formId: string,
+  metricId: string,
+  groupValue?: string // undefined = aggregate all, specific value = filter
+): Record<number, number> {
+  const form = forms.find((f) => f.id === formId);
+  if (!form) return {};
+  const metric = form.heatmapMetrics?.find((m) => m.id === metricId);
+  if (!metric) return {};
+
+  // Get relevant submissions
+  let formSubs = submissions.filter((s) => s.form_id === formId);
+
+  // If group-by and a specific value is selected, filter
+  if (metric.groupByFieldId && groupValue && groupValue !== "__all__") {
+    formSubs = formSubs.filter((s) => String(s.values[metric.groupByFieldId!]) === groupValue);
+  }
+
+  // Group by partner
+  const byPartner = new Map<number, FormSubmission[]>();
+  for (const sub of formSubs) {
+    if (!byPartner.has(sub.partner_id)) byPartner.set(sub.partner_id, []);
+    byPartner.get(sub.partner_id)!.push(sub);
+  }
+
+  const result: Record<number, number> = {};
+
+  for (const [partnerId, subs] of byPartner) {
+    const sorted = [...subs].sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
+
+    switch (metric.aggregation) {
+      case "latest": {
+        const val = Number(sorted[0]?.values[metric.valueFieldId]);
+        if (!isNaN(val)) result[partnerId] = val;
+        break;
+      }
+      case "sum": {
+        let total = 0;
+        for (const s of sorted) {
+          const v = Number(s.values[metric.valueFieldId]);
+          if (!isNaN(v)) total += v;
         }
+        result[partnerId] = total;
+        break;
+      }
+      case "average": {
+        let total = 0, count = 0;
+        for (const s of sorted) {
+          const v = Number(s.values[metric.valueFieldId]);
+          if (!isNaN(v)) { total += v; count++; }
+        }
+        if (count > 0) result[partnerId] = total / count;
+        break;
+      }
+      case "min": {
+        let min = Infinity;
+        for (const s of sorted) {
+          const v = Number(s.values[metric.valueFieldId]);
+          if (!isNaN(v) && v < min) min = v;
+        }
+        if (min !== Infinity) result[partnerId] = min;
+        break;
+      }
+      case "max": {
+        let max = -Infinity;
+        for (const s of sorted) {
+          const v = Number(s.values[metric.valueFieldId]);
+          if (!isNaN(v) && v > max) max = v;
+        }
+        if (max !== -Infinity) result[partnerId] = max;
+        break;
+      }
+      case "count": {
+        result[partnerId] = sorted.length;
+        break;
+      }
+      case "count_distinct": {
+        const unique = new Set<string>();
+        for (const s of sorted) {
+          const v = s.values[metric.valueFieldId];
+          if (v !== undefined && v !== null && v !== "") unique.add(String(v));
+        }
+        result[partnerId] = unique.size;
+        break;
       }
     }
   }
@@ -92,16 +175,7 @@ export function getFormDataForHeatmap(): Record<string, Record<string, Record<nu
   return result;
 }
 
-/** Get numeric fields from active forms for the heatmap metric selector */
-export function getFormHeatMetricOptions(): { formId: string; formName: string; fieldId: string; fieldLabel: string }[] {
-  const options: { formId: string; formName: string; fieldId: string; fieldLabel: string }[] = [];
-  for (const form of forms) {
-    if (form.status !== "active") continue;
-    for (const field of form.fields) {
-      if (field.type === "number") {
-        options.push({ formId: form.id, formName: form.name, fieldId: field.id, fieldLabel: field.label });
-      }
-    }
-  }
-  return options;
+// Keep legacy function for backward compat but it won't be used in new flow
+export function getFormDataForHeatmap(): Record<string, Record<string, Record<number, number>>> {
+  return {};
 }

@@ -16,6 +16,11 @@ export const demoForms: FormDefinition[] = [
       { id: "f1-3", label: "Stock Condition", type: "select", required: true, options: ["Good", "Fair", "Poor"], order: 3 },
       { id: "f1-4", label: "Notes", type: "textarea", required: false, order: 4 },
     ],
+    heatmapMetrics: [
+      { id: "hm-1-1", name: "Cases in Stock (Latest)", valueFieldId: "f1-1", aggregation: "latest" },
+      { id: "hm-1-2", name: "Total Bottles Returned", valueFieldId: "f1-2", aggregation: "sum" },
+      { id: "hm-1-3", name: "Avg Cases in Stock", valueFieldId: "f1-1", aggregation: "average" },
+    ],
     created_at: fmt(subDays(now, 30)),
     updated_at: fmt(subDays(now, 2)),
     team_id: 1,
@@ -31,6 +36,10 @@ export const demoForms: FormDefinition[] = [
       { id: "f2-2", label: "Delivery Timeliness", type: "select", required: true, options: ["On Time", "1-2 Days Late", "3+ Days Late"], order: 2 },
       { id: "f2-3", label: "Would Recommend", type: "checkbox", required: false, order: 3 },
       { id: "f2-4", label: "Feedback", type: "textarea", required: false, order: 4 },
+    ],
+    heatmapMetrics: [
+      { id: "hm-2-1", name: "Avg Rating", valueFieldId: "f2-1", aggregation: "average" },
+      { id: "hm-2-2", name: "Survey Count", valueFieldId: "f2-1", aggregation: "count" },
     ],
     created_at: fmt(subDays(now, 60)),
     updated_at: fmt(subDays(now, 5)),
@@ -48,6 +57,11 @@ export const demoForms: FormDefinition[] = [
       { id: "f3-3", label: "Our Price (GH₵)", type: "number", required: true, order: 3 },
       { id: "f3-4", label: "Date Observed", type: "date", required: true, order: 4 },
       { id: "f3-5", label: "Location Detail", type: "text", required: false, order: 5 },
+    ],
+    heatmapMetrics: [
+      { id: "hm-3-1", name: "Avg Competitor Price", valueFieldId: "f3-2", aggregation: "average", groupByFieldId: "f3-1" },
+      { id: "hm-3-2", name: "Avg Our Price", valueFieldId: "f3-3", aggregation: "average", groupByFieldId: "f3-1" },
+      { id: "hm-3-3", name: "Brand Count", valueFieldId: "f3-1", aggregation: "count_distinct" },
     ],
     created_at: fmt(subDays(now, 15)),
     updated_at: fmt(subDays(now, 1)),
@@ -90,4 +104,6 @@ export const demoSubmissions: FormSubmission[] = [
   { id: "sub-12", form_id: "form-3", partner_id: 2, partner_name: "Amina Ice Water Express", submitted_at: fmt(subDays(now, 3)), submitted_by: "Field Agent B", values: { "f3-1": "CoolBrand", "f3-2": 3.5, "f3-3": 3.0, "f3-4": fmt(subDays(now, 3)).slice(0, 10), "f3-5": "Madina Market" } },
   { id: "sub-13", form_id: "form-3", partner_id: 4, partner_name: "Efua Pure Water", submitted_at: fmt(subDays(now, 2)), submitted_by: "Field Agent A", values: { "f3-1": "IcePure", "f3-2": 4.0, "f3-3": 3.5, "f3-4": fmt(subDays(now, 2)).slice(0, 10), "f3-5": "East Legon junction" } },
   { id: "sub-14", form_id: "form-3", partner_id: 12, partner_name: "Kwesi Drinks Depot", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent C", values: { "f3-1": "FreshDrop", "f3-2": 3.0, "f3-3": 2.8, "f3-4": fmt(subDays(now, 1)).slice(0, 10), "f3-5": "Spintex Road" } },
+  { id: "sub-15", form_id: "form-3", partner_id: 2, partner_name: "Amina Ice Water Express", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent B", values: { "f3-1": "IcePure", "f3-2": 3.8, "f3-3": 3.2, "f3-4": fmt(subDays(now, 1)).slice(0, 10), "f3-5": "Madina Market" } },
+  { id: "sub-16", form_id: "form-3", partner_id: 4, partner_name: "Efua Pure Water", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent A", values: { "f3-1": "CoolBrand", "f3-2": 4.2, "f3-3": 3.6, "f3-4": fmt(subDays(now, 1)).slice(0, 10), "f3-5": "East Legon junction" } },
 ];
