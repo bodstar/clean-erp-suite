@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 
 export type HeatMetric = "redemptions" | "orders" | "payouts" | "loyalty_points";
+export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
   typeFilter: string;
