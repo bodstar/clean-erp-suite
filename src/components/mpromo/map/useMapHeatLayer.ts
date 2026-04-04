@@ -56,6 +56,12 @@ function getMetricLabel(metric: HeatMetric): string {
 }
 
 export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    const options = getFormHeatMetricOptions();
+    const found = options.find((o) => o.formId === formId && o.fieldId === fieldId);
+    return found ? found.fieldLabel : "Form Field";
+  }
   switch (metric) {
     case "redemptions":
       return "Redemption";
@@ -65,6 +71,8 @@ export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
       return "Payout";
     case "loyalty_points":
       return "Loyalty Points";
+    default:
+      return metric;
   }
 }
 
