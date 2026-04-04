@@ -447,6 +447,34 @@ export default function MPromoPartnerDetail() {
           }}
         />
       )}
+
+      {submitFormTarget && partner && (
+        <FormSubmissionModal
+          open={!!submitFormTarget}
+          onClose={() => setSubmitFormTarget(null)}
+          form={submitFormTarget}
+          partnerName={partner.name}
+          onSubmit={async (values) => {
+            await import("@/lib/api/market-data").then(({ createSubmission }) =>
+              createSubmission({
+                form_id: submitFormTarget.id,
+                partner_id: partner.id,
+                partner_name: partner.name,
+                submitted_at: new Date().toISOString().replace("T", " ").slice(0, 16),
+                submitted_by: "Current User",
+                values,
+              })
+            );
+            toast.success("Submission recorded");
+            // Reload submissions
+            const subs = await import("@/lib/api/market-data").then(({ getSubmissions }) => getSubmissions(undefined, partner.id));
+            const grouped: Record<string, FormSubmission[]> = {};
+            for (const f of forms) grouped[f.id] = subs.filter((s) => s.form_id === f.id);
+            setFormSubmissions(grouped);
+            setSubmitFormTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }
