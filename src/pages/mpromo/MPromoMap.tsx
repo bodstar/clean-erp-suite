@@ -319,6 +319,8 @@ export default function MPromoMap() {
         onHeatRadiusChange={setHeatRadius}
         heatBlur={heatBlur}
         onHeatBlurChange={setHeatBlur}
+        heatOpacity={heatOpacity}
+        onHeatOpacityChange={setHeatOpacity}
         isLoading={isLoading}
         areaSelect={areaSelect}
         onAreaSelectChange={handleAreaSelectChange}
