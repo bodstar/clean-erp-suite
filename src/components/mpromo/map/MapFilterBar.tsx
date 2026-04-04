@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,11 +10,14 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getFormHeatMetricOptions } from "@/lib/api/market-data";
 
-export type HeatMetric = "redemptions" | "orders" | "payouts" | "loyalty_points";
+export type HeatMetric = string; // "redemptions" | "orders" | "payouts" | "loyalty_points" | "form_field:{formId}:{fieldId}"
 export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
