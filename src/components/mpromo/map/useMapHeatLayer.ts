@@ -103,50 +103,28 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
     const maxAmount = Math.max(...amounts, 1);
 
     if (heatStyle === "smooth") {
-      // Use leaflet.heat smooth density heatmap
       const heatData: [number, number, number][] = partners.map((p) => {
         const val = getMetricValue(p, heatMetric);
         const intensity = maxAmount > 0 ? val / maxAmount : 0;
         return [p.latitude, p.longitude, intensity];
       });
 
-      if (typeof (L as any).heatLayer === "function") {
-        try {
-          const layer = (L as any).heatLayer(heatData, {
-            radius: 30,
-            blur: 20,
-            maxZoom: 17,
-            max: 1,
-            gradient: {
-              0.0: "green",
-              0.5: "yellow",
-              1.0: "red",
-            },
-          });
-
-          // Monkey-patch onAdd to use modern Leaflet pane API
-          const originalOnAdd = layer.onAdd;
-          layer.onAdd = function (m: L.Map) {
-            this._map = m;
-            if (!this._canvas) {
-              this._initCanvas();
-            }
-            const pane = m.getPane("overlayPane");
-            if (pane) {
-              pane.appendChild(this._canvas);
-            }
-            m.on("moveend", this._reset, this);
-            if ((m as any).options.zoomAnimation && L.Browser.any3d) {
-              m.on("zoomanim", this._animateZoom, this);
-            }
-            this._reset();
-          };
-
-          layer.addTo(map);
-          smoothLayerRef.current = layer;
-        } catch (e) {
-          console.warn("[HeatLayer] Failed to add smooth heat layer:", e);
-        }
+      try {
+        const layer = createHeatLayer(heatData, {
+          radius: 30,
+          blur: 20,
+          maxZoom: 17,
+          max: 1,
+          gradient: {
+            0.0: "green",
+            0.5: "yellow",
+            1.0: "red",
+          },
+        });
+        layer.addTo(map);
+        smoothLayerRef.current = layer;
+      } catch (e) {
+        console.warn("[HeatLayer] Failed to add smooth heat layer:", e);
       }
     } else {
       // Circle marker approach
