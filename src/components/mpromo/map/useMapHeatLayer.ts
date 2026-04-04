@@ -110,23 +110,31 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         return [p.latitude, p.longitude, intensity];
       });
 
-      console.log("[HeatLayer] smooth mode, data points:", heatData.length, "heatLayer exists:", typeof (L as any).heatLayer);
-
       if (typeof (L as any).heatLayer === "function") {
-        smoothLayerRef.current = (L as any).heatLayer(heatData, {
-          radius: 30,
-          blur: 20,
-          maxZoom: 17,
-          max: 1,
-          gradient: {
-            0.0: "green",
-            0.5: "yellow",
-            1.0: "red",
-          },
-        }).addTo(map);
-        console.log("[HeatLayer] smooth layer added to map");
-      } else {
-        console.error("[HeatLayer] L.heatLayer is not available — leaflet.heat may not be loaded");
+        // Patch: leaflet.heat uses legacy map._panes API; ensure it exists
+        const mapAny = map as any;
+        if (!mapAny._panes) {
+          mapAny._panes = {};
+        }
+        if (!mapAny._panes.overlayPane) {
+          mapAny._panes.overlayPane = map.getPane("overlayPane");
+        }
+
+        try {
+          smoothLayerRef.current = (L as any).heatLayer(heatData, {
+            radius: 30,
+            blur: 20,
+            maxZoom: 17,
+            max: 1,
+            gradient: {
+              0.0: "green",
+              0.5: "yellow",
+              1.0: "red",
+            },
+          }).addTo(map);
+        } catch (e) {
+          console.warn("[HeatLayer] Failed to add smooth heat layer:", e);
+        }
       }
     } else {
       // Circle marker approach
