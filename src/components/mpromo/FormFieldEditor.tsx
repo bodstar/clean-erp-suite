@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -57,6 +58,8 @@ export function FormFieldEditor({ field, onChange, onDelete }: FormFieldEditorPr
                 updateField({
                   type: v as FormFieldType,
                   options: v === "select" ? field.options ?? ["Option 1"] : undefined,
+                  allowCustomOption: v === "select" ? field.allowCustomOption : undefined,
+                  allowMultiSelect: v === "select" ? field.allowMultiSelect : undefined,
                 })
               }
             >
@@ -80,7 +83,7 @@ export function FormFieldEditor({ field, onChange, onDelete }: FormFieldEditorPr
         </div>
 
         {field.type === "select" && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label className="text-xs">Options</Label>
             <div className="flex flex-wrap gap-1.5">
               {(field.options ?? []).map((opt, i) => (
@@ -115,6 +118,22 @@ export function FormFieldEditor({ field, onChange, onDelete }: FormFieldEditorPr
               >
                 + Add
               </Button>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={field.allowMultiSelect ?? false}
+                  onCheckedChange={(v) => updateField({ allowMultiSelect: !!v })}
+                />
+                <span className="text-xs text-muted-foreground">Allow multiple selections</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={field.allowCustomOption ?? false}
+                  onCheckedChange={(v) => updateField({ allowCustomOption: !!v })}
+                />
+                <span className="text-xs text-muted-foreground">Allow respondent to add custom option</span>
+              </label>
             </div>
           </div>
         )}
