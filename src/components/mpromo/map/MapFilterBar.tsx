@@ -48,6 +48,8 @@ export function MapFilterBar({
   onHeatmapChange,
   heatMetric,
   onHeatMetricChange,
+  heatStyle,
+  onHeatStyleChange,
   isLoading,
   areaSelect,
   onAreaSelectChange,
