@@ -112,7 +112,7 @@ function drawSmoothHeatmap(
       pixels[i] = palette[idx];
       pixels[i + 1] = palette[idx + 1];
       pixels[i + 2] = palette[idx + 2];
-      pixels[i + 3] = Math.min(alpha * 2, 200); // semi-transparent
+      pixels[i + 3] = Math.min(alpha * 2, 200); // will be scaled by canvas opacity
     }
   }
   ctx.putImageData(imageData, 0, 0);

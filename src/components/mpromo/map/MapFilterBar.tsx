@@ -198,6 +198,17 @@ export function MapFilterBar({
               </div>
             </>
           )}
+          <div className="space-y-1 w-32">
+            <Label className="text-xs">Opacity: {Math.round(heatOpacity * 100)}%</Label>
+            <Slider
+              min={10}
+              max={100}
+              step={5}
+              value={[Math.round(heatOpacity * 100)]}
+              onValueChange={([v]) => onHeatOpacityChange(v / 100)}
+              className="py-1"
+            />
+          </div>
         </>
       )}
       {isLoading && <Skeleton className="h-4 w-16" />}
