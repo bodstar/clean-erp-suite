@@ -130,7 +130,7 @@ export default function MPromoMap() {
   }, []);
 
   // Heatmap hook
-  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, heatStyle, onCircleClick: handleCircleClick });
+  useMapHeatLayer({ map: mapRef.current, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, onCircleClick: handleCircleClick });
 
   const loadPartners = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
