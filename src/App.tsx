@@ -34,6 +34,9 @@ import MPromoCodes from "@/pages/mpromo/MPromoCodes";
 import MPromoRedemptions from "@/pages/mpromo/MPromoRedemptions";
 import MPromoPayouts from "@/pages/mpromo/MPromoPayouts";
 import MPromoOrders from "@/pages/mpromo/MPromoOrders";
+import MPromoMarketData from "@/pages/mpromo/MPromoMarketData";
+import MPromoFormBuilder from "@/pages/mpromo/MPromoFormBuilder";
+import MPromoFormDetail from "@/pages/mpromo/MPromoFormDetail";
 
 // Lazy-load leaflet-dependent pages to prevent react-leaflet context crash
 const MPromoPartnerDetail = lazy(() => import("@/pages/mpromo/MPromoPartnerDetail"));
