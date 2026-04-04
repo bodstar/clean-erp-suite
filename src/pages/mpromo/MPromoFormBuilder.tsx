@@ -158,6 +158,12 @@ export default function MPromoFormBuilder() {
               </Button>
             </CardContent>
           </Card>
+
+          <HeatmapMetricsEditor
+            fields={fields}
+            metrics={heatmapMetrics}
+            onChange={setHeatmapMetrics}
+          />
         </div>
 
         {/* Preview */}
