@@ -196,12 +196,12 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
 
     if (!heatmap || partners.length === 0 || !map) return;
 
-    const amounts = partners.map((p) => getMetricValue(p, heatMetric));
+    const amounts = partners.map((p) => getMetricValue(p, heatMetric, formHeatData));
     const maxAmount = Math.max(...amounts, 1);
 
     if (heatStyle === "smooth") {
       const heatData = partners.map((p) => {
-        const val = getMetricValue(p, heatMetric);
+        const val = getMetricValue(p, heatMetric, formHeatData);
         const intensity = maxAmount > 0 ? val / maxAmount : 0;
         return { lat: p.latitude, lng: p.longitude, intensity };
       });
