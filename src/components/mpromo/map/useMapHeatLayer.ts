@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import "leaflet.heat";
+import { createHeatLayer } from "./LeafletHeatLayer";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
 
