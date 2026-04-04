@@ -6,7 +6,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getMapPartners } from "@/lib/api/mpromo";
 import type { MapPartner } from "@/types/mpromo";
-import { MapFilterBar, type HeatMetric } from "@/components/mpromo/map/MapFilterBar";
+import { MapFilterBar, type HeatMetric, type HeatStyle } from "@/components/mpromo/map/MapFilterBar";
 import { MapPartnerPanel } from "@/components/mpromo/map/MapPartnerPanel";
 import { useMapHeatLayer, getHeatMetricIntensityLabel } from "@/components/mpromo/map/useMapHeatLayer";
 import { useAdvancedAreaSelection } from "@/hooks/useAdvancedAreaSelection";
