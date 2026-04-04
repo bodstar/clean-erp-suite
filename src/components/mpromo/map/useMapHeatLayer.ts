@@ -239,7 +239,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       const label = getMetricLabel(heatMetric);
 
       partners.forEach((p) => {
-        const val = getMetricValue(p, heatMetric);
+        const val = getMetricValue(p, heatMetric, formHeatData);
         const ratio = maxAmount > 0 ? val / maxAmount : 0;
         const radius = 8 + ratio * 32;
         const center = L.latLng(p.latitude, p.longitude);
@@ -249,7 +249,8 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
           fillOpacity: 0.45 * heatOpacity,
           stroke: false,
         });
-        const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
+        const isFormMetric = heatMetric.startsWith("form_field:");
+        const formattedVal = (isFormMetric || heatMetric === "loyalty_points") ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
         circle.bindTooltip(
           `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
           { direction: "top" }
