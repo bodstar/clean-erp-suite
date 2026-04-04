@@ -163,14 +163,27 @@ export function MapFilterBar({
               value={heatMetric}
               onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
             >
-              <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectTrigger className="w-48 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="redemptions">Redemptions</SelectItem>
-                <SelectItem value="orders">Orders</SelectItem>
-                <SelectItem value="payouts">Pending Payouts</SelectItem>
-                <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+                <SelectGroup>
+                  <SelectLabel>Built-in</SelectLabel>
+                  <SelectItem value="redemptions">Redemptions</SelectItem>
+                  <SelectItem value="orders">Orders</SelectItem>
+                  <SelectItem value="payouts">Pending Payouts</SelectItem>
+                  <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+                </SelectGroup>
+                {Object.entries(formGroups).map(([formId, { formName, fields }]) => (
+                  <SelectGroup key={formId}>
+                    <SelectLabel>{formName}</SelectLabel>
+                    {fields.map((f) => (
+                      <SelectItem key={`${formId}:${f.fieldId}`} value={`form_field:${formId}:${f.fieldId}`}>
+                        {f.fieldLabel}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </div>
