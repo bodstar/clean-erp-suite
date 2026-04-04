@@ -61,6 +61,7 @@ export default function MPromoMap() {
   const [heatStyle, setHeatStyle] = useState<HeatStyle>("circles");
   const [heatRadius, setHeatRadius] = useState(30);
   const [heatBlur, setHeatBlur] = useState(20);
+  const [heatOpacity, setHeatOpacity] = useState(0.7);
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
