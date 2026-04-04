@@ -330,6 +330,10 @@ export default function MPromoMap() {
         onShowMarkersChange={setShowMarkers}
         advancedAreaSelect={advancedAreaSelect}
         onAdvancedAreaSelectChange={handleAdvancedAreaSelectChange}
+        heatFormId={heatFormId}
+        onHeatFormIdChange={setHeatFormId}
+        heatFieldId={heatFieldId}
+        onHeatFieldIdChange={setHeatFieldId}
       />
 
       {advancedAreaSelect && (

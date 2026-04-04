@@ -10,14 +10,12 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectGroup,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { getFormHeatMetricOptions } from "@/lib/api/market-data";
 
-export type HeatMetric = string; // "redemptions" | "orders" | "payouts" | "loyalty_points" | "form_field:{formId}:{fieldId}"
+export type HeatMetric = string;
 export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
@@ -46,6 +44,10 @@ interface MapFilterBarProps {
   onShowMarkersChange?: (value: boolean) => void;
   advancedAreaSelect?: boolean;
   onAdvancedAreaSelectChange?: (value: boolean) => void;
+  heatFormId: string;
+  onHeatFormIdChange: (value: string) => void;
+  heatFieldId: string;
+  onHeatFieldIdChange: (value: string) => void;
 }
 
 export function MapFilterBar({
@@ -74,6 +76,10 @@ export function MapFilterBar({
   onShowMarkersChange,
   advancedAreaSelect,
   onAdvancedAreaSelectChange,
+  heatFormId,
+  onHeatFormIdChange,
+  heatFieldId,
+  onHeatFieldIdChange,
 }: MapFilterBarProps) {
   const [formMetrics, setFormMetrics] = useState<{ formId: string; formName: string; fieldId: string; fieldLabel: string }[]>([]);
 
@@ -87,6 +93,35 @@ export function MapFilterBar({
     acc[m.formId].fields.push({ fieldId: m.fieldId, fieldLabel: m.fieldLabel });
     return acc;
   }, {});
+
+  const isMarketDataMode = heatMetric === "market_data";
+  const selectedFormFields = heatFormId ? (formGroups[heatFormId]?.fields ?? []) : [];
+
+  // Derive the display metric category
+  const metricCategory = heatMetric.startsWith("form_field:") ? "market_data" : heatMetric;
+
+  const handleMetricCategoryChange = (value: string) => {
+    if (value === "market_data") {
+      onHeatMetricChange("market_data");
+    } else {
+      onHeatMetricChange(value);
+      onHeatFormIdChange("");
+      onHeatFieldIdChange("");
+    }
+  };
+
+  const handleFormChange = (formId: string) => {
+    onHeatFormIdChange(formId);
+    onHeatFieldIdChange("");
+    onHeatMetricChange("market_data"); // keep as market_data until field selected
+  };
+
+  const handleFieldChange = (fieldId: string) => {
+    onHeatFieldIdChange(fieldId);
+    if (heatFormId && fieldId) {
+      onHeatMetricChange(`form_field:${heatFormId}:${fieldId}`);
+    }
+  };
 
   return (
     <div className="flex flex-wrap gap-3 items-end">
@@ -160,33 +195,57 @@ export function MapFilterBar({
           <div className="space-y-1">
             <Label className="text-xs">Metric</Label>
             <Select
-              value={heatMetric}
-              onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
+              value={metricCategory}
+              onValueChange={handleMetricCategoryChange}
             >
-              <SelectTrigger className="w-48 h-8 text-xs">
+              <SelectTrigger className="w-44 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Built-in</SelectLabel>
-                  <SelectItem value="redemptions">Redemptions</SelectItem>
-                  <SelectItem value="orders">Orders</SelectItem>
-                  <SelectItem value="payouts">Pending Payouts</SelectItem>
-                  <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
-                </SelectGroup>
-                {Object.entries(formGroups).map(([formId, { formName, fields }]) => (
-                  <SelectGroup key={formId}>
-                    <SelectLabel>{formName}</SelectLabel>
-                    {fields.map((f) => (
-                      <SelectItem key={`${formId}:${f.fieldId}`} value={`form_field:${formId}:${f.fieldId}`}>
-                        {f.fieldLabel}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
+                <SelectItem value="redemptions">Redemptions</SelectItem>
+                <SelectItem value="orders">Orders</SelectItem>
+                <SelectItem value="payouts">Pending Payouts</SelectItem>
+                <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+                <SelectItem value="market_data">Market Data</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {(isMarketDataMode || heatMetric.startsWith("form_field:")) && (
+            <>
+              <div className="space-y-1">
+                <Label className="text-xs">Form</Label>
+                <Select value={heatFormId} onValueChange={handleFormChange}>
+                  <SelectTrigger className="w-48 h-8 text-xs">
+                    <SelectValue placeholder="Select form…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(formGroups).map(([formId, { formName }]) => (
+                      <SelectItem key={formId} value={formId}>
+                        {formName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {heatFormId && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Field</Label>
+                  <Select value={heatFieldId} onValueChange={handleFieldChange}>
+                    <SelectTrigger className="w-44 h-8 text-xs">
+                      <SelectValue placeholder="Select field…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedFormFields.map((f) => (
+                        <SelectItem key={f.fieldId} value={f.fieldId}>
+                          {f.fieldLabel}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
           <div className="space-y-1">
             <Label className="text-xs">Style</Label>
             <Select
