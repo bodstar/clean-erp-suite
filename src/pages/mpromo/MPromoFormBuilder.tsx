@@ -29,6 +29,7 @@ export default function MPromoFormBuilder() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<FormStatus>("draft");
   const [fields, setFields] = useState<FormField[]>([]);
+  const [heatmapMetrics, setHeatmapMetrics] = useState<HeatmapMetricDef[]>([]);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
