@@ -137,6 +137,7 @@ export interface MapPartner {
   loyalty_points: number;
   team_id?: number;
   team_name?: string;
+  form_data?: Record<string, Record<string, number>>; // formId → fieldId → aggregated value
 }
 
 export interface PointsHistoryEntry {

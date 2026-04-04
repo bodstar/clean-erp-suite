@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map } from "lucide-react";
+import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,11 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, adjustPartnerPoints, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
+import { getForms, getSubmissions } from "@/lib/api/market-data";
+import { FormSubmissionsTable } from "@/components/mpromo/FormSubmissionsTable";
+import { FormSubmissionModal } from "@/components/mpromo/FormSubmissionModal";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { FormDefinition, FormSubmission } from "@/types/market-data";
 import type { Partner, PartnerType, PartnerStatus, Redemption, MPromoOrder, PointsHistoryEntry } from "@/types/mpromo";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -48,6 +53,23 @@ export default function MPromoPartnerDetail() {
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [adjustPointsOpen, setAdjustPointsOpen] = useState(false);
+  const [forms, setForms] = useState<FormDefinition[]>([]);
+  const [formSubmissions, setFormSubmissions] = useState<Record<string, FormSubmission[]>>({});
+  const [submitFormTarget, setSubmitFormTarget] = useState<FormDefinition | null>(null);
+  const [openForms, setOpenForms] = useState<Record<string, boolean>>({});
+
+  // Load market data forms and submissions for this partner
+  useEffect(() => {
+    if (!id) return;
+    const partnerId = Number(id);
+    Promise.all([getForms(), getSubmissions(undefined, partnerId)]).then(([allForms, subs]) => {
+      const activeForms = allForms.filter((f) => f.status === "active");
+      setForms(activeForms);
+      const grouped: Record<string, FormSubmission[]> = {};
+      for (const f of activeForms) grouped[f.id] = subs.filter((s) => s.form_id === f.id);
+      setFormSubmissions(grouped);
+    });
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -272,6 +294,7 @@ export default function MPromoPartnerDetail() {
           <TabsTrigger value="points">Points History</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="market-data">Market Data</TabsTrigger>
         </TabsList>
         <TabsContent value="activity" className="mt-4">
           <Card>
@@ -326,6 +349,56 @@ export default function MPromoPartnerDetail() {
         <TabsContent value="orders" className="mt-4">
           <DataTable columns={orderCols} data={orders} emptyMessage="No orders yet." />
         </TabsContent>
+        <TabsContent value="market-data" className="mt-4">
+          {forms.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-sm text-muted-foreground">No active forms available.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {forms.map((form) => (
+                <Collapsible
+                  key={form.id}
+                  open={openForms[form.id] ?? true}
+                  onOpenChange={(v) => setOpenForms((prev) => ({ ...prev, [form.id]: v }))}
+                >
+                  <Card>
+                    <CardContent className="p-4">
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left">
+                        {openForms[form.id] !== false ? (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="text-sm font-semibold text-foreground">{form.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {formSubmissions[form.id]?.length ?? 0} submissions
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs ml-2"
+                          onClick={(e) => { e.stopPropagation(); setSubmitFormTarget(form); }}
+                        >
+                          + Submit
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <FormSubmissionsTable
+                          form={form}
+                          submissions={formSubmissions[form.id] ?? []}
+                          showPartner={false}
+                        />
+                      </CollapsibleContent>
+                    </CardContent>
+                  </Card>
+                </Collapsible>
+              ))}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       <MapPickerModal
@@ -371,6 +444,34 @@ export default function MPromoPartnerDetail() {
             toast.success(
               `${adj.type === "add" ? "Added" : "Deducted"} ${adj.amount.toLocaleString()} pts. New balance: ${result.new_balance.toLocaleString()} pts`
             );
+          }}
+        />
+      )}
+
+      {submitFormTarget && partner && (
+        <FormSubmissionModal
+          open={!!submitFormTarget}
+          onClose={() => setSubmitFormTarget(null)}
+          form={submitFormTarget}
+          partnerName={partner.name}
+          onSubmit={async (values) => {
+            await import("@/lib/api/market-data").then(({ createSubmission }) =>
+              createSubmission({
+                form_id: submitFormTarget.id,
+                partner_id: partner.id,
+                partner_name: partner.name,
+                submitted_at: new Date().toISOString().replace("T", " ").slice(0, 16),
+                submitted_by: "Current User",
+                values,
+              })
+            );
+            toast.success("Submission recorded");
+            // Reload submissions
+            const subs = await import("@/lib/api/market-data").then(({ getSubmissions }) => getSubmissions(undefined, partner.id));
+            const grouped: Record<string, FormSubmission[]> = {};
+            for (const f of forms) grouped[f.id] = subs.filter((s) => s.form_id === f.id);
+            setFormSubmissions(grouped);
+            setSubmitFormTarget(null);
           }}
         />
       )}

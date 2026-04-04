@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,11 +10,14 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getFormHeatMetricOptions } from "@/lib/api/market-data";
 
-export type HeatMetric = "redemptions" | "orders" | "payouts" | "loyalty_points";
+export type HeatMetric = string; // "redemptions" | "orders" | "payouts" | "loyalty_points" | "form_field:{formId}:{fieldId}"
 export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
@@ -71,6 +75,19 @@ export function MapFilterBar({
   advancedAreaSelect,
   onAdvancedAreaSelectChange,
 }: MapFilterBarProps) {
+  const [formMetrics, setFormMetrics] = useState<{ formId: string; formName: string; fieldId: string; fieldLabel: string }[]>([]);
+
+  useEffect(() => {
+    setFormMetrics(getFormHeatMetricOptions());
+  }, []);
+
+  // Group form metrics by form
+  const formGroups = formMetrics.reduce<Record<string, { formName: string; fields: { fieldId: string; fieldLabel: string }[] }>>((acc, m) => {
+    if (!acc[m.formId]) acc[m.formId] = { formName: m.formName, fields: [] };
+    acc[m.formId].fields.push({ fieldId: m.fieldId, fieldLabel: m.fieldLabel });
+    return acc;
+  }, {});
+
   return (
     <div className="flex flex-wrap gap-3 items-end">
       <div className="space-y-1">
@@ -146,14 +163,27 @@ export function MapFilterBar({
               value={heatMetric}
               onValueChange={(v) => onHeatMetricChange(v as HeatMetric)}
             >
-              <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectTrigger className="w-48 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="redemptions">Redemptions</SelectItem>
-                <SelectItem value="orders">Orders</SelectItem>
-                <SelectItem value="payouts">Pending Payouts</SelectItem>
-                <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+                <SelectGroup>
+                  <SelectLabel>Built-in</SelectLabel>
+                  <SelectItem value="redemptions">Redemptions</SelectItem>
+                  <SelectItem value="orders">Orders</SelectItem>
+                  <SelectItem value="payouts">Pending Payouts</SelectItem>
+                  <SelectItem value="loyalty_points">Loyalty Points</SelectItem>
+                </SelectGroup>
+                {Object.entries(formGroups).map(([formId, { formName, fields }]) => (
+                  <SelectGroup key={formId}>
+                    <SelectLabel>{formName}</SelectLabel>
+                    {fields.map((f) => (
+                      <SelectItem key={`${formId}:${f.fieldId}`} value={`form_field:${formId}:${f.fieldId}`}>
+                        {f.fieldLabel}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </div>

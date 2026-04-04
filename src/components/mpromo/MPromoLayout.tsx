@@ -10,6 +10,7 @@ import {
   Map,
   MapPin,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
@@ -32,6 +33,7 @@ const tabs = [
   { label: "Redemptions", path: "/mpromo/redemptions", icon: Receipt, permission: "mpromo.redemptions.view" },
   { label: "Payouts", path: "/mpromo/payouts", icon: Wallet, permission: "mpromo.payouts.manage" },
   { label: "Orders", path: "/mpromo/orders", icon: ShoppingCart, permission: "mpromo.orders.view" },
+  { label: "Market Data", path: "/mpromo/market-data", icon: ClipboardList },
   { label: "Map", path: "/mpromo/map", icon: Map },
   { label: "Geo Queue", path: "/mpromo/geo-queue", icon: MapPin, permission: "mpromo.partners.manage" },
 ];

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
+import { getFormDataForHeatmap, getFormHeatMetricOptions } from "@/lib/api/market-data";
 
 function getHeatColor(ratio: number): string {
   if (ratio < 0.5) {
@@ -14,7 +15,11 @@ function getHeatColor(ratio: number): string {
   return `rgb(${r}, ${g}, 30)`;
 }
 
-function getMetricValue(p: MapPartner, metric: HeatMetric): number {
+function getMetricValue(p: MapPartner, metric: HeatMetric, formHeatData?: Record<string, Record<string, Record<number, number>>>): number {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    return formHeatData?.[formId]?.[fieldId]?.[p.id] ?? 0;
+  }
   switch (metric) {
     case "redemptions":
       return p.redemptions_amount;
@@ -24,10 +29,18 @@ function getMetricValue(p: MapPartner, metric: HeatMetric): number {
       return p.pending_payouts_amount;
     case "loyalty_points":
       return p.loyalty_points;
+    default:
+      return 0;
   }
 }
 
 function getMetricLabel(metric: HeatMetric): string {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    const options = getFormHeatMetricOptions();
+    const found = options.find((o) => o.formId === formId && o.fieldId === fieldId);
+    return found ? `${found.formName}: ${found.fieldLabel}` : "Form Field";
+  }
   switch (metric) {
     case "redemptions":
       return "Redemptions";
@@ -37,10 +50,18 @@ function getMetricLabel(metric: HeatMetric): string {
       return "Pending Payouts";
     case "loyalty_points":
       return "Loyalty Points";
+    default:
+      return metric;
   }
 }
 
 export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    const options = getFormHeatMetricOptions();
+    const found = options.find((o) => o.formId === formId && o.fieldId === fieldId);
+    return found ? found.fieldLabel : "Form Field";
+  }
   switch (metric) {
     case "redemptions":
       return "Redemption";
@@ -50,6 +71,8 @@ export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
       return "Payout";
     case "loyalty_points":
       return "Loyalty Points";
+    default:
+      return metric;
   }
 }
 
@@ -131,6 +154,7 @@ interface UseMapHeatLayerOptions {
 }
 
 export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick }: UseMapHeatLayerOptions) {
+  const formHeatData = useMemo(() => heatMetric.startsWith("form_field:") ? getFormDataForHeatmap() : undefined, [heatMetric]);
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveHandlerRef = useRef<(() => void) | null>(null);
@@ -172,12 +196,12 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
 
     if (!heatmap || partners.length === 0 || !map) return;
 
-    const amounts = partners.map((p) => getMetricValue(p, heatMetric));
+    const amounts = partners.map((p) => getMetricValue(p, heatMetric, formHeatData));
     const maxAmount = Math.max(...amounts, 1);
 
     if (heatStyle === "smooth") {
       const heatData = partners.map((p) => {
-        const val = getMetricValue(p, heatMetric);
+        const val = getMetricValue(p, heatMetric, formHeatData);
         const intensity = maxAmount > 0 ? val / maxAmount : 0;
         return { lat: p.latitude, lng: p.longitude, intensity };
       });
@@ -215,7 +239,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       const label = getMetricLabel(heatMetric);
 
       partners.forEach((p) => {
-        const val = getMetricValue(p, heatMetric);
+        const val = getMetricValue(p, heatMetric, formHeatData);
         const ratio = maxAmount > 0 ? val / maxAmount : 0;
         const radius = 8 + ratio * 32;
         const center = L.latLng(p.latitude, p.longitude);
@@ -225,7 +249,8 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
           fillOpacity: 0.45 * heatOpacity,
           stroke: false,
         });
-        const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
+        const isFormMetric = heatMetric.startsWith("form_field:");
+        const formattedVal = (isFormMetric || heatMetric === "loyalty_points") ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
         circle.bindTooltip(
           `<strong>${p.name}</strong><br/>${label}: ${formattedVal}`,
           { direction: "top" }
@@ -244,5 +269,5 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         circleLayerRef.current.addLayer(circle);
       });
     }
-  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick]);
+  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick, formHeatData]);
 }

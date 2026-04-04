@@ -34,6 +34,9 @@ import MPromoCodes from "@/pages/mpromo/MPromoCodes";
 import MPromoRedemptions from "@/pages/mpromo/MPromoRedemptions";
 import MPromoPayouts from "@/pages/mpromo/MPromoPayouts";
 import MPromoOrders from "@/pages/mpromo/MPromoOrders";
+import MPromoMarketData from "@/pages/mpromo/MPromoMarketData";
+import MPromoFormBuilder from "@/pages/mpromo/MPromoFormBuilder";
+import MPromoFormDetail from "@/pages/mpromo/MPromoFormDetail";
 
 // Lazy-load leaflet-dependent pages to prevent react-leaflet context crash
 const MPromoPartnerDetail = lazy(() => import("@/pages/mpromo/MPromoPartnerDetail"));
@@ -81,6 +84,10 @@ const App = () => (
                   <Route path="redemptions" element={<MPromoRedemptions />} />
                   <Route path="payouts" element={<MPromoPayouts />} />
                   <Route path="orders" element={<MPromoOrders />} />
+                  <Route path="market-data" element={<MPromoMarketData />} />
+                  <Route path="market-data/new" element={<MPromoFormBuilder />} />
+                  <Route path="market-data/:id" element={<MPromoFormDetail />} />
+                  <Route path="market-data/:id/edit" element={<MPromoFormBuilder />} />
                   <Route path="map" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading map...</div>}><MPromoMap /></Suspense>} />
                   <Route path="geo-queue" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading...</div>}><MPromoGeoQueue /></Suspense>} />
                 </Route>
