@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormFieldEditor } from "@/components/mpromo/FormFieldEditor";
+import { HeatmapMetricsEditor } from "@/components/mpromo/HeatmapMetricsEditor";
 import { createForm, getForm, updateForm } from "@/lib/api/market-data";
-import type { FormField, FormFieldType, FormStatus } from "@/types/market-data";
 import { toast } from "sonner";
 
 export default function MPromoFormBuilder() {
