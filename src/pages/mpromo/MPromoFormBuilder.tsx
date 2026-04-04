@@ -74,10 +74,10 @@ export default function MPromoFormBuilder() {
     setSaving(true);
     try {
       if (isEdit) {
-        await updateForm(id, { name, description, status, fields });
+        await updateForm(id, { name, description, status, fields, heatmapMetrics });
         toast.success("Form updated");
       } else {
-        await createForm({ name, description, status, fields });
+        await createForm({ name, description, status, fields, heatmapMetrics });
         toast.success("Form created");
       }
       navigate("/mpromo/market-data");
