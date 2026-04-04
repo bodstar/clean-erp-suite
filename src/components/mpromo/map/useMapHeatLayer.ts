@@ -15,7 +15,11 @@ function getHeatColor(ratio: number): string {
   return `rgb(${r}, ${g}, 30)`;
 }
 
-function getMetricValue(p: MapPartner, metric: HeatMetric): number {
+function getMetricValue(p: MapPartner, metric: HeatMetric, formHeatData?: Record<string, Record<string, Record<number, number>>>): number {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    return formHeatData?.[formId]?.[fieldId]?.[p.id] ?? 0;
+  }
   switch (metric) {
     case "redemptions":
       return p.redemptions_amount;
@@ -25,10 +29,18 @@ function getMetricValue(p: MapPartner, metric: HeatMetric): number {
       return p.pending_payouts_amount;
     case "loyalty_points":
       return p.loyalty_points;
+    default:
+      return 0;
   }
 }
 
 function getMetricLabel(metric: HeatMetric): string {
+  if (metric.startsWith("form_field:")) {
+    const [, formId, fieldId] = metric.split(":");
+    const options = getFormHeatMetricOptions();
+    const found = options.find((o) => o.formId === formId && o.fieldId === fieldId);
+    return found ? `${found.formName}: ${found.fieldLabel}` : "Form Field";
+  }
   switch (metric) {
     case "redemptions":
       return "Redemptions";
@@ -38,6 +50,8 @@ function getMetricLabel(metric: HeatMetric): string {
       return "Pending Payouts";
     case "loyalty_points":
       return "Loyalty Points";
+    default:
+      return metric;
   }
 }
 
