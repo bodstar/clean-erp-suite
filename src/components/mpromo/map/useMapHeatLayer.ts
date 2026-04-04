@@ -222,7 +222,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         const circle = L.circleMarker([p.latitude, p.longitude], {
           radius,
           fillColor: getHeatColor(ratio),
-          fillOpacity: 0.45,
+          fillOpacity: 0.45 * heatOpacity,
           stroke: false,
         });
         const formattedVal = heatMetric === "loyalty_points" ? val.toLocaleString() : `GH₵${val.toLocaleString()}`;
