@@ -269,5 +269,5 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         circleLayerRef.current.addLayer(circle);
       });
     }
-  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick]);
+  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick, formHeatData]);
 }
