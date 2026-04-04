@@ -154,6 +154,7 @@ interface UseMapHeatLayerOptions {
 }
 
 export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick }: UseMapHeatLayerOptions) {
+  const formHeatData = useMemo(() => heatMetric.startsWith("form_field:") ? getFormDataForHeatmap() : undefined, [heatMetric]);
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveHandlerRef = useRef<(() => void) | null>(null);
