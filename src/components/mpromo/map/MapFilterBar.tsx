@@ -26,6 +26,8 @@ interface MapFilterBarProps {
   onHeatmapChange: (value: boolean) => void;
   heatMetric: HeatMetric;
   onHeatMetricChange: (value: HeatMetric) => void;
+  heatStyle: HeatStyle;
+  onHeatStyleChange: (value: HeatStyle) => void;
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
