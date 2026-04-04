@@ -129,7 +129,7 @@ interface UseMapHeatLayerOptions {
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
-export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, onCircleClick }: UseMapHeatLayerOptions) {
+export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, onCircleClick }: UseMapHeatLayerOptions) {
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveHandlerRef = useRef<(() => void) | null>(null);
