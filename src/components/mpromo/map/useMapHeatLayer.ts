@@ -111,17 +111,8 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       });
 
       if (typeof (L as any).heatLayer === "function") {
-        // Patch: leaflet.heat uses legacy map._panes API; ensure it exists
-        const mapAny = map as any;
-        if (!mapAny._panes) {
-          mapAny._panes = {};
-        }
-        if (!mapAny._panes.overlayPane) {
-          mapAny._panes.overlayPane = map.getPane("overlayPane");
-        }
-
         try {
-          smoothLayerRef.current = (L as any).heatLayer(heatData, {
+          const layer = (L as any).heatLayer(heatData, {
             radius: 30,
             blur: 20,
             maxZoom: 17,
@@ -131,7 +122,28 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
               0.5: "yellow",
               1.0: "red",
             },
-          }).addTo(map);
+          });
+
+          // Monkey-patch onAdd to use modern Leaflet pane API
+          const originalOnAdd = layer.onAdd;
+          layer.onAdd = function (m: L.Map) {
+            this._map = m;
+            if (!this._canvas) {
+              this._initCanvas();
+            }
+            const pane = m.getPane("overlayPane");
+            if (pane) {
+              pane.appendChild(this._canvas);
+            }
+            m.on("moveend", this._reset, this);
+            if ((m as any).options.zoomAnimation && L.Browser.any3d) {
+              m.on("zoomanim", this._animateZoom, this);
+            }
+            this._reset();
+          };
+
+          layer.addTo(map);
+          smoothLayerRef.current = layer;
         } catch (e) {
           console.warn("[HeatLayer] Failed to add smooth heat layer:", e);
         }
