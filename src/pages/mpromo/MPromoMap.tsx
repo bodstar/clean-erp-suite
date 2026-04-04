@@ -63,7 +63,8 @@ export default function MPromoMap() {
   const [heatBlur, setHeatBlur] = useState(20);
   const [heatOpacity, setHeatOpacity] = useState(0.7);
   const [heatFormId, setHeatFormId] = useState("");
-  const [heatFieldId, setHeatFieldId] = useState("");
+  const [heatMetricId, setHeatMetricId] = useState("");
+  const [heatGroupValue, setHeatGroupValue] = useState("");
   const [areaSelect, setAreaSelect] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   const [advancedAreaSelect, setAdvancedAreaSelect] = useState(false);
