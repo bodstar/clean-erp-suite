@@ -124,10 +124,12 @@ interface UseMapHeatLayerOptions {
   heatmap: boolean;
   heatMetric: HeatMetric;
   heatStyle: HeatStyle;
+  heatRadius: number;
+  heatBlur: number;
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
-export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, onCircleClick }: UseMapHeatLayerOptions) {
+export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, onCircleClick }: UseMapHeatLayerOptions) {
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const moveHandlerRef = useRef<(() => void) | null>(null);
@@ -199,7 +201,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         // Position canvas at the map pane origin
         const topLeft = map.containerPointToLayerPoint([0, 0]);
         canvasRef.current.style.transform = `translate(${topLeft.x}px, ${topLeft.y}px)`;
-        drawSmoothHeatmap(map, canvasRef.current, heatData, 30, 20, gradient);
+        drawSmoothHeatmap(map, canvasRef.current, heatData, heatRadius, heatBlur, gradient);
       };
 
       redraw();
@@ -240,5 +242,5 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         circleLayerRef.current.addLayer(circle);
       });
     }
-  }, [partners, heatmap, heatMetric, heatStyle, map, onCircleClick]);
+  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, map, onCircleClick]);
 }

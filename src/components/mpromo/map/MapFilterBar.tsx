@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { SquareDashedMousePointer, Shapes } from "lucide-react";
 import {
   Select,
@@ -28,6 +29,10 @@ interface MapFilterBarProps {
   onHeatMetricChange: (value: HeatMetric) => void;
   heatStyle: HeatStyle;
   onHeatStyleChange: (value: HeatStyle) => void;
+  heatRadius: number;
+  onHeatRadiusChange: (value: number) => void;
+  heatBlur: number;
+  onHeatBlurChange: (value: number) => void;
   isLoading: boolean;
   areaSelect?: boolean;
   onAreaSelectChange?: (value: boolean) => void;
@@ -50,6 +55,10 @@ export function MapFilterBar({
   onHeatMetricChange,
   heatStyle,
   onHeatStyleChange,
+  heatRadius,
+  onHeatRadiusChange,
+  heatBlur,
+  onHeatBlurChange,
   isLoading,
   areaSelect,
   onAreaSelectChange,
@@ -159,6 +168,32 @@ export function MapFilterBar({
               </SelectContent>
             </Select>
           </div>
+          {heatStyle === "smooth" && (
+            <>
+              <div className="space-y-1 w-32">
+                <Label className="text-xs">Radius: {heatRadius}px</Label>
+                <Slider
+                  min={10}
+                  max={80}
+                  step={5}
+                  value={[heatRadius]}
+                  onValueChange={([v]) => onHeatRadiusChange(v)}
+                  className="py-1"
+                />
+              </div>
+              <div className="space-y-1 w-32">
+                <Label className="text-xs">Blur: {heatBlur}px</Label>
+                <Slider
+                  min={5}
+                  max={60}
+                  step={5}
+                  value={[heatBlur]}
+                  onValueChange={([v]) => onHeatBlurChange(v)}
+                  className="py-1"
+                />
+              </div>
+            </>
+          )}
         </>
       )}
       {isLoading && <Skeleton className="h-4 w-16" />}
