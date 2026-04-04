@@ -168,6 +168,32 @@ export function MapFilterBar({
               </SelectContent>
             </Select>
           </div>
+          {heatStyle === "smooth" && (
+            <>
+              <div className="space-y-1 w-32">
+                <Label className="text-xs">Radius: {heatRadius}px</Label>
+                <Slider
+                  min={10}
+                  max={80}
+                  step={5}
+                  value={[heatRadius]}
+                  onValueChange={([v]) => onHeatRadiusChange(v)}
+                  className="py-1"
+                />
+              </div>
+              <div className="space-y-1 w-32">
+                <Label className="text-xs">Blur: {heatBlur}px</Label>
+                <Slider
+                  min={5}
+                  max={60}
+                  step={5}
+                  value={[heatBlur]}
+                  onValueChange={([v]) => onHeatBlurChange(v)}
+                  className="py-1"
+                />
+              </div>
+            </>
+          )}
         </>
       )}
       {isLoading && <Skeleton className="h-4 w-16" />}
