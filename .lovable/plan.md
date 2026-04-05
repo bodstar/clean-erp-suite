@@ -1,77 +1,64 @@
 
 
-## User-Defined Heatmap Metrics with Aggregation Support
+## Code Documentation Plan
 
-### Problem
+### Overview
 
-Currently, the heatmap auto-detects numeric fields from forms. This misses useful non-numeric data (e.g., showing a heatmap of how many partners carry brand "X") and doesn't let form creators control what's visualized or how values are aggregated.
+Add JSDoc comments and module-level documentation across all custom source files built during this project. This covers types, hooks, API layers, components, pages, and utilities — approximately 25 files.
 
-### Design
+### What Gets Documented
 
-Add a **"Heatmap Metrics"** configuration section to the form builder where the form creator defines named metrics. Each metric specifies:
+**1. Type definitions** (3 files)
+- `src/types/mpromo.ts` — Module header + JSDoc on each interface and type alias (Partner, Campaign, PromoCode, MapPartner, etc.)
+- `src/types/market-data.ts` — Module header + JSDoc on FormField, FormDefinition, FormSubmission, HeatmapMetricDef, HeatmapAggregation
+- `src/types/area-zone.ts` — Module header + JSDoc on AreaZone, ShapeMode, PolygonEndMode, ZONE_COLORS/ZONE_LABELS
 
-- **Name** — display label (e.g., "Avg Competitor Price by Brand")
-- **Value Field** — which field to measure (numeric fields for sum/avg/min/max; any field for count)
-- **Aggregation** — how to reduce multiple submissions: `latest`, `sum`, `average`, `min`, `max`, `count`, `count_distinct`
-- **Group-By Field** (optional) — pivot-style breakdown. When set, the heatmap selector will show sub-options for each unique value of that field (e.g., Brand → "CoolBrand", "IcePure", "FreshDrop")
+**2. API and data layers** (4 files)
+- `src/lib/api/market-data.ts` — Module header explaining in-memory demo store; JSDoc on every exported function (getForms, createForm, getFormHeatMetricOptions, getGroupByValues, getFormMetricHeatmapData, etc.) with `@param` and `@returns`
+- `src/lib/api/mpromo.ts` — Same treatment for partner/campaign/code/order APIs
+- `src/lib/api/mpromo-scope.ts` — Scope filtering logic documentation
+- `src/lib/demo/market-data.ts` — Module header explaining demo seed data purpose; inline comments on each demo form and submission set
 
-#### Example: Competitor Price Check form
+**3. Hooks** (2 files)
+- `src/hooks/useAdvancedAreaSelection.ts` — Module header describing the advanced multi-zone selection system; JSDoc on the hook, helper functions (pointInPolygon, computePartnersInZone), and key callbacks (addZone, removeZone, setShapeMode, polygon drawing logic, drag-edit vertex add/remove)
+- `src/components/mpromo/map/useMapHeatLayer.ts` — Module header; JSDoc on getHeatColor, getMetricValue, getMetricLabel, the main hook, and the smooth canvas renderer
 
-The form creator defines these metrics:
-1. **"Competitor Price"** — Value: `Competitor Price`, Agg: `average`, Group-by: `Competitor Brand`
-2. **"Our Price"** — Value: `Our Price`, Agg: `average`, Group-by: `Competitor Brand`  
-3. **"Brand Count"** — Value: `Competitor Brand`, Agg: `count_distinct`, Group-by: none
+**4. Map components** (3 files)
+- `src/components/mpromo/map/MapFilterBar.tsx` — Module header; JSDoc on props interface explaining each filter/control
+- `src/components/mpromo/map/MapPartnerPanel.tsx` — Module header; JSDoc on props and key rendering sections (single partner view, area selection list, advanced zones with export)
+- `src/components/mpromo/map/AdvancedAreaPanel.tsx` — Module header; JSDoc on props and zone management UI
 
-On the map, when a user selects "Competitor Price Check" → "Competitor Price", a third dropdown appears listing the unique brand values ("CoolBrand", "IcePure", "FreshDrop", or "All"). Selecting "CoolBrand" shows the average competitor price for CoolBrand per partner location.
+**5. Market Data components** (4 files)
+- `src/components/mpromo/FormFieldEditor.tsx` — JSDoc on component and props
+- `src/components/mpromo/FormSubmissionModal.tsx` — JSDoc on component explaining dynamic form rendering from FormDefinition
+- `src/components/mpromo/FormSubmissionsTable.tsx` — JSDoc on component and formatValue helper
+- `src/components/mpromo/HeatmapMetricsEditor.tsx` — JSDoc on component, aggregationLabels, and the field-type-aware aggregation logic
 
-### UI in Form Builder
+**6. Pages** (5 files)
+- `src/pages/mpromo/MPromoMap.tsx` — Module header describing the main map page; document state management, marker icons, filtering logic, and integration points (heatmap, area selection, advanced selection)
+- `src/pages/mpromo/MPromoMarketData.tsx` — Module header; document CRUD list page
+- `src/pages/mpromo/MPromoFormBuilder.tsx` — Module header; document create/edit form builder with field editor and heatmap metrics editor
+- `src/pages/mpromo/MPromoFormDetail.tsx` — Module header; document form detail with submissions table and submission modal
+- `src/pages/mpromo/MPromoPartnerDetail.tsx` — JSDoc on Market Data tab integration
 
-A new card below the Fields card titled **"Heatmap Metrics"** with:
-- A list of defined metrics, each as a compact row with: Name input, Value Field dropdown, Aggregation dropdown, optional Group-By dropdown, delete button
-- An "Add Metric" button
-- Helper text: "Define which data from this form can be visualized on the map heatmap"
+**7. Utilities** (2 files)
+- `src/lib/export-zone-partners.ts` — Module header; JSDoc on CSV/Excel/PDF export functions
+- `src/lib/demo/mpromo-data.ts` — Module header explaining demo data purpose
 
-### UI on Map (MapFilterBar)
+### Documentation Style
 
-When "Market Data" is selected and a form is chosen:
-- The **Field** dropdown is replaced with a **Metric** dropdown listing the form's defined heatmap metrics
-- If the selected metric has a group-by field, a fourth **Group Value** dropdown appears listing the distinct values found in submissions, plus an "All (aggregated)" option
-
-### Data Model Changes
-
-**`src/types/market-data.ts`** — Add:
-```text
-HeatmapMetricDef {
-  id: string
-  name: string
-  valueFieldId: string        // which field to aggregate
-  aggregation: "latest" | "sum" | "average" | "min" | "max" | "count" | "count_distinct"
-  groupByFieldId?: string     // optional pivot field
-}
-
-FormDefinition.heatmapMetrics?: HeatmapMetricDef[]
-```
-
-### Files Modified
-
-1. **`src/types/market-data.ts`** — Add `HeatmapMetricDef` interface; add `heatmapMetrics` to `FormDefinition`
-2. **`src/pages/mpromo/MPromoFormBuilder.tsx`** — Add "Heatmap Metrics" card with metric editor rows
-3. **`src/lib/demo/market-data.ts`** — Add demo heatmap metrics to existing forms (e.g., Competitor Price Check gets brand-grouped metrics)
-4. **`src/lib/api/market-data.ts`** — Replace `getFormHeatMetricOptions()` to return defined metrics instead of auto-detected fields; update `getFormDataForHeatmap()` to compute aggregations with optional group-by logic
-5. **`src/components/mpromo/map/MapFilterBar.tsx`** — Replace Field dropdown with Metric dropdown; add conditional Group Value dropdown when metric has group-by; add new props for `heatMetricId` and `heatGroupValue`
-6. **`src/pages/mpromo/MPromoMap.tsx`** — Add `heatMetricId` and `heatGroupValue` state; update composite metric key to include group value
-7. **`src/components/mpromo/map/useMapHeatLayer.ts`** — Update `getMetricValue` and `getFormDataForHeatmap` calls to handle the new aggregation and group-by logic
-
-### Metric Key Format
-
-The composite key becomes: `form_metric:{formId}:{metricId}:{groupValue}` (or `form_metric:{formId}:{metricId}` when no group-by). This replaces the old `form_field:` pattern.
+- **Module headers**: `/** @module ModuleName \n * Description */` at top of each file
+- **Functions/components**: JSDoc with `@param`, `@returns`, `@example` where helpful
+- **Interfaces**: JSDoc on the interface and non-obvious fields
+- **Inline comments**: Only for complex logic (aggregation engine, polygon ray-casting, canvas rendering)
+- No redundant comments on self-explanatory code
 
 ### Implementation Order
 
-1. Types and demo data updates
-2. Form builder — Heatmap Metrics editor
-3. API layer — aggregation engine
-4. MapFilterBar — metric + group value selectors
-5. MPromoMap state management
-6. useMapHeatLayer — consume new data format
+1. Types (foundation — referenced by everything)
+2. API and demo data layers
+3. Hooks (useAdvancedAreaSelection, useMapHeatLayer)
+4. Components (FormFieldEditor, HeatmapMetricsEditor, FormSubmissionModal, FormSubmissionsTable, MapFilterBar, MapPartnerPanel, AdvancedAreaPanel)
+5. Pages (MPromoMap, MPromoMarketData, MPromoFormBuilder, MPromoFormDetail, MPromoPartnerDetail)
+6. Utilities (export-zone-partners)
 
