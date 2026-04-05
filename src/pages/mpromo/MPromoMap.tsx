@@ -1,3 +1,22 @@
+/**
+ * @module MPromoMap
+ * Main interactive map page for M-Promo partner visualization.
+ *
+ * Features:
+ * - Partner markers with type-based icons (blue=chiller, green=ice water)
+ * - Heatmap overlay with two styles (circles / smooth canvas)
+ * - Built-in metrics (redemptions, orders, payouts, loyalty) + Market Data form metrics
+ * - Simple area selection (drag rectangle) and Advanced multi-zone selection
+ * - Partner comparison panel and deep-link to partner detail pages
+ * - Theme-aware tile layers (light/dark)
+ *
+ * State management:
+ * - Filter state (type, status, search) triggers partner reload on map move/zoom
+ * - Heatmap state (metric, style, radius, blur, opacity) drives useMapHeatLayer
+ * - Area selection state drives useAdvancedAreaSelection
+ * - Query param `?partner=ID` auto-selects and focuses a partner on load
+ */
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import L from "leaflet";

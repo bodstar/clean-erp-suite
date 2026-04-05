@@ -1,11 +1,32 @@
+/**
+ * @module MPromoTypes
+ * Core type definitions for the M-Promo promotional partner management system.
+ * Covers partners, campaigns, promo codes, redemptions, payouts, orders,
+ * map data, loyalty points, and multi-team scoping.
+ */
+
+/** Partner classification — CHILLER (cold storage) or ICE_WATER_SELLER (street vendor) */
 export type PartnerType = "CHILLER" | "ICE_WATER_SELLER";
+
+/** Partner account status */
 export type PartnerStatus = "active" | "suspended";
+
+/** Campaign incentive model */
 export type CampaignType = "VOLUME_REBATE" | "MYSTERY_SHOPPER";
+
+/** Campaign lifecycle state */
 export type CampaignStatus = "draft" | "active" | "paused" | "ended";
+
+/** Promo code lifecycle state */
 export type CodeStatus = "active" | "redeemed" | "expired" | "cancelled";
+
+/** Financial payout state */
 export type PayoutStatus = "pending" | "paid" | "failed";
+
+/** Order fulfillment state */
 export type OrderStatus = "pending" | "confirmed" | "delivered" | "cancelled";
 
+/** A registered partner in the M-Promo network */
 export interface Partner {
   id: number;
   name: string;
@@ -16,20 +37,27 @@ export interface Partner {
   last_activity: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** When the partner's GPS coordinates were first recorded */
   geolocation_captured_at?: string | null;
   loyalty_points: number;
+  /** Team that owns this partner (multi-tenant) */
   team_id?: number;
   team_name?: string;
   created_at: string;
   updated_at: string;
 }
 
+/** A reward tier within a VOLUME_REBATE campaign */
 export interface CampaignTier {
+  /** Minimum volume to qualify */
   threshold: number;
+  /** Cash reward at this tier */
   reward_amount: number;
+  /** Loyalty points awarded at this tier */
   loyalty_points: number;
 }
 
+/** A promotional campaign targeting partners */
 export interface Campaign {
   id: number;
   name: string;
@@ -37,8 +65,11 @@ export interface Campaign {
   status: CampaignStatus;
   start_date: string;
   end_date: string;
+  /** Volume-based reward tiers (VOLUME_REBATE only) */
   tiers?: CampaignTier[];
+  /** Flat reward amount (MYSTERY_SHOPPER only) */
   reward_amount?: number;
+  /** Flat loyalty points (MYSTERY_SHOPPER only) */
   loyalty_points?: number;
   total_redemptions: number;
   total_spend: number;
@@ -47,11 +78,13 @@ export interface Campaign {
   created_at: string;
 }
 
+/** A unique promo code tied to a campaign */
 export interface PromoCode {
   id: number;
   code: string;
   campaign_id: number;
   campaign_name: string;
+  /** Partner the code was issued to (null = unassigned) */
   issued_to?: string | null;
   status: CodeStatus;
   expires_at: string;
@@ -61,6 +94,7 @@ export interface PromoCode {
   team_name?: string;
 }
 
+/** A record of a partner redeeming a promo code */
 export interface Redemption {
   id: number;
   date: string;
@@ -78,6 +112,7 @@ export interface Redemption {
   team_name?: string;
 }
 
+/** A financial payout to a partner */
 export interface Payout {
   id: number;
   partner_id: number;
@@ -85,6 +120,7 @@ export interface Payout {
   phone: string;
   amount: number;
   status: PayoutStatus;
+  /** Paystack transaction reference */
   paystack_reference?: string | null;
   paid_at?: string | null;
   created_at: string;
@@ -92,6 +128,7 @@ export interface Payout {
   team_name?: string;
 }
 
+/** An order placed through the M-Promo channel */
 export interface MPromoOrder {
   id: number;
   order_no: string;
@@ -105,6 +142,7 @@ export interface MPromoOrder {
   team_name?: string;
 }
 
+/** Aggregated dashboard KPIs for the M-Promo overview page */
 export interface MPromoOverview {
   active_campaigns: number;
   today_redemptions_count: number;
@@ -118,6 +156,10 @@ export interface MPromoOverview {
   recent_activity: { id: number; type: "redemption" | "order"; description: string; time: string; partner_id?: number; partner_name?: string; team_name?: string }[];
 }
 
+/**
+ * A partner with geographic coordinates and aggregated metrics,
+ * used for map marker rendering and heatmap visualization.
+ */
 export interface MapPartner {
   id: number;
   name: string;
@@ -137,9 +179,11 @@ export interface MapPartner {
   loyalty_points: number;
   team_id?: number;
   team_name?: string;
-  form_data?: Record<string, Record<string, number>>; // formId → fieldId → aggregated value
+  /** Pre-aggregated form metric data: formId → fieldId → aggregated value */
+  form_data?: Record<string, Record<string, number>>;
 }
 
+/** A single entry in a partner's loyalty points history */
 export interface PointsHistoryEntry {
   id: number;
   date: string;
@@ -150,9 +194,13 @@ export interface PointsHistoryEntry {
   description: string;
 }
 
+/** Team scope mode for multi-tenant data filtering */
 export type ScopeMode = "current" | "all" | "target";
 
+/** Describes which team's data should be shown */
 export interface MPromoScope {
+  /** "current" = user's own team, "all" = cross-team (HQ only), "target" = specific team */
   mode: ScopeMode;
+  /** Required when mode is "target" */
   targetTeamId?: number | null;
 }

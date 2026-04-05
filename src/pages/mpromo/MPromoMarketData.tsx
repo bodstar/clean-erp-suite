@@ -1,3 +1,10 @@
+/**
+ * @module MPromoMarketData
+ * CRUD list page for Market Data form definitions.
+ * Displays form cards with status badges, field counts, and action buttons
+ * (edit, archive/activate, delete). Links to form builder and form detail pages.
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Pencil, Archive, Trash2, Play } from "lucide-react";

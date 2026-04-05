@@ -1,3 +1,11 @@
+/**
+ * @module MPromoDemoData
+ * Seed data for the M-Promo system in demo mode.
+ * Contains realistic sample partners, campaigns, promo codes, redemptions,
+ * payouts, orders, map partners, and points history across three teams
+ * (HQ, Accra Central, Kumasi) to demonstrate multi-tenant scoping.
+ */
+
 import { subDays, subHours, addDays, format } from "date-fns";
 import type {
   Partner,
@@ -20,6 +28,8 @@ const TEAM_ACCRA = "Franchise – Accra Central";
 const TEAM_KUMASI = "Franchise – Kumasi";
 
 // --- Partners (12) ---
+// Mix of CHILLER and ICE_WATER_SELLER types across all three teams.
+// Partners 7, 9, 11 have no geolocation (for geo queue testing).
 export const demoPartners: Partner[] = [
   { id: 1, name: "Kwame Asante Chiller Hub", phone: "+233241000001", type: "CHILLER", location: "Osu, Accra", status: "active", last_activity: fmtTime(subHours(now, 2)), latitude: 5.5560, longitude: -0.1820, geolocation_captured_at: fmt(subDays(now, 30)), loyalty_points: 320, team_id: 1, team_name: TEAM_HQ, created_at: fmt(subDays(now, 120)), updated_at: fmt(subDays(now, 2)) },
   { id: 2, name: "Amina Ice Water Express", phone: "+233241000002", type: "ICE_WATER_SELLER", location: "Madina, Accra", status: "active", last_activity: fmtTime(subHours(now, 5)), latitude: 5.6700, longitude: -0.1674, geolocation_captured_at: fmt(subDays(now, 25)), loyalty_points: 185, team_id: 2, team_name: TEAM_ACCRA, created_at: fmt(subDays(now, 100)), updated_at: fmt(subDays(now, 1)) },
@@ -36,6 +46,7 @@ export const demoPartners: Partner[] = [
 ];
 
 // --- Campaigns (6) ---
+// Mix of VOLUME_REBATE (with tiers) and MYSTERY_SHOPPER (flat reward)
 export const demoCampaigns: Campaign[] = [
   { id: 1, name: "Q1 Volume Push", type: "VOLUME_REBATE", status: "active", start_date: fmt(subDays(now, 45)), end_date: fmt(addDays(now, 45)), tiers: [{ threshold: 50, reward_amount: 500, loyalty_points: 10 }, { threshold: 100, reward_amount: 1200, loyalty_points: 25 }, { threshold: 200, reward_amount: 3000, loyalty_points: 60 }], total_redemptions: 234, total_spend: 156000, team_id: 1, team_name: TEAM_HQ, created_at: fmt(subDays(now, 50)) },
   { id: 2, name: "Mystery Shopper Feb", type: "MYSTERY_SHOPPER", status: "active", start_date: fmt(subDays(now, 20)), end_date: fmt(addDays(now, 10)), reward_amount: 2000, loyalty_points: 15, total_redemptions: 18, total_spend: 36000, team_id: 2, team_name: TEAM_ACCRA, created_at: fmt(subDays(now, 25)) },
@@ -107,6 +118,7 @@ export const demoOrders: MPromoOrder[] = [
 ];
 
 // --- Map Partners (8) ---
+// Only partners with valid geolocation; used for map marker and heatmap rendering
 export const demoMapPartners: MapPartner[] = [
   { id: 1, name: "Kwame Asante Chiller Hub", type: "CHILLER", status: "active", phone: "+233241000001", location: "Osu, Accra", latitude: 5.5560, longitude: -0.1820, last_activity: fmtTime(subHours(now, 2)), redemptions_count: 12, redemptions_amount: 8400, orders_count: 5, orders_amount: 78000, pending_payouts_count: 0, pending_payouts_amount: 0, loyalty_points: 320, team_id: 1, team_name: TEAM_HQ },
   { id: 2, name: "Amina Ice Water Express", type: "ICE_WATER_SELLER", status: "active", phone: "+233241000002", location: "Madina, Accra", latitude: 5.6700, longitude: -0.1674, last_activity: fmtTime(subHours(now, 5)), redemptions_count: 6, redemptions_amount: 4200, orders_count: 3, orders_amount: 18500, pending_payouts_count: 1, pending_payouts_amount: 2000, loyalty_points: 185, team_id: 2, team_name: TEAM_ACCRA },
@@ -119,6 +131,7 @@ export const demoMapPartners: MapPartner[] = [
 ];
 
 // --- Points History (derived from redemptions + campaigns) ---
+/** Build loyalty points history by mapping each redemption to campaign-defined points */
 function buildPointsHistory(): PointsHistoryEntry[] {
   const campaignPoints: Record<number, number> = {};
   for (const c of demoCampaigns) {

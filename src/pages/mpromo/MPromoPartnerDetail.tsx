@@ -1,3 +1,15 @@
+/**
+ * @module MPromoPartnerDetail
+ * Partner detail page with tabbed sections: Activity, Points History,
+ * Redemptions, Orders, and Market Data. Includes geolocation capture/edit,
+ * partner info editing, points adjustment, and status toggling.
+ *
+ * The Market Data tab shows collapsible sections per active form with
+ * submission tables and inline "Submit" buttons for new data entry.
+ * Respects team-scoped access control — shows an access denied alert
+ * if the partner belongs to another team.
+ */
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map, ChevronDown, ChevronRight } from "lucide-react";

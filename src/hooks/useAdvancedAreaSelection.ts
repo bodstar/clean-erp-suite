@@ -1,3 +1,18 @@
+/**
+ * @module useAdvancedAreaSelection
+ * React hook for multi-zone area selection on a Leaflet map.
+ *
+ * Supports three shape modes (rectangle, circle, polygon) with:
+ * - Rectangle: click-and-drag to define bounds
+ * - Circle: two-click (center → edge) with live radius preview
+ * - Polygon: point-by-point vertex placement with configurable termination
+ *   (fixed count or long-press) and post-creation drag-editing
+ *
+ * Each zone automatically detects which partners fall within its boundary
+ * using bounds-checking (rectangle), distance (circle), or ray-casting (polygon).
+ * Zones can be locked after creation and unlocked for editing via drag or redraw.
+ */
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
@@ -10,7 +25,14 @@ interface UseAdvancedAreaSelectionProps {
   active: boolean;
 }
 
-/** Ray-casting point-in-polygon check */
+/**
+ * Ray-casting algorithm for point-in-polygon containment test.
+ * Casts a horizontal ray from the point and counts edge crossings.
+ * @param lat - Point latitude
+ * @param lng - Point longitude
+ * @param polygon - Array of polygon vertices
+ * @returns true if the point is inside the polygon
+ */
 function pointInPolygon(lat: number, lng: number, polygon: L.LatLng[]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -22,6 +44,7 @@ function pointInPolygon(lat: number, lng: number, polygon: L.LatLng[]): boolean 
   return inside;
 }
 
+/** Determine which partners fall within a zone's shape boundary */
 function computePartnersInZone(zone: AreaZone, partners: MapPartner[]): MapPartner[] {
   if (!zone.layer) return [];
 
@@ -45,6 +68,13 @@ function computePartnersInZone(zone: AreaZone, partners: MapPartner[]): MapPartn
   return [];
 }
 
+/**
+ * Multi-zone area selection hook for the map.
+ * @param map - The Leaflet map instance
+ * @param partners - All partners with coordinates (for containment checks)
+ * @param active - Whether advanced selection mode is currently enabled
+ * @returns Zone state and control functions (addZone, removeZone, setShapeMode, etc.)
+ */
 export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedAreaSelectionProps) {
   const [zones, setZones] = useState<AreaZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);

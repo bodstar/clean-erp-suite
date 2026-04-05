@@ -1,3 +1,11 @@
+/**
+ * @module FormSubmissionModal
+ * Dialog for filling out a dynamic form on behalf of a partner.
+ * Renders input controls based on the FormDefinition's field types
+ * (text, number, date, textarea, checkbox, select) and validates
+ * required fields before submission.
+ */
+
 import { useState } from "react";
 import {
   Dialog,

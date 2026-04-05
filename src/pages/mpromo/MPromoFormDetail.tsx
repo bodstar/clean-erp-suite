@@ -1,3 +1,11 @@
+/**
+ * @module MPromoFormDetail
+ * Detail page for a single Market Data form.
+ * Shows form metadata, a partner selector with "Fill Form" button
+ * to open the submission modal, and a dynamic submissions table
+ * with columns generated from the form's field definitions.
+ */
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Pencil } from "lucide-react";
