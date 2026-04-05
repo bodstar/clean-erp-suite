@@ -1,3 +1,9 @@
+/**
+ * @module ExportZonePartners
+ * Utilities for exporting advanced area selection zone data to CSV, Excel, and PDF.
+ * Flattens zone→partner hierarchies into tabular rows with formatted metric values.
+ */
+
 import type { MapPartner } from "@/types/mpromo";
 import type { AreaZone } from "@/types/area-zone";
 
@@ -15,6 +21,7 @@ interface ZoneExportData {
   last_activity: string;
 }
 
+/** Flatten zone→partner hierarchy into exportable rows */
 function flattenZones(zones: AreaZone[]): ZoneExportData[] {
   return zones.flatMap((z) =>
     z.partners.map((p) => ({
@@ -38,6 +45,7 @@ const HEADERS = [
   "Redemptions", "Orders", "Payouts", "Loyalty Points", "Last Activity",
 ];
 
+/** Trigger a browser file download from a Blob */
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -49,6 +57,7 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Export zone partners as a CSV file download */
 export function exportZonesCSV(zones: AreaZone[]) {
   const rows = flattenZones(zones);
   const csvContent = [
@@ -62,6 +71,7 @@ export function exportZonesCSV(zones: AreaZone[]) {
   downloadBlob(new Blob([csvContent], { type: "text/csv;charset=utf-8;" }), "zone-partners.csv");
 }
 
+/** Export zone partners as an Excel (.xlsx) file download using the xlsx library */
 export async function exportZonesExcel(zones: AreaZone[]) {
   const XLSX = await import("xlsx");
   const rows = flattenZones(zones);
@@ -78,6 +88,7 @@ export async function exportZonesExcel(zones: AreaZone[]) {
   XLSX.writeFile(wb, "zone-partners.xlsx");
 }
 
+/** Export zone partners as a PDF file download using jsPDF with auto-table */
 export async function exportZonesPDF(zones: AreaZone[]) {
   const { default: jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;

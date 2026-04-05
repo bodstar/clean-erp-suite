@@ -1,3 +1,13 @@
+/**
+ * @module MPromoFormBuilder
+ * Create and edit dynamic form definitions for market data collection.
+ * Provides a form name/description/status editor, a sortable field list
+ * using FormFieldEditor components, a HeatmapMetricsEditor for defining
+ * map visualization metrics, and a live form preview panel.
+ *
+ * Supports both create (no URL param) and edit (/:id) modes.
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Eye } from "lucide-react";
