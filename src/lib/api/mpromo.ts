@@ -1,3 +1,11 @@
+/**
+ * @module MPromoAPI
+ * API layer for the M-Promo promotional partner management system.
+ * In demo mode (no VITE_API_BASE_URL), returns data from in-memory demo stores
+ * with full support for multi-team scoping, pagination, and search filtering.
+ * In production, delegates to REST API endpoints via axios.
+ */
+
 import api from "@/lib/api";
 import type {
   MPromoScope,
@@ -33,6 +41,7 @@ import {
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 10;
 
+/** Thrown when a user tries to access an entity outside their team scope */
 export class AccessDeniedError extends Error {
   constructor(message = "Access denied") {
     super(message);
@@ -40,6 +49,7 @@ export class AccessDeniedError extends Error {
   }
 }
 
+/** Thrown when the requested entity does not exist */
 export class NotFoundError extends Error {
   constructor(message = "Not found") {
     super(message);
@@ -47,6 +57,7 @@ export class NotFoundError extends Error {
   }
 }
 
+/** Convert an MPromoScope to URL query parameters for API calls */
 function scopeParams(scope?: MPromoScope): Record<string, string> {
   if (!scope) return {};
   if (scope.mode === "all") return { scope: "all" };
@@ -55,7 +66,7 @@ function scopeParams(scope?: MPromoScope): Record<string, string> {
   return {};
 }
 
-// --- Demo helpers ---
+/** Paginate an array in demo mode, defaulting to PAGE_SIZE per page */
 function paginate<T>(items: T[], params?: Record<string, unknown>): { data: T[]; total: number } {
   const page = Number(params?.page) || 1;
   const size = Number(params?.page_size) || PAGE_SIZE;
@@ -63,6 +74,7 @@ function paginate<T>(items: T[], params?: Record<string, unknown>): { data: T[];
   return { data: items.slice(start, start + size), total: items.length };
 }
 
+/** Case-insensitive substring search across specified fields */
 function matchSearch<T>(items: T[], search: string | undefined, keys: (keyof T)[]): T[] {
   if (!search) return items;
   const q = search.toLowerCase();
