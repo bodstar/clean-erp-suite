@@ -1,3 +1,13 @@
+/**
+ * @module MarketDataAPI
+ * In-memory demo API for the Market Data collection system.
+ * Provides CRUD operations for form definitions and submissions,
+ * plus heatmap metric computation with aggregation and group-by support.
+ *
+ * In production, these functions would call a REST API. In demo mode,
+ * data is stored in module-scoped arrays seeded from `demo/market-data.ts`.
+ */
+
 import type { FormDefinition, FormSubmission, HeatmapMetricDef } from "@/types/market-data";
 import { demoForms, demoSubmissions } from "@/lib/demo/market-data";
 
@@ -7,14 +17,24 @@ let submissions = [...demoSubmissions];
 let nextFormNum = 5;
 let nextSubNum = 20;
 
+/** Retrieve all form definitions */
 export async function getForms(): Promise<FormDefinition[]> {
   return [...forms];
 }
 
+/**
+ * Retrieve a single form by ID
+ * @returns The form or null if not found
+ */
 export async function getForm(id: string): Promise<FormDefinition | null> {
   return forms.find((f) => f.id === id) ?? null;
 }
 
+/**
+ * Create a new form definition
+ * @param data - Form data without auto-generated fields (id, timestamps)
+ * @returns The created form with generated ID and timestamps
+ */
 export async function createForm(data: Omit<FormDefinition, "id" | "created_at" | "updated_at">): Promise<FormDefinition> {
   const now = new Date().toISOString();
   const form: FormDefinition = {
@@ -27,6 +47,12 @@ export async function createForm(data: Omit<FormDefinition, "id" | "created_at" 
   return form;
 }
 
+/**
+ * Update an existing form definition
+ * @param id - Form ID to update
+ * @param data - Partial form data to merge
+ * @returns Updated form or null if not found
+ */
 export async function updateForm(id: string, data: Partial<Omit<FormDefinition, "id" | "created_at">>): Promise<FormDefinition | null> {
   const idx = forms.findIndex((f) => f.id === id);
   if (idx === -1) return null;
@@ -34,6 +60,10 @@ export async function updateForm(id: string, data: Partial<Omit<FormDefinition, 
   return forms[idx];
 }
 
+/**
+ * Delete a form and all its submissions
+ * @returns true if the form was found and deleted
+ */
 export async function deleteForm(id: string): Promise<boolean> {
   const before = forms.length;
   forms = forms.filter((f) => f.id !== id);
@@ -41,6 +71,12 @@ export async function deleteForm(id: string): Promise<boolean> {
   return forms.length < before;
 }
 
+/**
+ * Retrieve submissions, optionally filtered by form and/or partner
+ * @param formId - Filter by form ID
+ * @param partnerId - Filter by partner ID
+ * @returns Submissions sorted by date descending
+ */
 export async function getSubmissions(formId?: string, partnerId?: number): Promise<FormSubmission[]> {
   let result = [...submissions];
   if (formId) result = result.filter((s) => s.form_id === formId);
@@ -48,13 +84,21 @@ export async function getSubmissions(formId?: string, partnerId?: number): Promi
   return result.sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
 }
 
+/**
+ * Record a new form submission
+ * @param data - Submission data without auto-generated ID
+ */
 export async function createSubmission(data: Omit<FormSubmission, "id">): Promise<FormSubmission> {
   const sub: FormSubmission = { ...data, id: `sub-${nextSubNum++}` };
   submissions.push(sub);
   return sub;
 }
 
-/** Get heatmap metric definitions from active forms */
+/**
+ * Get heatmap metric definitions from all active forms.
+ * Used by the map filter bar to populate the form/metric selection dropdowns.
+ * @returns Array of forms with their defined heatmap metrics
+ */
 export function getFormHeatMetricOptions(): { formId: string; formName: string; metrics: HeatmapMetricDef[] }[] {
   const result: { formId: string; formName: string; metrics: HeatmapMetricDef[] }[] = [];
   for (const form of forms) {
@@ -65,7 +109,15 @@ export function getFormHeatMetricOptions(): { formId: string; formName: string; 
   return result;
 }
 
-/** Get unique group-by values for a specific metric from submissions */
+/**
+ * Get unique group-by values for a specific metric from submissions.
+ * For example, if the metric groups by "Competitor Brand", this returns
+ * all distinct brand names found across submissions.
+ *
+ * @param formId - The form containing the metric
+ * @param metricId - The metric definition ID
+ * @returns Sorted array of unique string values
+ */
 export function getGroupByValues(formId: string, metricId: string): string[] {
   const form = forms.find((f) => f.id === formId);
   if (!form) return [];
@@ -83,11 +135,25 @@ export function getGroupByValues(formId: string, metricId: string): string[] {
   return Array.from(values).sort();
 }
 
-/** Compute aggregated heatmap data for a specific metric definition */
+/**
+ * Compute aggregated heatmap data for a specific metric definition.
+ * Groups submissions by partner, applies the metric's aggregation function,
+ * and optionally filters by a group-by value.
+ *
+ * @param formId - The form containing the metric
+ * @param metricId - The metric definition ID
+ * @param groupValue - Optional filter: a specific group-by value, or "__all__" for all
+ * @returns Map of partner ID → aggregated numeric value
+ *
+ * @example
+ * // Get average competitor price for "CoolBrand" per partner
+ * const data = getFormMetricHeatmapData("form-3", "hm-3-1", "CoolBrand");
+ * // { 2: 3.5, 4: 4.2 }
+ */
 export function getFormMetricHeatmapData(
   formId: string,
   metricId: string,
-  groupValue?: string // undefined = aggregate all, specific value = filter
+  groupValue?: string
 ): Record<number, number> {
   const form = forms.find((f) => f.id === formId);
   if (!form) return {};
@@ -175,7 +241,11 @@ export function getFormMetricHeatmapData(
   return result;
 }
 
-// Keep legacy function for backward compat but it won't be used in new flow
+/**
+ * Legacy function kept for backward compatibility.
+ * No longer used in the new form-metric-based heatmap flow.
+ * @deprecated Use {@link getFormMetricHeatmapData} instead
+ */
 export function getFormDataForHeatmap(): Record<string, Record<string, Record<number, number>>> {
   return {};
 }

@@ -1,11 +1,22 @@
+/**
+ * @module MarketDataDemoData
+ * Seed data for the Market Data collection system in demo mode.
+ * Contains sample form definitions and submissions that demonstrate
+ * various field types, heatmap metric configurations, and group-by aggregations.
+ */
+
 import { subDays, format } from "date-fns";
 import type { FormDefinition, FormSubmission } from "@/types/market-data";
 
 const now = new Date();
 const fmt = (d: Date) => format(d, "yyyy-MM-dd HH:mm");
 
+// --- Demo Form Definitions ---
+// Each form demonstrates different field types and heatmap metric configurations
+
 export const demoForms: FormDefinition[] = [
   {
+    // Stock tracking form with latest/sum/average metrics
     id: "form-1",
     name: "Weekly Stock Check",
     description: "Captures current inventory levels and product availability at partner locations",
@@ -27,6 +38,7 @@ export const demoForms: FormDefinition[] = [
     team_name: "Magvlyn HQ",
   },
   {
+    // Satisfaction survey with average rating and count metrics
     id: "form-2",
     name: "Customer Satisfaction Survey",
     description: "Monthly survey measuring partner satisfaction and feedback",
@@ -47,6 +59,7 @@ export const demoForms: FormDefinition[] = [
     team_name: "Magvlyn HQ",
   },
   {
+    // Competitor analysis form with group-by brand aggregation (pivot-style)
     id: "form-3",
     name: "Competitor Price Check",
     description: "Track competitor pricing in the area around each partner",
@@ -59,8 +72,10 @@ export const demoForms: FormDefinition[] = [
       { id: "f3-5", label: "Location Detail", type: "text", required: false, order: 5 },
     ],
     heatmapMetrics: [
+      // Group-by brand: shows per-brand average prices on the heatmap
       { id: "hm-3-1", name: "Avg Competitor Price", valueFieldId: "f3-2", aggregation: "average", groupByFieldId: "f3-1" },
       { id: "hm-3-2", name: "Avg Our Price", valueFieldId: "f3-3", aggregation: "average", groupByFieldId: "f3-1" },
+      // No group-by: shows distinct brand count per partner
       { id: "hm-3-3", name: "Brand Count", valueFieldId: "f3-1", aggregation: "count_distinct" },
     ],
     created_at: fmt(subDays(now, 15)),
@@ -69,6 +84,7 @@ export const demoForms: FormDefinition[] = [
     team_name: "Franchise – Accra Central",
   },
   {
+    // Draft form (not shown in heatmap since status ≠ active)
     id: "form-4",
     name: "Equipment Condition Report",
     description: "Quarterly assessment of chiller/equipment condition at partner sites",
@@ -86,8 +102,11 @@ export const demoForms: FormDefinition[] = [
   },
 ];
 
+// --- Demo Submissions ---
+// Spread across forms and partners to demonstrate aggregation scenarios
+
 export const demoSubmissions: FormSubmission[] = [
-  // Weekly Stock Check submissions
+  // Weekly Stock Check — multiple submissions per partner to test "latest" vs "average"
   { id: "sub-1", form_id: "form-1", partner_id: 1, partner_name: "Kwame Asante Chiller Hub", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent A", values: { "f1-1": 24, "f1-2": 12, "f1-3": "Good", "f1-4": "" } },
   { id: "sub-2", form_id: "form-1", partner_id: 3, partner_name: "Akosua Cold Drinks", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent A", values: { "f1-1": 18, "f1-2": 8, "f1-3": "Fair", "f1-4": "Some bottles damaged" } },
   { id: "sub-3", form_id: "form-1", partner_id: 6, partner_name: "Abena Ice Point", submitted_at: fmt(subDays(now, 2)), submitted_by: "Field Agent B", values: { "f1-1": 32, "f1-2": 20, "f1-3": "Good", "f1-4": "" } },
@@ -95,12 +114,12 @@ export const demoSubmissions: FormSubmission[] = [
   { id: "sub-5", form_id: "form-1", partner_id: 1, partner_name: "Kwame Asante Chiller Hub", submitted_at: fmt(subDays(now, 8)), submitted_by: "Field Agent A", values: { "f1-1": 20, "f1-2": 10, "f1-3": "Good", "f1-4": "" } },
   { id: "sub-6", form_id: "form-1", partner_id: 10, partner_name: "Kojo Refresh Corner", submitted_at: fmt(subDays(now, 3)), submitted_by: "Field Agent B", values: { "f1-1": 15, "f1-2": 5, "f1-3": "Poor", "f1-4": "Chiller door not closing" } },
   { id: "sub-7", form_id: "form-1", partner_id: 12, partner_name: "Kwesi Drinks Depot", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent C", values: { "f1-1": 28, "f1-2": 14, "f1-3": "Good", "f1-4": "" } },
-  // Customer Satisfaction Survey submissions
+  // Customer Satisfaction Survey
   { id: "sub-8", form_id: "form-2", partner_id: 1, partner_name: "Kwame Asante Chiller Hub", submitted_at: fmt(subDays(now, 5)), submitted_by: "Field Agent A", values: { "f2-1": 9, "f2-2": "On Time", "f2-3": true, "f2-4": "Very satisfied with service" } },
   { id: "sub-9", form_id: "form-2", partner_id: 2, partner_name: "Amina Ice Water Express", submitted_at: fmt(subDays(now, 5)), submitted_by: "Field Agent B", values: { "f2-1": 7, "f2-2": "1-2 Days Late", "f2-3": true, "f2-4": "" } },
   { id: "sub-10", form_id: "form-2", partner_id: 4, partner_name: "Efua Pure Water", submitted_at: fmt(subDays(now, 6)), submitted_by: "Field Agent A", values: { "f2-1": 5, "f2-2": "3+ Days Late", "f2-3": false, "f2-4": "Delivery delays are a major issue" } },
   { id: "sub-11", form_id: "form-2", partner_id: 8, partner_name: "Nana Cooler Station", submitted_at: fmt(subDays(now, 4)), submitted_by: "Field Agent C", values: { "f2-1": 10, "f2-2": "On Time", "f2-3": true, "f2-4": "Best partner experience" } },
-  // Competitor Price Check submissions
+  // Competitor Price Check — multiple brands per partner to test group-by + count_distinct
   { id: "sub-12", form_id: "form-3", partner_id: 2, partner_name: "Amina Ice Water Express", submitted_at: fmt(subDays(now, 3)), submitted_by: "Field Agent B", values: { "f3-1": "CoolBrand", "f3-2": 3.5, "f3-3": 3.0, "f3-4": fmt(subDays(now, 3)).slice(0, 10), "f3-5": "Madina Market" } },
   { id: "sub-13", form_id: "form-3", partner_id: 4, partner_name: "Efua Pure Water", submitted_at: fmt(subDays(now, 2)), submitted_by: "Field Agent A", values: { "f3-1": "IcePure", "f3-2": 4.0, "f3-3": 3.5, "f3-4": fmt(subDays(now, 2)).slice(0, 10), "f3-5": "East Legon junction" } },
   { id: "sub-14", form_id: "form-3", partner_id: 12, partner_name: "Kwesi Drinks Depot", submitted_at: fmt(subDays(now, 1)), submitted_by: "Field Agent C", values: { "f3-1": "FreshDrop", "f3-2": 3.0, "f3-3": 2.8, "f3-4": fmt(subDays(now, 1)).slice(0, 10), "f3-5": "Spintex Road" } },
