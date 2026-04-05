@@ -1,3 +1,12 @@
+/**
+ * @module AdvancedAreaPanel
+ * UI panel for managing multiple named selection zones on the map.
+ * Each zone has configurable shape mode, editable label, and displays
+ * its partner count. Supports add/remove/clear operations, shape mode
+ * toggling, polygon edit mode choice (drag nodes vs redraw), and
+ * polygon termination settings (fixed point count or long-press).
+ */
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

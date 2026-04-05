@@ -1,3 +1,14 @@
+/**
+ * @module MapPartnerPanel
+ * Side panel for the map that displays partner information in context.
+ *
+ * Rendering modes:
+ * - **Single partner** (marker click, no heatmap): detailed card with KPIs and quick-links
+ * - **Partner list** (heatmap circle click or area selection): tabular view with compare
+ * - **Zone-grouped** (advanced area selection): collapsible zones with export (CSV/Excel/PDF)
+ * - **Compare view**: side-by-side metric comparison of selected partners
+ */
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

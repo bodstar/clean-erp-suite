@@ -1,3 +1,10 @@
+/**
+ * @module FormSubmissionsTable
+ * Renders a table of form submissions with dynamically generated columns
+ * based on the form's field definitions. Handles varying field counts
+ * and types with appropriate value formatting.
+ */
+
 import {
   Table,
   TableBody,
@@ -14,6 +21,7 @@ interface FormSubmissionsTableProps {
   showPartner?: boolean;
 }
 
+/** Format a submission value for display based on its field type */
 function formatValue(value: any, type: string): string {
   if (value === undefined || value === null || value === "") return "—";
   if (type === "checkbox") return value ? "Yes" : "No";

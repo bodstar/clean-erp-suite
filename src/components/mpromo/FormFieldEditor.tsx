@@ -1,3 +1,11 @@
+/**
+ * @module FormFieldEditor
+ * Inline editor for a single form field definition.
+ * Renders label input, type selector, required toggle, and type-specific
+ * controls (e.g., options editor with add/remove for select fields,
+ * checkboxes for multi-select and custom option allowance).
+ */
+
 import { Trash2, GripVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

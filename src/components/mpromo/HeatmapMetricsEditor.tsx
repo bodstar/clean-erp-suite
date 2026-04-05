@@ -1,3 +1,14 @@
+/**
+ * @module HeatmapMetricsEditor
+ * Card component for defining custom heatmap metrics within the form builder.
+ * Each metric specifies a value field, aggregation function, and optional
+ * group-by field for pivot-style breakdowns (e.g., average price by brand).
+ *
+ * Aggregation options are field-type-aware: numeric fields support all
+ * aggregations (latest, sum, average, min, max, count, count_distinct),
+ * while non-numeric fields only allow count and count_distinct.
+ */
+
 import { Trash2, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

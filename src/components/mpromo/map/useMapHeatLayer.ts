@@ -1,9 +1,23 @@
+/**
+ * @module useMapHeatLayer
+ * React hook that renders a heatmap overlay on a Leaflet map.
+ *
+ * Supports two visualization styles:
+ * - **Circles**: colored circle markers sized proportionally to metric values
+ * - **Smooth**: canvas-based density heatmap with configurable radius, blur, and opacity
+ *
+ * Metrics can be built-in (redemptions, orders, payouts, loyalty points) or
+ * form-based (computed from Market Data submissions via the aggregation engine).
+ * Form metrics use the composite key format: `form_metric:{formId}:{metricId}:{groupValue}`
+ */
+
 import { useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
 import { getFormMetricHeatmapData, getFormHeatMetricOptions } from "@/lib/api/market-data";
 
+/** Map a normalized ratio (0–1) to a green→yellow→red color gradient */
 function getHeatColor(ratio: number): string {
   if (ratio < 0.5) {
     const g = Math.round(200 - ratio * 2 * 100);
@@ -15,6 +29,7 @@ function getHeatColor(ratio: number): string {
   return `rgb(${r}, ${g}, 30)`;
 }
 
+/** Extract a numeric metric value from a partner, supporting both built-in and form-based metrics */
 function getMetricValue(p: MapPartner, metric: HeatMetric, formMetricData?: Record<number, number>): number {
   if (metric.startsWith("form_metric:")) {
     return formMetricData?.[p.id] ?? 0;
@@ -33,6 +48,7 @@ function getMetricValue(p: MapPartner, metric: HeatMetric, formMetricData?: Reco
   }
 }
 
+/** Get a human-readable label for a heatmap metric (used in tooltips) */
 function getMetricLabel(metric: HeatMetric): string {
   if (metric.startsWith("form_metric:")) {
     const parts = metric.split(":");
@@ -57,6 +73,7 @@ function getMetricLabel(metric: HeatMetric): string {
   }
 }
 
+/** Get a short intensity label for the heatmap legend */
 export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
   if (metric.startsWith("form_metric:")) {
     const parts = metric.split(":");
@@ -89,7 +106,18 @@ function pixelRadiusToMeters(map: L.Map, center: L.LatLng, pixelRadius: number):
   return center.distanceTo(edgeLatLng);
 }
 
-/** Draw a smooth density heatmap directly onto a canvas overlay */
+/**
+ * Render a smooth density heatmap onto an HTML canvas using radial gradients.
+ * Each data point creates a circular alpha gradient; the combined alpha values
+ * are then colorized using a green→yellow→red palette lookup table.
+ *
+ * @param map - Leaflet map instance (for coordinate→pixel conversion)
+ * @param canvas - Target canvas element positioned over the map
+ * @param data - Array of geographic points with normalized intensity (0–1)
+ * @param radius - Base radius in pixels for each heat point
+ * @param blur - Additional blur radius in pixels
+ * @param gradient - Color stops for the palette (0.0–1.0)
+ */
 function drawSmoothHeatmap(
   map: L.Map,
   canvas: HTMLCanvasElement,
@@ -155,6 +183,11 @@ interface UseMapHeatLayerOptions {
   onCircleClick?: (partners: MapPartner[]) => void;
 }
 
+/**
+ * Hook that manages the heatmap visualization layer on the map.
+ * Automatically re-renders when metric, style, or partner data changes.
+ * Cleans up canvas and event listeners on unmount.
+ */
 export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick }: UseMapHeatLayerOptions) {
   // Compute form metric data if needed
   const formMetricData = useMemo(() => {

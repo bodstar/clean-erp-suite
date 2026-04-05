@@ -1,3 +1,11 @@
+/**
+ * @module MapFilterBar
+ * Filter and control bar for the M-Promo map page.
+ * Provides partner type/status/search filters, heatmap controls
+ * (metric, style, radius, blur, opacity), area selection toggles,
+ * and the Market Data two-step form→metric→group-value cascading selectors.
+ */
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +24,10 @@ import {
 import { getFormHeatMetricOptions, getGroupByValues } from "@/lib/api/market-data";
 import type { HeatmapMetricDef } from "@/types/market-data";
 
+/** Heatmap metric key — built-in name or composite `form_metric:{formId}:{metricId}:{groupValue}` */
 export type HeatMetric = string;
+
+/** Heatmap visualization style */
 export type HeatStyle = "circles" | "smooth";
 
 interface MapFilterBarProps {
