@@ -127,7 +127,22 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
         }
         return prev.filter((z) => z.id !== id);
       });
-      if (activeZoneId === id) setActiveZoneId(null);
+      // If this was the zone being actively drawn, clear in-progress polygon artifacts
+      if (activeZoneId === id) {
+        polyMarkersRef.current.forEach((l) => layerGroupRef.current.removeLayer(l));
+        polyMarkersRef.current = [];
+        polyVerticesRef.current = [];
+        if (polyPreviewLineRef.current) {
+          layerGroupRef.current.removeLayer(polyPreviewLineRef.current);
+          polyPreviewLineRef.current = null;
+        }
+        if (circleDotRef.current) {
+          layerGroupRef.current.removeLayer(circleDotRef.current);
+          circleDotRef.current = null;
+        }
+        circleStartRef.current = null;
+        setActiveZoneId(null);
+      }
       setLockedZoneIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
