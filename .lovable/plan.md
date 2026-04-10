@@ -1,10 +1,20 @@
 
 
-## Plan: Reduce batch code page size to 10
+## Plan: Replace load-more with pagination + search in BatchCard
 
-**File**: `src/components/mpromo/BatchCard.tsx`
+### Files to change
 
-Two changes:
-1. `handleToggle`: change `page_size: 20` → `page_size: 10`
-2. `handleLoadMore`: change `page_size: 20` → `page_size: 10`
+**1. `src/components/mpromo/BatchCard.tsx`**
+- Add `Input` import
+- Add `codesSearch` and `searchInput` state
+- Add `fetchCodes(page, search)` helper consolidating all fetch logic
+- Replace `handleToggle` to use `fetchCodes`
+- Add `handleSearch` handler
+- Remove `handleLoadMore`
+- Replace expanded section: add search bar (Input + Search/Clear buttons) above the table, and a prev/next pagination footer below when `codesLastPage > 1`
+
+**2. `src/lib/api/mpromo.ts`**
+- Add `search?: string` to `getBatchCodes` params type
+
+All changes exactly as specified in the user's message.
 
