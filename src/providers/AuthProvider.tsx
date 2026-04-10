@@ -15,6 +15,9 @@ const DEMO_DATA: AuthResponse = {
       name: "Magvlyn HQ",
       role: "admin",
       permissions: [
+        "master-data.view", "inventory.view", "production.view",
+        "sales.view", "finance.view", "franchise.manage",
+        "reports.view", "settings.view",
         "mpromo.view",
         "mpromo.partners.view", "mpromo.partners.create", "mpromo.partners.update",
         "mpromo.partners.suspend", "mpromo.partners.points",
