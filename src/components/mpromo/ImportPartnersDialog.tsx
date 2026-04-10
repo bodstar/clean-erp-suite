@@ -1,13 +1,12 @@
 import { useState, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Download, Upload, CheckCircle2, XCircle, FileText } from "lucide-react";
+import { Download, Upload, CheckCircle2, XCircle, FileText, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { createPartner } from "@/lib/api/mpromo";
+import { importPartners } from "@/lib/api/mpromo";
 import type { MPromoScope } from "@/types/mpromo";
 
 interface ImportPartnersDialogProps {

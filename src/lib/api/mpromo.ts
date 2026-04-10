@@ -207,6 +207,39 @@ export async function createPartner(
   return res.data;
 }
 
+export async function importPartners(
+  rows: Array<{
+    name: string;
+    phone: string;
+    type: string;
+    location: string;
+    latitude?: number;
+    longitude?: number;
+  }>,
+  scope?: MPromoScope
+): Promise<{ imported: number; failed: number; errors: Record<string, string> }> {
+  if (DEMO_MODE) {
+    const seen = new Set<string>();
+    let imported = 0;
+    let failed = 0;
+    const errors: Record<string, string> = {};
+    rows.forEach((row, i) => {
+      if (seen.has(row.phone)) {
+        failed++;
+        errors[String(i)] = "Phone number already registered under this team";
+      } else {
+        seen.add(row.phone);
+        imported++;
+      }
+    });
+    return { imported, failed, errors };
+  }
+  const res = await api.post("/mpromo/partners/import", { rows }, {
+    params: scopeParams(scope),
+  });
+  return res.data;
+}
+
 export async function updatePartner(
   id: number,
   data: Partial<Partner>
