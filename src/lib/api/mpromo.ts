@@ -695,9 +695,13 @@ export async function getPartnersWithoutGeo(
 
 export async function exportList(
   signPath: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
 ): Promise<void> {
-  const res = await api.post(signPath, params || {});
+  const res = await api.post(signPath, {
+    ...(params || {}),
+    ...scopeParams(scope),
+  });
   const url: string = res.data.data?.url || res.data.url;
   if (url) window.open(url, '_blank');
 }

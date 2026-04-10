@@ -64,9 +64,9 @@ export default function MPromoRedemptions() {
             setIsExporting(true);
             try {
               await exportList('/mpromo/export/redemptions/sign', {
-                search,
+                search: search || undefined,
                 payout_status: payoutFilter !== 'all' ? payoutFilter : undefined,
-              });
+              }, scope);
             } catch { toast.error('Export failed'); }
             finally { setIsExporting(false); }
           }}

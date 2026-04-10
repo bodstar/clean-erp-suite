@@ -107,9 +107,9 @@ export default function MPromoGeoQueue() {
             setIsExporting(true);
             try {
               await exportList('/mpromo/export/geo-queue/sign', {
-                search,
+                search: search || undefined,
                 type: typeFilter !== 'all' ? typeFilter : undefined,
-              });
+              }, scope);
             } catch { toast.error('Export failed'); }
             finally { setIsExporting(false); }
           }}

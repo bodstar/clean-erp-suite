@@ -179,10 +179,10 @@ export default function MPromoPartners() {
                 setIsExporting(true);
                 try {
                   await exportList('/mpromo/export/partners/sign', {
-                    search,
+                    search: search || undefined,
                     type: partnerType,
                     geo_missing: geoMissing || undefined,
-                  });
+                  }, scope);
                 } catch { toast.error('Export failed'); }
                 finally { setIsExporting(false); }
               }}
