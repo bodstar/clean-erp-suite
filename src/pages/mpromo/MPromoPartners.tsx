@@ -9,6 +9,7 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TeamBadge } from "@/components/shared/TeamBadge";
+import { ImportPartnersDialog } from "@/components/mpromo/ImportPartnersDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPartners, suspendPartner, activatePartner } from "@/lib/api/mpromo";
@@ -36,6 +37,8 @@ export default function MPromoPartners() {
   const [search, setSearch] = useState("");
   const [geoMissing, setGeoMissing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
+  const [refetchKey, setRefetchKey] = useState(0);
 
   const [confirmPartner, setConfirmPartner] = useState<Partner | null>(null);
 
@@ -45,7 +48,7 @@ export default function MPromoPartners() {
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [partnerType, page, search, geoMissing, scope]);
+  }, [partnerType, page, search, geoMissing, scope, refetchKey]);
 
   const handleToggleStatus = async () => {
     if (!confirmPartner) return;
