@@ -218,7 +218,7 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
 
             <label className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed p-8 cursor-pointer hover:border-primary/50 transition-colors">
               <FileText className="h-8 w-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Click to select a .csv file</span>
+              <span className="text-sm text-muted-foreground">Click to select an Excel file (.xlsx)</span>
               <input
                 ref={fileRef}
                 type="file"
