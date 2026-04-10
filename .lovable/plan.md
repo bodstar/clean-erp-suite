@@ -1,8 +1,10 @@
 
 
-## Plan: Fix `getCampaignCodeBatches` response unwrapping
+## Plan: Reduce batch code page size to 10
 
-**File**: `src/lib/api/mpromo.ts`
+**File**: `src/components/mpromo/BatchCard.tsx`
 
-Change `return res.data.data` back to `return res.data` in the live API path of `getCampaignCodeBatches`, since this endpoint returns a plain array, not a paginated envelope.
+Two changes:
+1. `handleToggle`: change `page_size: 20` → `page_size: 10`
+2. `handleLoadMore`: change `page_size: 20` → `page_size: 10`
 
