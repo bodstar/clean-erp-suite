@@ -1,72 +1,25 @@
 
 
-## Plan: Add Export buttons across MPromo pages
+## Plan: Pass scope to all exportList calls
 
-### 1. `src/lib/api/mpromo.ts` — Add shared `exportList` helper
+The `exportList` helper and all call sites already exist. The only change needed is to add scope support to the helper and pass `scope` from each page.
 
-Add the `exportList` function that POSTs to a sign endpoint, extracts the signed URL from the response, and opens it in a new tab.
+### Changes
 
-### 2. `src/pages/mpromo/MPromoPartners.tsx`
+**1. `src/lib/api/mpromo.ts`** (lines 696-703)
+- Add `scope?: MPromoScope` as third parameter
+- Merge `scopeParams(scope)` into the POST body alongside `params`
 
-- Import `Download` from lucide-react and `exportList` from api
-- Add `isExporting` state
-- Add Export button in `headerActions` div (alongside Add Partner / Import CSV), calling `exportList('/mpromo/export/partners/sign', { search, type, geo_missing })` with loading/error handling
+**2. Six list pages** — update existing `exportList(...)` calls to pass `scope` as third argument:
+- `MPromoPartners.tsx` — add `, scope` and change `search` to `search: search || undefined`
+- `MPromoRedemptions.tsx` — add `, scope`  and change `search` to `search: search || undefined`
+- `MPromoPayouts.tsx` — add `, scope` to both pending and paid calls, and change `search` to `search: search || undefined`
+- `MPromoOrders.tsx` — add `, scope` and change `search` to `search: search || undefined`
+- `MPromoGeoQueue.tsx` — add `, scope`
 
-### 3. `src/pages/mpromo/MPromoRedemptions.tsx`
+**3. Two detail pages** — no scope needed (already scoped by ID), no changes:
+- `MPromoCampaignDetail.tsx` — unchanged
+- `MPromoPartnerDetail.tsx` — unchanged
 
-- Import `Download` and `exportList`
-- Add `isExporting` state
-- Wrap `DataTable` in a container div with an Export button above it, calling `exportList('/mpromo/export/redemptions/sign', { search, payout_status })`
-
-### 4. `src/pages/mpromo/MPromoPayouts.tsx`
-
-- Import `Download` and `exportList`
-- Add `isExportingPending` and `isExportingPaid` states
-- Add Export button in the Pending card's `CardHeader` and the Paid card's `CardHeader`, each calling `exportList('/mpromo/export/payouts/sign', { search, status })` with their respective status
-
-### 5. `src/pages/mpromo/MPromoOrders.tsx`
-
-- Import `Download` and `exportList`
-- Add `isExporting` state
-- Wrap `DataTable` in a container div with an Export button above it, calling `exportList('/mpromo/export/orders/sign', { search })`
-
-### 6. `src/pages/mpromo/MPromoGeoQueue.tsx`
-
-- Import `Download` and `exportList`
-- Add `isExporting` state
-- Add Export button in the page header area, calling `exportList('/mpromo/export/geo-queue/sign', { search, type })`
-
-### 7. `src/pages/mpromo/MPromoCampaignDetail.tsx`
-
-- Import `Download` and `exportList`
-- Add `isExporting` state
-- Add Export button in the header action buttons area (next to Activate/Pause/End), shown only when `campaign` is loaded, calling `exportList(`/mpromo/export/campaign/${campaign.id}/sign`)`
-
-### 8. `src/pages/mpromo/MPromoPartnerDetail.tsx`
-
-- Import `Download` and `exportList`
-- Add `isExporting` state
-- Add Export button in the partner header action buttons area (next to Edit/Adjust Points/Suspend), shown only when `partner` is loaded, calling `exportList(`/mpromo/export/partner/${partner.id}/sign`)`
-
-### Common pattern for all Export buttons
-
-```tsx
-<Button
-  variant="outline"
-  size="sm"
-  className="gap-1.5"
-  disabled={isExporting}
-  onClick={async () => {
-    setIsExporting(true);
-    try { await exportList('/mpromo/export/...', { ... }); }
-    catch { toast.error('Export failed'); }
-    finally { setIsExporting(false); }
-  }}
->
-  <Download className="h-4 w-4" />
-  {isExporting ? 'Exporting...' : 'Export'}
-</Button>
-```
-
-**Files to edit**: 8 files total. No existing functionality, layout, or buttons are changed.
+Total: 7 files edited (1 API + 6 list pages). No new buttons, no new state, no layout changes.
 
