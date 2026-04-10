@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { AreaZone, ShapeMode, PolygonEndMode, PolygonEditMode } from "@/types/area-zone";
+import { ZONE_COLORS } from "@/types/area-zone";
 
 interface AdvancedAreaPanelProps {
   zones: AreaZone[];
