@@ -72,18 +72,31 @@ function validateRow(fields: string[], rowNum: number): ParsedRow {
 }
 
 function downloadTemplate() {
-  const lines = [
-    "name,phone,type,location,latitude,longitude",
-    "# name=required | phone=required 10-digit Ghana mobile (0XXXXXXXXX) | type=CHILLER or ICE_WATER_SELLER | location=required | latitude/longitude=optional decimal degrees",
-    "Kwame Mensah,0244123456,CHILLER,Kaneshie Market,,",
-  ];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "partner_import_template.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.aoa_to_sheet([
+    ["name", "phone", "type", "location", "latitude", "longitude"],
+    ["Kwame Mensah", "0244123456", "CHILLER", "Kaneshie Market", "", ""],
+  ]);
+  // Add a comment row as a note
+  if (!ws["!merges"]) ws["!merges"] = [];
+  // Set column widths
+  ws["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 12 }, { wch: 12 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Partners");
+
+  // Add a Notes sheet with field descriptions
+  const notes = XLSX.utils.aoa_to_sheet([
+    ["Field", "Required", "Description"],
+    ["name", "Yes", "Partner display name"],
+    ["phone", "Yes", "Ghana mobile number (e.g. 0244123456), must be unique within team"],
+    ["type", "Yes", "Must be exactly CHILLER or ICE_WATER_SELLER"],
+    ["location", "Yes", "Human-readable area description (e.g. Kaneshie Market, Accra)"],
+    ["latitude", "No", "Decimal degrees, -90 to 90 (e.g. 5.5502)"],
+    ["longitude", "No", "Decimal degrees, -180 to 180 (e.g. -0.2174)"],
+  ]);
+  notes["!cols"] = [{ wch: 12 }, { wch: 10 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, notes, "Notes");
+
+  XLSX.writeFile(wb, "partner_import_template.xlsx");
 }
 
 export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: ImportPartnersDialogProps) {
