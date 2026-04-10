@@ -101,7 +101,6 @@ function downloadTemplate() {
 export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: ImportPartnersDialogProps) {
   const [step, setStep] = useState<Step>("upload");
   const [rows, setRows] = useState<ParsedRow[]>([]);
-  const [importProgress, setImportProgress] = useState(0);
   const [results, setResults] = useState<ImportResult[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const hadSuccess = useRef(false);
@@ -109,7 +108,6 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
   const reset = useCallback(() => {
     setStep("upload");
     setRows([]);
-    setImportProgress(0);
     setResults([]);
     hadSuccess.current = false;
     if (fileRef.current) fileRef.current.value = "";
@@ -149,33 +147,32 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
 
   const handleImport = async () => {
     setStep("importing");
-    setImportProgress(0);
-    const importResults: ImportResult[] = [];
-
-    for (let i = 0; i < validRows.length; i++) {
-      const row = validRows[i];
-      try {
-        await createPartner(
-          {
-            name: row.name,
-            phone: row.phone,
-            type: row.type as "CHILLER" | "ICE_WATER_SELLER",
-            location: row.location,
-            ...(row.latitude ? { latitude: Number(row.latitude) } : {}),
-            ...(row.longitude ? { longitude: Number(row.longitude) } : {}),
-          },
-          scope
-        );
-        importResults.push({ row, success: true });
-        hadSuccess.current = true;
-      } catch (err: any) {
-        const msg = err?.response?.data?.message || err?.message || "Unknown error";
-        importResults.push({ row, success: false, error: msg });
-      }
-      setImportProgress(i + 1);
+    try {
+      const payload = validRows.map((row) => ({
+        name: row.name,
+        phone: row.phone,
+        type: row.type,
+        location: row.location,
+        ...(row.latitude ? { latitude: Number(row.latitude) } : {}),
+        ...(row.longitude ? { longitude: Number(row.longitude) } : {}),
+      }));
+      const result = await importPartners(payload, scope);
+      if (result.imported > 0) hadSuccess.current = true;
+      const importResults: ImportResult[] = validRows.map((row, i) => {
+        const errorMsg = result.errors[String(i)];
+        return errorMsg
+          ? { row, success: false, error: errorMsg }
+          : { row, success: true };
+      });
+      setResults(importResults);
+    } catch (err: any) {
+      const importResults: ImportResult[] = validRows.map((row) => ({
+        row,
+        success: false,
+        error: err?.response?.data?.message || "Request failed",
+      }));
+      setResults(importResults);
     }
-
-    setResults(importResults);
     setStep("done");
   };
 
@@ -292,10 +289,10 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
 
         {/* STEP 3 — Importing */}
         {step === "importing" && (
-          <div className="space-y-4 py-4">
-            <Progress value={(importProgress / validRows.length) * 100} className="h-2" />
-            <p className="text-sm text-center text-muted-foreground">
-              Importing partner {importProgress} of {validRows.length}...
+          <div className="flex flex-col items-center gap-3 py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
+              Importing {validRows.length} partners...
             </p>
           </div>
         )}
