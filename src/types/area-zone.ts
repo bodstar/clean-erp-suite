@@ -39,7 +39,7 @@ export interface AreaZone {
   polygonEndMode: PolygonEndMode;
 }
 
-/** Predefined color palette for zone differentiation (up to 6 zones) */
+/** Predefined color palette for zone differentiation (up to 10 zones) */
 export const ZONE_COLORS = [
   "#6366f1", // indigo
   "#f59e0b", // amber
@@ -47,7 +47,14 @@ export const ZONE_COLORS = [
   "#ef4444", // red
   "#8b5cf6", // violet
   "#ec4899", // pink
+  "#0ea5e9", // sky
+  "#f97316", // orange
+  "#14b8a6", // teal
+  "#a855f7", // purple
 ] as const;
 
 /** Default labels assigned to zones in order */
-export const ZONE_LABELS = ["Zone A", "Zone B", "Zone C", "Zone D", "Zone E", "Zone F"] as const;
+export const ZONE_LABELS = [
+  "Zone A", "Zone B", "Zone C", "Zone D", "Zone E",
+  "Zone F", "Zone G", "Zone H", "Zone I", "Zone J",
+] as const;
