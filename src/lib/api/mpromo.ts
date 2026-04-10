@@ -465,6 +465,30 @@ export async function getCodeBatch(id: number): Promise<CodeBatch> {
   return res.data;
 }
 
+export async function getBatchCodes(
+  batchId: number,
+  params?: { status?: string; page?: number; page_size?: number }
+): Promise<{ data: PromoCode[]; total: number; current_page: number; last_page: number }> {
+  if (DEMO_MODE) {
+    const batch = await getCodeBatch(batchId);
+    let codes = batch.codes || [];
+    if (params?.status) codes = codes.filter((c) => c.status === params.status);
+    return { data: codes, total: codes.length, current_page: 1, last_page: 1 };
+  }
+  const res = await api.get(`/mpromo/codes/batches/${batchId}/codes`, { params });
+  return res.data;
+}
+
+export async function signBatchExport(
+  batchId: number
+): Promise<{ pdf_url: string; excel_url: string }> {
+  if (DEMO_MODE) {
+    return { pdf_url: '', excel_url: '' };
+  }
+  const res = await api.post(`/mpromo/codes/batches/${batchId}/export/sign`);
+  return res.data;
+}
+
 // --- Codes ---
 export async function getCodes(
   params?: Record<string, unknown>,
