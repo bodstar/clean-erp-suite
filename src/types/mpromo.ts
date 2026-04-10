@@ -188,9 +188,17 @@ export interface PointsHistoryEntry {
   id: number;
   date: string;
   points: number;
-  campaign_id: number;
-  campaign_name: string;
-  redemption_id: number;
+  /** Whether points were earned (positive) or deducted (negative/manual) */
+  type: "earned" | "deducted";
+  /** Campaign that generated the points (null for manual adjustments) */
+  campaign_id: number | null;
+  campaign_name: string | null;
+  /** Redemption that triggered the entry (null for manual adjustments) */
+  redemption_id: number | null;
+  /** Name of the admin who performed a manual adjustment (null for redemption entries) */
+  adjusted_by_name: string | null;
+  /** Reason provided for a manual adjustment */
+  reason: string | null;
   description: string;
 }
 
