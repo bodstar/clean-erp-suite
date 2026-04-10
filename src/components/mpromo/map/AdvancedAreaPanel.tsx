@@ -47,6 +47,7 @@ export function AdvancedAreaPanel({
   onSetActiveZone,
   onSetShapeMode,
   onUpdateLabel,
+  onUpdateColor,
   onUpdatePolygonPointCount,
   onUpdatePolygonEndMode,
   onClearAll,

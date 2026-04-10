@@ -369,6 +369,7 @@ export default function MPromoMap() {
           onSetActiveZone={advancedSelection.setActiveZone}
           onSetShapeMode={advancedSelection.setShapeMode}
           onUpdateLabel={advancedSelection.updateZoneLabel}
+          onUpdateColor={advancedSelection.updateZoneColor}
           onUpdatePolygonPointCount={advancedSelection.updatePolygonPointCount}
           onUpdatePolygonEndMode={advancedSelection.updatePolygonEndMode}
           onClearAll={advancedSelection.clearAll}
