@@ -467,7 +467,7 @@ export async function getCodeBatch(id: number): Promise<CodeBatch> {
 
 export async function getBatchCodes(
   batchId: number,
-  params?: { status?: string; page?: number; page_size?: number }
+  params?: { status?: string; page?: number; page_size?: number; search?: string }
 ): Promise<{ data: PromoCode[]; total: number; current_page: number; last_page: number }> {
   if (DEMO_MODE) {
     const batch = await getCodeBatch(batchId);

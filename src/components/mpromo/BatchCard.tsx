@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, ChevronDown, ChevronUp, XCircle, Printer, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
@@ -124,32 +125,36 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
   const [codesLastPage, setCodesLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [confirmCode, setConfirmCode] = useState<PromoCode | null>(null);
+  const [codesSearch, setCodesSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+
+  const fetchCodes = async (page: number, search: string) => {
+    setLoading(true);
+    try {
+      const res = await getBatchCodes(batch.id, {
+        page,
+        page_size: 10,
+        ...(search ? { search } : {}),
+      });
+      setVisibleCodes(res.data);
+      setCodesTotal(res.total);
+      setCodesLastPage(res.last_page);
+      setCodesPage(page);
+    } catch { toast.error('Failed to load codes'); }
+    finally { setLoading(false); }
+  };
 
   const handleToggle = async () => {
     if (expanded) { setExpanded(false); return; }
     if (visibleCodes.length === 0) {
-      setLoading(true);
-      try {
-        const res = await getBatchCodes(batch.id, { page: 1, page_size: 10 });
-        setVisibleCodes(res.data);
-        setCodesTotal(res.total);
-        setCodesLastPage(res.last_page);
-        setCodesPage(1);
-      } catch { toast.error("Failed to load codes"); }
-      finally { setLoading(false); }
+      await fetchCodes(1, codesSearch);
     }
     setExpanded(true);
   };
 
-  const handleLoadMore = async () => {
-    const nextPage = codesPage + 1;
-    setLoading(true);
-    try {
-      const res = await getBatchCodes(batch.id, { page: nextPage, page_size: 10 });
-      setVisibleCodes((prev) => [...prev, ...res.data]);
-      setCodesPage(nextPage);
-    } catch { toast.error("Failed to load more codes"); }
-    finally { setLoading(false); }
+  const handleSearch = async () => {
+    setCodesSearch(searchInput);
+    await fetchCodes(1, searchInput);
   };
 
   const handleExportPDF = async () => {
@@ -250,20 +255,48 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
             </DropdownMenu>
           </div>
           {expanded && (
-            <>
-              <BatchCodeTable codes={visibleCodes} canCancel={canCancel} onCancel={setConfirmCode} />
-              {codesPage < codesLastPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full mt-2 text-xs"
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                >
-                  {loading ? 'Loading...' : `Load more (${visibleCodes.length} of ${codesTotal})`}
+            <div className="space-y-3 mt-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Search codes..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="h-8 text-sm"
+                />
+                <Button variant="outline" size="sm" onClick={handleSearch} disabled={loading}>
+                  Search
                 </Button>
+                {codesSearch && (
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setSearchInput('');
+                    setCodesSearch('');
+                    fetchCodes(1, '');
+                  }}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+
+              <BatchCodeTable codes={visibleCodes} canCancel={canCancel} onCancel={setConfirmCode} />
+
+              {codesLastPage > 1 && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                  <span>
+                    {codesTotal} code{codesTotal !== 1 ? 's' : ''}{codesSearch ? ' matching' : ''}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={codesPage <= 1 || loading} onClick={() => fetchCodes(codesPage - 1, codesSearch)}>
+                      ←
+                    </Button>
+                    <span>Page {codesPage} of {codesLastPage}</span>
+                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={codesPage >= codesLastPage || loading} onClick={() => fetchCodes(codesPage + 1, codesSearch)}>
+                      →
+                    </Button>
+                  </div>
+                </div>
               )}
-            </>
+            </div>
           )}
         </CardContent>
       </Card>
