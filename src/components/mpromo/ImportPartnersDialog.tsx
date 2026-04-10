@@ -6,6 +6,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Download, Upload, CheckCircle2, XCircle, FileText } from "lucide-react";
+import * as XLSX from "xlsx";
 import { createPartner } from "@/lib/api/mpromo";
 import type { MPromoScope } from "@/types/mpromo";
 
@@ -71,18 +72,31 @@ function validateRow(fields: string[], rowNum: number): ParsedRow {
 }
 
 function downloadTemplate() {
-  const lines = [
-    "name,phone,type,location,latitude,longitude",
-    "# name=required | phone=required 10-digit Ghana mobile (0XXXXXXXXX) | type=CHILLER or ICE_WATER_SELLER | location=required | latitude/longitude=optional decimal degrees",
-    "Kwame Mensah,0244123456,CHILLER,Kaneshie Market,,",
-  ];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "partner_import_template.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.aoa_to_sheet([
+    ["name", "phone", "type", "location", "latitude", "longitude"],
+    ["Kwame Mensah", "0244123456", "CHILLER", "Kaneshie Market", "", ""],
+  ]);
+  // Add a comment row as a note
+  if (!ws["!merges"]) ws["!merges"] = [];
+  // Set column widths
+  ws["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 12 }, { wch: 12 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Partners");
+
+  // Add a Notes sheet with field descriptions
+  const notes = XLSX.utils.aoa_to_sheet([
+    ["Field", "Required", "Description"],
+    ["name", "Yes", "Partner display name"],
+    ["phone", "Yes", "Ghana mobile number (e.g. 0244123456), must be unique within team"],
+    ["type", "Yes", "Must be exactly CHILLER or ICE_WATER_SELLER"],
+    ["location", "Yes", "Human-readable area description (e.g. Kaneshie Market, Accra)"],
+    ["latitude", "No", "Decimal degrees, -90 to 90 (e.g. 5.5502)"],
+    ["longitude", "No", "Decimal degrees, -180 to 180 (e.g. -0.2174)"],
+  ]);
+  notes["!cols"] = [{ wch: 12 }, { wch: 10 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, notes, "Notes");
+
+  XLSX.writeFile(wb, "partner_import_template.xlsx");
 }
 
 export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: ImportPartnersDialogProps) {
@@ -116,15 +130,19 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const text = reader.result as string;
-      const lines = text.split(/\r?\n/).filter((l) => l.trim() && !l.trim().startsWith("#"));
-      // skip header
-      const dataLines = lines.slice(1);
-      const parsed = dataLines.map((line, i) => validateRow(line.split(","), i + 2));
+      const data = new Uint8Array(reader.result as ArrayBuffer);
+      const wb = XLSX.read(data, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const jsonRows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      // skip header row
+      const dataRows = jsonRows.slice(1).filter((r) => r.some((c) => String(c).trim()));
+      const parsed = dataRows.map((fields, i) =>
+        validateRow(fields.map(String), i + 2)
+      );
       setRows(parsed);
       setStep("preview");
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const validRows = rows.filter((r) => r.valid);
@@ -200,11 +218,11 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
 
             <label className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed p-8 cursor-pointer hover:border-primary/50 transition-colors">
               <FileText className="h-8 w-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Click to select a .csv file</span>
+              <span className="text-sm text-muted-foreground">Click to select an Excel file (.xlsx)</span>
               <input
                 ref={fileRef}
                 type="file"
-                accept=".csv"
+                accept=".xlsx,.xls,.csv"
                 className="hidden"
                 onChange={handleFile}
               />
