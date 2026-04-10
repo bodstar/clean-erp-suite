@@ -11,8 +11,9 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodes, getCampaignRedemptions, AccessDeniedError } from "@/lib/api/mpromo";
-import type { Campaign, PromoCode, Redemption } from "@/types/mpromo";
+import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodeBatches, getCampaignRedemptions, AccessDeniedError, type CodeBatch } from "@/lib/api/mpromo";
+import type { Campaign, Redemption } from "@/types/mpromo";
+import { BatchCard } from "@/components/mpromo/BatchCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -34,7 +35,7 @@ export default function MPromoCampaignDetail() {
   const canActivate = hasPermission("mpromo.campaigns.activate") && scopeMode !== "all";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [codes, setCodes] = useState<PromoCode[]>([]);
+  const [codeBatches, setCodeBatches] = useState<CodeBatch[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -46,12 +47,12 @@ export default function MPromoCampaignDetail() {
     setAccessDenied(false);
     Promise.all([
       getCampaign(campaignId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
-      getCampaignCodes(campaignId),
+      getCampaignCodeBatches(campaignId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getCampaignRedemptions(campaignId),
     ])
-      .then(([c, codesRes, redsRes]) => {
+      .then(([c, batchesRes, redsRes]) => {
         setCampaign(c);
-        setCodes(codesRes.data);
+        setCodeBatches(batchesRes);
         setRedemptions(redsRes.data);
       })
       .catch((err) => {
