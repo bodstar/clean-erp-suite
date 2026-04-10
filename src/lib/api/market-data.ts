@@ -8,7 +8,7 @@
 import api from "@/lib/api";
 import type { FormDefinition, FormSubmission, HeatmapMetricDef } from "@/types/market-data";
 
-const BASE = "/api/mpromo/market-data";
+const BASE = "/mpromo/market-data";
 
 /** Retrieve all form definitions */
 export async function getForms(): Promise<FormDefinition[]> {
