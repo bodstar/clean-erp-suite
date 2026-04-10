@@ -52,12 +52,13 @@ export default function MPromoCampaignDetail() {
     ])
       .then(([c, batchesRes, redsRes]) => {
         setCampaign(c);
-        setCodeBatches(batchesRes);
+        setCodeBatches(Array.isArray(batchesRes) ? batchesRes : batchesRes?.data ?? []);
         setRedemptions(redsRes.data);
       })
       .catch((err) => {
         if (err instanceof AccessDeniedError) setAccessDenied(true);
         setCampaign(null);
+        setCodeBatches([]);
       })
       .finally(() => setIsLoading(false));
   }, [id, scopeMode, targetTeamId, currentTeamId]);
