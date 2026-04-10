@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/table";
 import { Download, Upload, CheckCircle2, XCircle, FileText } from "lucide-react";
 import { createPartner } from "@/lib/api/mpromo";
-import type { MPromoScope } from "@/lib/api/mpromo-scope";
+import type { MPromoScope } from "@/types/mpromo";
 
 interface ImportPartnersDialogProps {
   open: boolean;
