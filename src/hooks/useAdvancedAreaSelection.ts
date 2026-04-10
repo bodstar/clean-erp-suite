@@ -140,7 +140,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     };
     setZones((prev) => [...prev, newZone]);
     setActiveZoneId(id);
-  }, [zones.length]);
+  }, []);
 
   const updatePolygonPointCount = useCallback((id: string, count: number) => {
     setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonPointCount: Math.max(3, count) } : z)));
