@@ -1,11 +1,8 @@
 
 
-## Plan: Safety guards for `codeBatches` state
+## Plan: Fix `getCampaignCodeBatches` response unwrapping
 
-Two small fixes in `src/pages/mpromo/MPromoCampaignDetail.tsx`:
+**File**: `src/lib/api/mpromo.ts`
 
-1. **`.then()` handler**: Change `setCodeBatches(batchesRes)` to `setCodeBatches(Array.isArray(batchesRes) ? batchesRes : batchesRes?.data ?? [])`
-2. **`.catch()` handler**: Add `setCodeBatches([])` after `setCampaign(null)`
-
-No other files or changes.
+Change `return res.data.data` back to `return res.data` in the live API path of `getCampaignCodeBatches`, since this endpoint returns a plain array, not a paginated envelope.
 
