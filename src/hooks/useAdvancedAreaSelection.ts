@@ -121,12 +121,15 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setZones((prev) => recomputePartners(prev));
   }, [partners]);
 
+  const zoneCounterRef = useRef(0);
+
   const addZone = useCallback(() => {
-    const index = zones.length % ZONE_COLORS.length;
+    const index = zoneCounterRef.current % ZONE_COLORS.length;
     const id = crypto.randomUUID();
+    zoneCounterRef.current += 1;
     const newZone: AreaZone = {
       id,
-      label: ZONE_LABELS[zones.length % ZONE_LABELS.length],
+      label: ZONE_LABELS[index % ZONE_LABELS.length],
       color: ZONE_COLORS[index],
       shapeMode: "rectangle",
       layer: null,
@@ -137,7 +140,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     };
     setZones((prev) => [...prev, newZone]);
     setActiveZoneId(id);
-  }, [zones.length]);
+  }, []);
 
   const updatePolygonPointCount = useCallback((id: string, count: number) => {
     setZones((prev) => prev.map((z) => (z.id === id ? { ...z, polygonPointCount: Math.max(3, count) } : z)));
