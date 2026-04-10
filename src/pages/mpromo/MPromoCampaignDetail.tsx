@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award, ShieldAlert, Star } from "lucide-react";
+import { ArrowLeft, Play, Pause, Square, Users, Calendar, Award, ShieldAlert, Star, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodeBatches, getCampaignRedemptions, AccessDeniedError, type CodeBatch } from "@/lib/api/mpromo";
+import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodeBatches, getCampaignRedemptions, AccessDeniedError, exportList, type CodeBatch } from "@/lib/api/mpromo";
 import type { Campaign, Redemption } from "@/types/mpromo";
 import { BatchCard } from "@/components/mpromo/BatchCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -39,6 +39,7 @@ export default function MPromoCampaignDetail() {
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -220,25 +221,42 @@ export default function MPromoCampaignDetail() {
                 </div>
               )}
             </div>
-            {canActivate && (
-              <div className="flex gap-2 shrink-0">
-                {campaign.status !== "active" && campaign.status !== "ended" && (
-                  <Button size="sm" onClick={() => handleAction("activate")} className="gap-1.5">
-                    <Play className="h-4 w-4" /> Activate
-                  </Button>
-                )}
-                {campaign.status === "active" && (
-                  <Button variant="outline" size="sm" onClick={() => handleAction("pause")} className="gap-1.5">
-                    <Pause className="h-4 w-4" /> Pause
-                  </Button>
-                )}
-                {campaign.status !== "ended" && (
-                  <Button variant="destructive" size="sm" onClick={() => handleAction("end")} className="gap-1.5">
-                    <Square className="h-4 w-4" /> End
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={isExporting}
+                onClick={async () => {
+                  setIsExporting(true);
+                  try { await exportList(`/mpromo/export/campaign/${campaign.id}/sign`); }
+                  catch { toast.error('Export failed'); }
+                  finally { setIsExporting(false); }
+                }}
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
+              {canActivate && (
+                <>
+                  {campaign.status !== "active" && campaign.status !== "ended" && (
+                    <Button size="sm" onClick={() => handleAction("activate")} className="gap-1.5">
+                      <Play className="h-4 w-4" /> Activate
+                    </Button>
+                  )}
+                  {campaign.status === "active" && (
+                    <Button variant="outline" size="sm" onClick={() => handleAction("pause")} className="gap-1.5">
+                      <Pause className="h-4 w-4" /> Pause
+                    </Button>
+                  )}
+                  {campaign.status !== "ended" && (
+                    <Button variant="destructive" size="sm" onClick={() => handleAction("end")} className="gap-1.5">
+                      <Square className="h-4 w-4" /> End
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

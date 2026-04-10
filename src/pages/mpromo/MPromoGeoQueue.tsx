@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { LocateFixed, MapPin } from "lucide-react";
+import { LocateFixed, MapPin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { MapPickerModal } from "@/components/mpromo/MapPickerModal";
-import { getPartnersWithoutGeo, updatePartnerGeolocation } from "@/lib/api/mpromo";
+import { getPartnersWithoutGeo, updatePartnerGeolocation, exportList } from "@/lib/api/mpromo";
 import type { Partner } from "@/types/mpromo";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export default function MPromoGeoQueue() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [mapTarget, setMapTarget] = useState<Partner | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -96,6 +97,27 @@ export default function MPromoGeoQueue() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          disabled={isExporting}
+          onClick={async () => {
+            setIsExporting(true);
+            try {
+              await exportList('/mpromo/export/geo-queue/sign', {
+                search,
+                type: typeFilter !== 'all' ? typeFilter : undefined,
+              });
+            } catch { toast.error('Export failed'); }
+            finally { setIsExporting(false); }
+          }}
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exporting...' : 'Export'}
+        </Button>
+      </div>
       <DataTable
         columns={columns}
         data={data}

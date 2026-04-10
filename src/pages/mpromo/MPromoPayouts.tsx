@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { DollarSign, RefreshCw } from "lucide-react";
+import { DollarSign, RefreshCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { TeamBadge } from "@/components/shared/TeamBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPayouts, payPayout } from "@/lib/api/mpromo";
+import { getPayouts, payPayout, exportList } from "@/lib/api/mpromo";
 import type { Payout } from "@/types/mpromo";
 import { toast } from "sonner";
 
@@ -24,6 +24,8 @@ export default function MPromoPayouts() {
   const [isLoading, setIsLoading] = useState(true);
   const [confirmPayout, setConfirmPayout] = useState<Payout | null>(null);
   const [search, setSearch] = useState('');
+  const [isExportingPending, setIsExportingPending] = useState(false);
+  const [isExportingPaid, setIsExportingPaid] = useState(false);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingTotal, setPendingTotal] = useState(0);
   const [paidPage, setPaidPage] = useState(1);
@@ -106,14 +108,48 @@ export default function MPromoPayouts() {
       />
 
       <Card>
-        <CardHeader><CardTitle className="text-sm font-semibold">Pending Payouts</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold">Pending Payouts</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={isExportingPending}
+            onClick={async () => {
+              setIsExportingPending(true);
+              try { await exportList('/mpromo/export/payouts/sign', { search, status: 'pending' }); }
+              catch { toast.error('Export failed'); }
+              finally { setIsExportingPending(false); }
+            }}
+          >
+            <Download className="h-4 w-4" />
+            {isExportingPending ? 'Exporting...' : 'Export'}
+          </Button>
+        </CardHeader>
         <CardContent>
           <DataTable columns={pendingCols} data={pending} isLoading={isLoading} emptyMessage="No pending payouts." total={pendingTotal} page={pendingPage} onPageChange={setPendingPage} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-sm font-semibold">Paid Payouts</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold">Paid Payouts</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={isExportingPaid}
+            onClick={async () => {
+              setIsExportingPaid(true);
+              try { await exportList('/mpromo/export/payouts/sign', { search, status: 'paid' }); }
+              catch { toast.error('Export failed'); }
+              finally { setIsExportingPaid(false); }
+            }}
+          >
+            <Download className="h-4 w-4" />
+            {isExportingPaid ? 'Exporting...' : 'Export'}
+          </Button>
+        </CardHeader>
         <CardContent>
           <DataTable columns={paidCols} data={paid} isLoading={isLoading} emptyMessage="No paid payouts yet." total={paidTotal} page={paidPage} onPageChange={setPaidPage} />
         </CardContent>

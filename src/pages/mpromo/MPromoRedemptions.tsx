@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getRedemptions } from "@/lib/api/mpromo";
+import { getRedemptions, exportList } from "@/lib/api/mpromo";
 import type { Redemption } from "@/types/mpromo";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -22,6 +25,7 @@ export default function MPromoRedemptions() {
   const [search, setSearch] = useState("");
   const [payoutFilter, setPayoutFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -49,7 +53,29 @@ export default function MPromoRedemptions() {
   ];
 
   return (
-    <DataTable
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          disabled={isExporting}
+          onClick={async () => {
+            setIsExporting(true);
+            try {
+              await exportList('/mpromo/export/redemptions/sign', {
+                search,
+                payout_status: payoutFilter !== 'all' ? payoutFilter : undefined,
+              });
+            } catch { toast.error('Export failed'); }
+            finally { setIsExporting(false); }
+          }}
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exporting...' : 'Export'}
+        </Button>
+      </div>
+      <DataTable
       columns={columns}
       data={data}
       total={total}
@@ -74,5 +100,6 @@ export default function MPromoRedemptions() {
         </Select>
       }
     />
+    </div>
   );
 }

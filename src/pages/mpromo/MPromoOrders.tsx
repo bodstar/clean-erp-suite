@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getOrders } from "@/lib/api/mpromo";
+import { getOrders, exportList } from "@/lib/api/mpromo";
+import { toast } from "sonner";
 import type { MPromoOrder } from "@/types/mpromo";
 
 export default function MPromoOrders() {
@@ -16,6 +17,7 @@ export default function MPromoOrders() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -49,7 +51,25 @@ export default function MPromoOrders() {
   ];
 
   return (
-    <DataTable
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          disabled={isExporting}
+          onClick={async () => {
+            setIsExporting(true);
+            try { await exportList('/mpromo/export/orders/sign', { search }); }
+            catch { toast.error('Export failed'); }
+            finally { setIsExporting(false); }
+          }}
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exporting...' : 'Export'}
+        </Button>
+      </div>
+      <DataTable
       columns={columns}
       data={data}
       total={total}
@@ -61,5 +81,6 @@ export default function MPromoOrders() {
       isLoading={isLoading}
       emptyMessage="No orders found."
     />
+    </div>
   );
 }
