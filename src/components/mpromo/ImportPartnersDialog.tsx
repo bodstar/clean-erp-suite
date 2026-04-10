@@ -222,7 +222,7 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
               <input
                 ref={fileRef}
                 type="file"
-                accept=".csv"
+                accept=".xlsx,.xls,.csv"
                 className="hidden"
                 onChange={handleFile}
               />
