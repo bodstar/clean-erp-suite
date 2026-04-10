@@ -278,7 +278,7 @@ export async function getPartnerPointsHistory(partnerId: number): Promise<Points
     return allEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
   const res = await api.get(`/mpromo/partners/${partnerId}/points-history`);
-  return res.data;
+  return res.data.data;
 }
 
 // --- Campaigns ---
