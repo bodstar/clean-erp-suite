@@ -11,8 +11,9 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodes, getCampaignRedemptions, AccessDeniedError } from "@/lib/api/mpromo";
-import type { Campaign, PromoCode, Redemption } from "@/types/mpromo";
+import { getCampaign, activateCampaign, pauseCampaign, endCampaign, getCampaignCodeBatches, getCampaignRedemptions, AccessDeniedError, type CodeBatch } from "@/lib/api/mpromo";
+import type { Campaign, Redemption } from "@/types/mpromo";
+import { BatchCard } from "@/components/mpromo/BatchCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -34,7 +35,7 @@ export default function MPromoCampaignDetail() {
   const canActivate = hasPermission("mpromo.campaigns.activate") && scopeMode !== "all";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [codes, setCodes] = useState<PromoCode[]>([]);
+  const [codeBatches, setCodeBatches] = useState<CodeBatch[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -46,12 +47,12 @@ export default function MPromoCampaignDetail() {
     setAccessDenied(false);
     Promise.all([
       getCampaign(campaignId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
-      getCampaignCodes(campaignId),
+      getCampaignCodeBatches(campaignId, { mode: scopeMode, targetTeamId: scopeMode === "target" ? targetTeamId : null }),
       getCampaignRedemptions(campaignId),
     ])
-      .then(([c, codesRes, redsRes]) => {
+      .then(([c, batchesRes, redsRes]) => {
         setCampaign(c);
-        setCodes(codesRes.data);
+        setCodeBatches(batchesRes);
         setRedemptions(redsRes.data);
       })
       .catch((err) => {
@@ -108,10 +109,11 @@ export default function MPromoCampaignDetail() {
     return days;
   }, [redemptions]);
 
-  // Build activity timeline
+  // Build activity timeline from batch codes + redemptions
+  const allCodes = useMemo(() => codeBatches.flatMap((b) => b.codes || []), [codeBatches]);
   const activity = useMemo<ActivityItem[]>(() => {
     const items: ActivityItem[] = [
-      ...codes.filter((c) => c.redeemed_at).map((c) => ({
+      ...allCodes.filter((c) => c.redeemed_at).map((c) => ({
         id: `code-${c.id}`,
         type: "code" as const,
         description: `Code ${c.code} redeemed${c.issued_to ? ` by ${c.issued_to}` : ""}`,
@@ -125,7 +127,7 @@ export default function MPromoCampaignDetail() {
       })),
     ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     return items;
-  }, [codes, redemptions]);
+  }, [allCodes, redemptions]);
 
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-40 w-full" /></div>;
   if (!campaign) {
@@ -147,14 +149,9 @@ export default function MPromoCampaignDetail() {
     );
   }
 
-  const codeCols: DataTableColumn<PromoCode>[] = [
-    { key: "code", header: "Code" },
-    { key: "redemption_amount", header: "Value", render: (r) => `GH₵${r.redemption_amount.toLocaleString()}` },
-    { key: "issued_to", header: "Issued To", render: (r) => r.issued_to || "—" },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "expires_at", header: "Expires" },
-    { key: "redeemed_at", header: "Redeemed At", render: (r) => r.redeemed_at || "—" },
-  ];
+  const totalCodesCount = codeBatches.reduce((s, b) => s + b.quantity, 0);
+
+
 
   const redemptionCols: DataTableColumn<Redemption>[] = [
     { key: "date", header: "Date" },
@@ -250,7 +247,7 @@ export default function MPromoCampaignDetail() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="loyalty">Loyalty Points</TabsTrigger>
-          <TabsTrigger value="codes">Codes ({codes.length})</TabsTrigger>
+          <TabsTrigger value="codes">Codes ({totalCodesCount})</TabsTrigger>
           <TabsTrigger value="redemptions">Redemptions ({redemptions.length})</TabsTrigger>
         </TabsList>
 
@@ -271,7 +268,7 @@ export default function MPromoCampaignDetail() {
             </Card>
             <Card>
               <CardContent className="p-5 text-center overflow-hidden min-w-0">
-                <p className="text-lg sm:text-2xl font-bold truncate">{codes.length}</p>
+                <p className="text-lg sm:text-2xl font-bold truncate">{totalCodesCount}</p>
                 <p className="text-xs text-muted-foreground">Codes Issued</p>
               </CardContent>
             </Card>
@@ -368,16 +365,22 @@ export default function MPromoCampaignDetail() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="codes" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Campaign Codes</CardTitle>
-              <Link to="/mpromo/codes" className="text-xs text-primary hover:underline">View all codes</Link>
-            </CardHeader>
-            <CardContent>
-              <DataTable columns={codeCols} data={codes} emptyMessage="No codes issued for this campaign." />
-            </CardContent>
-          </Card>
+        <TabsContent value="codes" className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Code Batches ({codeBatches.length})</h3>
+            <Link to="/mpromo/codes" className="text-xs text-primary hover:underline">View all codes</Link>
+          </div>
+          {codeBatches.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                No codes issued for this campaign.
+              </CardContent>
+            </Card>
+          ) : (
+            codeBatches.map((batch) => (
+              <BatchCard key={batch.id} batch={batch} hideCampaignName scopeMode={scopeMode} />
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="redemptions" className="mt-4">

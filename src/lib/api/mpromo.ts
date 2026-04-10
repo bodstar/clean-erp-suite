@@ -623,6 +623,21 @@ export async function getCampaignCodes(
   return res.data;
 }
 
+export async function getCampaignCodeBatches(
+  campaignId: number,
+  scope?: MPromoScope
+): Promise<CodeBatch[]> {
+  if (DEMO_MODE) {
+    // Reuse getCodeBatches logic but filter to this campaign
+    const { data } = await getCodeBatches({ page_size: 100 }, scope);
+    return data.filter((b) => b.campaign_id === campaignId);
+  }
+  const res = await api.get(`/mpromo/campaigns/${campaignId}/codes/batches`, {
+    params: scopeParams(scope),
+  });
+  return res.data;
+}
+
 export async function getCampaignRedemptions(
   campaignId: number,
   params?: Record<string, unknown>,
