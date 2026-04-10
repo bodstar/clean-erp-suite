@@ -9,6 +9,7 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TeamBadge } from "@/components/shared/TeamBadge";
+import { ImportPartnersDialog } from "@/components/mpromo/ImportPartnersDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getPartners, suspendPartner, activatePartner } from "@/lib/api/mpromo";
@@ -36,6 +37,8 @@ export default function MPromoPartners() {
   const [search, setSearch] = useState("");
   const [geoMissing, setGeoMissing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
+  const [refetchKey, setRefetchKey] = useState(0);
 
   const [confirmPartner, setConfirmPartner] = useState<Partner | null>(null);
 
@@ -45,7 +48,7 @@ export default function MPromoPartners() {
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [partnerType, page, search, geoMissing, scope]);
+  }, [partnerType, page, search, geoMissing, scope, refetchKey]);
 
   const handleToggleStatus = async () => {
     if (!confirmPartner) return;
@@ -160,7 +163,7 @@ export default function MPromoPartners() {
               <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
                 <Plus className="h-4 w-4" /> Add Partner
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setImportOpen(true)}>
                 <Upload className="h-4 w-4" /> Import CSV
               </Button>
             </div>
@@ -180,6 +183,12 @@ export default function MPromoPartners() {
         confirmLabel={confirmPartner?.status === "active" ? "Suspend" : "Activate"}
         variant={confirmPartner?.status === "active" ? "destructive" : "default"}
         onConfirm={handleToggleStatus}
+      />
+      <ImportPartnersDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        scope={scope}
+        onSuccess={() => { setPage(1); setRefetchKey((k) => k + 1); }}
       />
     </div>
   );
