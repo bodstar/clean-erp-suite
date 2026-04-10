@@ -16,7 +16,7 @@ import { toast } from "sonner";
 export default function MPromoPayouts() {
   const { hasPermission } = useAuth();
   const { scope, scopeMode } = useMPromoScope();
-  const canManage = hasPermission("mpromo.payouts.manage") && scopeMode !== "all";
+  const canTrigger = hasPermission("mpromo.payouts.trigger") && scopeMode !== "all";
 
   const [pending, setPending] = useState<Payout[]>([]);
   const [paid, setPaid] = useState<Payout[]>([]);
@@ -56,7 +56,7 @@ export default function MPromoPayouts() {
     ...(scopeMode === "all"
       ? [{ key: "team_name", header: "Team", render: (r: Payout) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<Payout>]
       : []),
-    ...(canManage
+    ...(canTrigger
       ? [{
           key: "actions",
           header: "",

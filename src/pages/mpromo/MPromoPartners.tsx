@@ -26,7 +26,8 @@ export default function MPromoPartners() {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const { scope, scopeMode } = useMPromoScope();
-  const canManage = hasPermission("mpromo.partners.manage") && scopeMode !== "all";
+  const canCreate  = hasPermission("mpromo.partners.create") && scopeMode !== "all";
+  const canSuspend = hasPermission("mpromo.partners.suspend") && scopeMode !== "all";
 
   const [partnerType, setPartnerType] = useState<PartnerType>("CHILLER");
   const [data, setData] = useState<Partner[]>([]);
@@ -109,19 +110,17 @@ export default function MPromoPartners() {
             <DropdownMenuItem onClick={() => navigate(`/mpromo/partners/${row.id}`)}>
               <Eye className="h-4 w-4 mr-2" /> View
             </DropdownMenuItem>
-            {canManage && (
-              <>
-                <DropdownMenuItem onClick={() => navigate(`/mpromo/partners/${row.id}`)}>
-                  <Edit className="h-4 w-4 mr-2" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setConfirmPartner(row)}>
-                  {row.status === "active" ? (
-                    <><Ban className="h-4 w-4 mr-2" /> Suspend</>
-                  ) : (
-                    <><CheckCircle className="h-4 w-4 mr-2" /> Activate</>
-                  )}
-                </DropdownMenuItem>
-              </>
+            <DropdownMenuItem onClick={() => navigate(`/mpromo/partners/${row.id}`)}>
+              <Edit className="h-4 w-4 mr-2" /> Edit
+            </DropdownMenuItem>
+            {canSuspend && (
+              <DropdownMenuItem onClick={() => setConfirmPartner(row)}>
+                {row.status === "active" ? (
+                  <><Ban className="h-4 w-4 mr-2" /> Suspend</>
+                ) : (
+                  <><CheckCircle className="h-4 w-4 mr-2" /> Activate</>
+                )}
+              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -156,7 +155,7 @@ export default function MPromoPartners() {
           </div>
         }
         headerActions={
-          canManage ? (
+          canCreate ? (
             <div className="flex flex-wrap gap-2">
               <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
                 <Plus className="h-4 w-4" /> Add Partner

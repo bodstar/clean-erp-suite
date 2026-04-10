@@ -52,7 +52,9 @@ export default function MPromoPartnerDetail() {
   const navigate = useNavigate();
   const { hasPermission, currentTeamId } = useAuth();
   const { scopeMode, targetTeamId } = useMPromoScope();
-  const canManage = hasPermission("mpromo.partners.manage");
+  const canUpdate  = hasPermission("mpromo.partners.update");
+  const canSuspend = hasPermission("mpromo.partners.suspend");
+  const canPoints  = hasPermission("mpromo.partners.points");
 
   const [partner, setPartner] = useState<Partner | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -251,16 +253,18 @@ export default function MPromoPartnerDetail() {
                   <Map className="h-4 w-4 mr-1.5" /> View on Map
                 </Button>
               )}
-              {canManage && (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
-                  <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
-                  <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
-                    {partner.status === "active"
-                      ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
-                      : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
-                  </Button>
-                </>
+              {canUpdate && (
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}><Edit className="h-4 w-4 mr-1.5" /> Edit</Button>
+              )}
+              {canPoints && (
+                <Button variant="outline" size="sm" onClick={() => setAdjustPointsOpen(true)}><PenLine className="h-4 w-4 mr-1.5" /> Adjust Points</Button>
+              )}
+              {canSuspend && (
+                <Button variant="outline" size="sm" onClick={() => setConfirmStatusChange(true)}>
+                  {partner.status === "active"
+                    ? <><Ban className="h-4 w-4 mr-1.5" /> Suspend</>
+                    : <><CheckCircle className="h-4 w-4 mr-1.5" /> Activate</>}
+                </Button>
               )}
             </div>
           </div>
@@ -287,7 +291,7 @@ export default function MPromoPartnerDetail() {
           ) : (
             <p className="text-sm text-muted-foreground">Location not captured</p>
           )}
-          {canManage && (
+          {canUpdate && (
             <div className="flex gap-2 mt-3">
               <Button variant="outline" size="sm" onClick={handleCaptureLocation}>
                 <LocateFixed className="h-4 w-4 mr-1.5" /> Use my current location

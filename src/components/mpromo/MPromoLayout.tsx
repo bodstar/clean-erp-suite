@@ -27,15 +27,15 @@ import { Button } from "@/components/ui/button";
 
 const tabs = [
   { label: "Overview", path: "/mpromo/overview", icon: LayoutDashboard },
-  { label: "Partners", path: "/mpromo/partners", icon: Users, permission: "mpromo.partners.manage" },
-  { label: "Campaigns", path: "/mpromo/campaigns", icon: Megaphone, permission: "mpromo.campaign.manage" },
-  { label: "Codes", path: "/mpromo/codes", icon: QrCode, permission: "mpromo.codes.manage" },
+  { label: "Partners", path: "/mpromo/partners", icon: Users, permission: "mpromo.partners.view" },
+  { label: "Campaigns", path: "/mpromo/campaigns", icon: Megaphone, permission: "mpromo.campaigns.view" },
+  { label: "Codes", path: "/mpromo/codes", icon: QrCode, permission: "mpromo.codes.view" },
   { label: "Redemptions", path: "/mpromo/redemptions", icon: Receipt, permission: "mpromo.redemptions.view" },
-  { label: "Payouts", path: "/mpromo/payouts", icon: Wallet, permission: "mpromo.payouts.manage" },
+  { label: "Payouts", path: "/mpromo/payouts", icon: Wallet, permission: "mpromo.payouts.view" },
   { label: "Orders", path: "/mpromo/orders", icon: ShoppingCart, permission: "mpromo.orders.view" },
   { label: "Market Data", path: "/mpromo/market-data", icon: ClipboardList },
   { label: "Map", path: "/mpromo/map", icon: Map },
-  { label: "Geo Queue", path: "/mpromo/geo-queue", icon: MapPin, permission: "mpromo.partners.manage" },
+  { label: "Geo Queue", path: "/mpromo/geo-queue", icon: MapPin, permission: "mpromo.partners.view" },
 ];
 
 export function MPromoLayout() {
