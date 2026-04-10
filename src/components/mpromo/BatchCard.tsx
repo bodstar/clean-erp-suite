@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TeamBadge } from "@/components/shared/TeamBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { getCodeBatch, type CodeBatch } from "@/lib/api/mpromo";
+import { getBatchCodes, signBatchExport, type CodeBatch } from "@/lib/api/mpromo";
 import type { PromoCode } from "@/types/mpromo";
 import { toast } from "sonner";
 
@@ -117,42 +117,69 @@ interface BatchCardProps {
 
 export function BatchCard({ batch, scopeMode = "current", canCancel = false, hideCampaignName = false }: BatchCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [codes, setCodes] = useState<PromoCode[] | null>(batch.codes || null);
+  const [visibleCodes, setVisibleCodes] = useState<PromoCode[]>([]);
+  const [codesPage, setCodesPage] = useState(1);
+  const [codesTotal, setCodesTotal] = useState(0);
+  const [codesLastPage, setCodesLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [confirmCode, setConfirmCode] = useState<PromoCode | null>(null);
 
   const handleToggle = async () => {
     if (expanded) { setExpanded(false); return; }
-    if (!codes) {
+    if (visibleCodes.length === 0) {
       setLoading(true);
       try {
-        const full = await getCodeBatch(batch.id);
-        setCodes(full.codes || []);
+        const res = await getBatchCodes(batch.id, { page: 1, page_size: 20 });
+        setVisibleCodes(res.data);
+        setCodesTotal(res.total);
+        setCodesLastPage(res.last_page);
+        setCodesPage(1);
       } catch { toast.error("Failed to load codes"); }
       finally { setLoading(false); }
     }
     setExpanded(true);
   };
 
+  const handleLoadMore = async () => {
+    const nextPage = codesPage + 1;
+    setLoading(true);
+    try {
+      const res = await getBatchCodes(batch.id, { page: nextPage, page_size: 20 });
+      setVisibleCodes((prev) => [...prev, ...res.data]);
+      setCodesPage(nextPage);
+    } catch { toast.error("Failed to load more codes"); }
+    finally { setLoading(false); }
+  };
+
   const handleExportPDF = async () => {
-    let c = codes;
-    if (!c) {
-      try { const full = await getCodeBatch(batch.id); c = full.codes || []; setCodes(c); } catch { toast.error("Failed to load codes"); return; }
-    }
-    exportBatchPDF({ ...batch, codes: c });
+    try {
+      const { pdf_url } = await signBatchExport(batch.id);
+      if (pdf_url) {
+        window.open(pdf_url, '_blank');
+      } else {
+        const res = await getBatchCodes(batch.id, { status: 'active', page_size: 100 });
+        exportBatchPDF({ ...batch, codes: res.data });
+      }
+    } catch { toast.error("Failed to generate export link"); }
   };
 
   const handleExportCSV = async () => {
-    let c = codes;
-    if (!c) {
-      try { const full = await getCodeBatch(batch.id); c = full.codes || []; setCodes(c); } catch { toast.error("Failed to load codes"); return; }
-    }
-    exportBatchCSV({ ...batch, codes: c });
+    try {
+      const { excel_url } = await signBatchExport(batch.id);
+      if (excel_url) {
+        window.open(excel_url, '_blank');
+      } else {
+        const res = await getBatchCodes(batch.id, { status: 'active', page_size: 100 });
+        exportBatchCSV({ ...batch, codes: res.data });
+      }
+    } catch { toast.error("Failed to generate export link"); }
   };
 
   const handleCancelCode = () => {
-    if (!confirmCode || !codes) return;
-    setCodes(codes.map((c) => c.id === confirmCode.id ? { ...c, status: "cancelled" as const } : c));
+    if (!confirmCode) return;
+    setVisibleCodes((prev) =>
+      prev.map((c) => c.id === confirmCode.id ? { ...c, status: "cancelled" as const } : c)
+    );
     toast.success(`Code ${confirmCode.code} cancelled`);
     setConfirmCode(null);
   };
@@ -216,8 +243,21 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {expanded && codes && (
-            <BatchCodeTable codes={codes} canCancel={canCancel} onCancel={setConfirmCode} />
+          {expanded && (
+            <>
+              <BatchCodeTable codes={visibleCodes} canCancel={canCancel} onCancel={setConfirmCode} />
+              {codesPage < codesLastPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-2 text-xs"
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : `Load more (${visibleCodes.length} of ${codesTotal})`}
+                </Button>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
