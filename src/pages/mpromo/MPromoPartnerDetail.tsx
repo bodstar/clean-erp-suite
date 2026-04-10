@@ -529,12 +529,8 @@ function PartnerLocationMap({ lat, lng }: { lat: number; lng: number }) {
     const map = L.map(containerRef.current, {
       center: [lat, lng],
       zoom: 15,
-      zoomControl: false,
+      zoomControl: true,
       attributionControl: false,
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: false,
     });
 
     L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(map);
