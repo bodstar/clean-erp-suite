@@ -333,6 +333,105 @@ export async function endCampaign(id: number): Promise<void> {
   await api.post(`/mpromo/campaigns/${id}/end`);
 }
 
+// --- Code Batches ---
+export interface CodeBatch {
+  id: number;
+  campaign_id: number;
+  campaign_name: string;
+  team_id?: number;
+  team_name?: string;
+  quantity: number;
+  redemption_amount: number;
+  expires_at: string;
+  generated_by_name: string;
+  redeemed_count: number;
+  active_count: number;
+  codes?: PromoCode[];
+  created_at: string;
+}
+
+export async function getCodeBatches(
+  params?: Record<string, unknown>,
+  scope?: MPromoScope
+): Promise<{ data: CodeBatch[]; total: number }> {
+  if (DEMO_MODE) {
+    // Synthesize batches from demo codes grouped by campaign_id + expires_at
+    const batchMap = new Map<string, CodeBatch>();
+    for (const code of filterByCampaignTeam(demoCodes, scope)) {
+      const campaign = demoCampaigns.find((c) => c.id === code.campaign_id);
+      const key = `${code.campaign_id}-${code.expires_at}`;
+      if (!batchMap.has(key)) {
+        batchMap.set(key, {
+          id: code.campaign_id * 1000 + batchMap.size + 1,
+          campaign_id: code.campaign_id,
+          campaign_name: code.campaign_name,
+          team_id: campaign?.team_id,
+          team_name: campaign?.team_name,
+          quantity: 0,
+          redemption_amount: code.redemption_amount,
+          expires_at: code.expires_at,
+          generated_by_name: "Demo Admin",
+          redeemed_count: 0,
+          active_count: 0,
+          codes: [],
+          created_at: campaign?.created_at || code.expires_at,
+        });
+      }
+      const batch = batchMap.get(key)!;
+      batch.quantity++;
+      batch.codes!.push({ ...code, team_id: campaign?.team_id, team_name: campaign?.team_name });
+      if (code.status === "redeemed") batch.redeemed_count++;
+      if (code.status === "active") batch.active_count++;
+    }
+    let batches = Array.from(batchMap.values());
+    batches = matchSearch(batches, params?.search as string, ["campaign_name"]);
+    batches.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return paginate(batches, params);
+  }
+  const res = await api.get("/mpromo/codes/batches", {
+    params: { ...params, ...scopeParams(scope) },
+  });
+  return res.data;
+}
+
+export async function getCodeBatch(id: number): Promise<CodeBatch> {
+  if (DEMO_MODE) {
+    // Rebuild all batches and find the one with matching id
+    const batchMap = new Map<string, CodeBatch>();
+    for (const code of demoCodes) {
+      const campaign = demoCampaigns.find((c) => c.id === code.campaign_id);
+      const key = `${code.campaign_id}-${code.expires_at}`;
+      if (!batchMap.has(key)) {
+        batchMap.set(key, {
+          id: code.campaign_id * 1000 + batchMap.size + 1,
+          campaign_id: code.campaign_id,
+          campaign_name: code.campaign_name,
+          team_id: campaign?.team_id,
+          team_name: campaign?.team_name,
+          quantity: 0,
+          redemption_amount: code.redemption_amount,
+          expires_at: code.expires_at,
+          generated_by_name: "Demo Admin",
+          redeemed_count: 0,
+          active_count: 0,
+          codes: [],
+          created_at: campaign?.created_at || code.expires_at,
+        });
+      }
+      const batch = batchMap.get(key)!;
+      batch.quantity++;
+      batch.codes!.push({ ...code, team_id: campaign?.team_id, team_name: campaign?.team_name });
+      if (code.status === "redeemed") batch.redeemed_count++;
+      if (code.status === "active") batch.active_count++;
+    }
+    const found = Array.from(batchMap.values()).find((b) => b.id === id);
+    if (found) return found;
+    throw new NotFoundError("Batch not found.");
+  }
+  const res = await api.get(`/mpromo/codes/batches/${id}`);
+  return res.data;
+}
+
 // --- Codes ---
 export async function getCodes(
   params?: Record<string, unknown>,
@@ -357,7 +456,10 @@ export async function getCodes(
 export async function generateCodes(
   data: { campaign_id: number; quantity: number; expires_at: string; redemption_amount: number },
   scope?: MPromoScope
-): Promise<{ count: number }> {
+): Promise<{ count: number; batch_id: number }> {
+  if (DEMO_MODE) {
+    return { count: data.quantity, batch_id: Date.now() };
+  }
   const res = await api.post("/mpromo/codes/generate", data, {
     params: scopeParams(scope),
   });
