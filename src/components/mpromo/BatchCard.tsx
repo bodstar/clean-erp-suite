@@ -130,7 +130,7 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
     if (visibleCodes.length === 0) {
       setLoading(true);
       try {
-        const res = await getBatchCodes(batch.id, { page: 1, page_size: 20 });
+        const res = await getBatchCodes(batch.id, { page: 1, page_size: 10 });
         setVisibleCodes(res.data);
         setCodesTotal(res.total);
         setCodesLastPage(res.last_page);
@@ -145,7 +145,7 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
     const nextPage = codesPage + 1;
     setLoading(true);
     try {
-      const res = await getBatchCodes(batch.id, { page: nextPage, page_size: 20 });
+      const res = await getBatchCodes(batch.id, { page: nextPage, page_size: 10 });
       setVisibleCodes((prev) => [...prev, ...res.data]);
       setCodesPage(nextPage);
     } catch { toast.error("Failed to load more codes"); }
