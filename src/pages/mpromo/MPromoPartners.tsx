@@ -180,7 +180,7 @@ export default function MPromoPartners() {
                 try {
                   await exportList('/mpromo/export/partners/sign', {
                     search,
-                    type: partnerType !== 'all' ? partnerType : undefined,
+                    type: partnerType,
                     geo_missing: geoMissing || undefined,
                   });
                 } catch { toast.error('Export failed'); }
