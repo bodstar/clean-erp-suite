@@ -142,15 +142,47 @@ function buildPointsHistory(): PointsHistoryEntry[] {
     }
   }
 
-  return demoRedemptions.map((r, i) => ({
+  const entries: PointsHistoryEntry[] = demoRedemptions.map((r, i) => ({
     id: i + 1,
     date: r.date,
     points: campaignPoints[r.campaign_id] || 10,
+    type: "earned" as const,
     campaign_id: r.campaign_id,
     campaign_name: r.campaign_name,
     redemption_id: r.id,
+    adjusted_by_name: null,
+    reason: null,
     description: `Earned from ${r.campaign_name} redemption`,
   }));
+
+  // Add sample manual adjustment entries
+  const nextId = entries.length + 1;
+  entries.push({
+    id: nextId,
+    date: fmt(subDays(now, 2)),
+    points: -20,
+    type: "deducted",
+    campaign_id: null,
+    campaign_name: null,
+    redemption_id: null,
+    adjusted_by_name: "Emmanuel Nunoo",
+    reason: "Duplicate redemption correction",
+    description: "Manual adjustment by Emmanuel Nunoo",
+  });
+  entries.push({
+    id: nextId + 1,
+    date: fmt(subDays(now, 1)),
+    points: 15,
+    type: "earned",
+    campaign_id: null,
+    campaign_name: null,
+    redemption_id: null,
+    adjusted_by_name: "Ama Serwaa",
+    reason: "Bonus for exceptional service",
+    description: "Manual adjustment by Ama Serwaa",
+  });
+
+  return entries;
 }
 
 export const demoPointsHistory: PointsHistoryEntry[] = buildPointsHistory();

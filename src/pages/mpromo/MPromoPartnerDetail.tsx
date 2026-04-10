@@ -338,16 +338,36 @@ export default function MPromoPartnerDetail() {
                 <div className="space-y-3">
                   {pointsHistory.map((entry) => (
                     <div key={entry.id} className="flex items-start gap-3">
-                      <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                        <Star className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-foreground font-medium">+{entry.points} pts</p>
-                          <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
-                        </div>
-                        <button type="button" className="text-xs text-primary hover:underline" onClick={() => navigate(`/mpromo/campaigns/${entry.campaign_id}`)}>{entry.campaign_name}</button>
-                      </div>
+                      {entry.campaign_id !== null ? (
+                        <>
+                          <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                            <Star className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm text-foreground font-medium text-green-600">+{entry.points} pts</p>
+                              <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                            </div>
+                            <button type="button" className="text-xs text-primary hover:underline" onClick={() => navigate(`/mpromo/campaigns/${entry.campaign_id}`)}>{entry.campaign_name}</button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full shrink-0 ${entry.points >= 0 ? "bg-primary/10" : "bg-destructive/10"}`}>
+                            <PenLine className={`h-3.5 w-3.5 ${entry.points >= 0 ? "text-primary" : "text-destructive"}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className={`text-sm font-medium ${entry.points >= 0 ? "text-green-600" : "text-destructive"}`}>
+                                {entry.points >= 0 ? `+${entry.points}` : entry.points} pts
+                              </p>
+                              <p className="text-xs text-muted-foreground whitespace-nowrap">{entry.date}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Adjusted by {entry.adjusted_by_name}</p>
+                            {entry.reason && <p className="text-xs text-muted-foreground/70">{entry.reason}</p>}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

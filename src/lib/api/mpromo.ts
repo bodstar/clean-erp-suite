@@ -258,17 +258,24 @@ export async function getPartnerPointsHistory(partnerId: number): Promise<Points
         campaignPoints[c.id] = c.tiers[0].loyalty_points;
       }
     }
-    return partnerRedemptions
-      .map((r, i) => ({
-        id: i + 1,
-        date: r.date,
-        points: campaignPoints[r.campaign_id] || 10,
-        campaign_id: r.campaign_id,
-        campaign_name: r.campaign_name,
-        redemption_id: r.id,
-        description: `Earned from ${r.campaign_name} redemption`,
-      }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const redemptionEntries: PointsHistoryEntry[] = partnerRedemptions.map((r, i) => ({
+      id: i + 1,
+      date: r.date,
+      points: campaignPoints[r.campaign_id] || 10,
+      type: "earned" as const,
+      campaign_id: r.campaign_id,
+      campaign_name: r.campaign_name,
+      redemption_id: r.id,
+      adjusted_by_name: null,
+      reason: null,
+      description: `Earned from ${r.campaign_name} redemption`,
+    }));
+    // Include any manual adjustment entries from demo data for this partner
+    const manualEntries = demoPointsHistory.filter(
+      (e) => e.campaign_id === null
+    );
+    const allEntries = [...redemptionEntries, ...manualEntries];
+    return allEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
   const res = await api.get(`/mpromo/partners/${partnerId}/points-history`);
   return res.data;
