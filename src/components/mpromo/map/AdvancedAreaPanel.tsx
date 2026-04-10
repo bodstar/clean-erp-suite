@@ -71,7 +71,7 @@ export function AdvancedAreaPanel({
             size="sm"
             className="h-7 gap-1 text-xs"
             onClick={onAddZone}
-            disabled={zones.length >= 6}
+            disabled={zones.length >= 10}
           >
             <Plus className="h-3.5 w-3.5" /> Add Zone
           </Button>
