@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { DollarSign, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -22,17 +23,25 @@ export default function MPromoPayouts() {
   const [paid, setPaid] = useState<Payout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmPayout, setConfirmPayout] = useState<Payout | null>(null);
+  const [search, setSearch] = useState('');
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const [paidPage, setPaidPage] = useState(1);
+  const [paidTotal, setPaidTotal] = useState(0);
 
   useEffect(() => {
     setIsLoading(true);
     Promise.all([
-      getPayouts({ status: "pending" }, scope),
-      getPayouts({ status: "paid" }, scope),
+      getPayouts({ status: 'pending', page: pendingPage, search: search || undefined }, scope),
+      getPayouts({ status: 'paid', page: paidPage, search: search || undefined }, scope),
     ])
-      .then(([p, d]) => { setPending(p.data); setPaid(d.data); })
+      .then(([p, d]) => {
+        setPending(p.data); setPendingTotal(p.total);
+        setPaid(d.data); setPaidTotal(d.total);
+      })
       .catch(() => { setPending([]); setPaid([]); })
       .finally(() => setIsLoading(false));
-  }, [scope]);
+  }, [pendingPage, paidPage, search, scope]);
 
   const handlePay = async () => {
     if (!confirmPayout) return;
@@ -89,17 +98,24 @@ export default function MPromoPayouts() {
 
   return (
     <div className="space-y-6">
+      <Input
+        placeholder="Search by partner name or phone..."
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setPendingPage(1); setPaidPage(1); }}
+        className="max-w-sm"
+      />
+
       <Card>
         <CardHeader><CardTitle className="text-sm font-semibold">Pending Payouts</CardTitle></CardHeader>
         <CardContent>
-          <DataTable columns={pendingCols} data={pending} isLoading={isLoading} emptyMessage="No pending payouts." />
+          <DataTable columns={pendingCols} data={pending} isLoading={isLoading} emptyMessage="No pending payouts." total={pendingTotal} page={pendingPage} onPageChange={setPendingPage} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-sm font-semibold">Paid Payouts</CardTitle></CardHeader>
         <CardContent>
-          <DataTable columns={paidCols} data={paid} isLoading={isLoading} emptyMessage="No paid payouts yet." />
+          <DataTable columns={paidCols} data={paid} isLoading={isLoading} emptyMessage="No paid payouts yet." total={paidTotal} page={paidPage} onPageChange={setPaidPage} />
         </CardContent>
       </Card>
 
