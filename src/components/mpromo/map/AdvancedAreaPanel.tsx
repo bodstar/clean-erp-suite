@@ -113,11 +113,39 @@ export function AdvancedAreaPanel({
                   onSetActiveZone(isActive ? null : zone.id);
                 }}
               >
-                {/* Color swatch */}
-                <div
-                  className="h-4 w-4 rounded-full shrink-0 border border-border"
-                  style={{ backgroundColor: zone.color }}
-                />
+                {/* Color swatch with picker */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="h-4 w-4 rounded-full shrink-0 border border-border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-shadow"
+                      style={{ backgroundColor: zone.color }}
+                      onClick={(e) => e.stopPropagation()}
+                      title="Change color"
+                      disabled={isDisabled}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="start" side="bottom">
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {ZONE_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${zone.color === c ? "border-foreground scale-110" : "border-transparent"}`}
+                          style={{ backgroundColor: c }}
+                          onClick={() => onUpdateColor(zone.id, c)}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <Input
+                        type="color"
+                        className="h-6 w-6 p-0 border-none cursor-pointer"
+                        value={zone.color}
+                        onChange={(e) => onUpdateColor(zone.id, e.target.value)}
+                      />
+                      <span className="text-[10px] text-muted-foreground">Custom</span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Editable label */}
                 <Input
