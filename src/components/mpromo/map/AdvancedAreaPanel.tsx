@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { AreaZone, ShapeMode, PolygonEndMode, PolygonEditMode } from "@/types/area-zone";
+import { ZONE_COLORS } from "@/types/area-zone";
 
 interface AdvancedAreaPanelProps {
   zones: AreaZone[];
@@ -28,6 +29,7 @@ interface AdvancedAreaPanelProps {
   onSetActiveZone: (id: string | null) => void;
   onSetShapeMode: (id: string, mode: ShapeMode) => void;
   onUpdateLabel: (id: string, label: string) => void;
+  onUpdateColor: (id: string, color: string) => void;
   onUpdatePolygonPointCount: (id: string, count: number) => void;
   onUpdatePolygonEndMode: (id: string, mode: PolygonEndMode) => void;
   onClearAll: () => void;
@@ -45,6 +47,7 @@ export function AdvancedAreaPanel({
   onSetActiveZone,
   onSetShapeMode,
   onUpdateLabel,
+  onUpdateColor,
   onUpdatePolygonPointCount,
   onUpdatePolygonEndMode,
   onClearAll,
@@ -110,11 +113,39 @@ export function AdvancedAreaPanel({
                   onSetActiveZone(isActive ? null : zone.id);
                 }}
               >
-                {/* Color swatch */}
-                <div
-                  className="h-4 w-4 rounded-full shrink-0 border border-border"
-                  style={{ backgroundColor: zone.color }}
-                />
+                {/* Color swatch with picker */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="h-4 w-4 rounded-full shrink-0 border border-border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-shadow"
+                      style={{ backgroundColor: zone.color }}
+                      onClick={(e) => e.stopPropagation()}
+                      title="Change color"
+                      disabled={isDisabled}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="start" side="bottom">
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {ZONE_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${zone.color === c ? "border-foreground scale-110" : "border-transparent"}`}
+                          style={{ backgroundColor: c }}
+                          onClick={() => onUpdateColor(zone.id, c)}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <Input
+                        type="color"
+                        className="h-6 w-6 p-0 border-none cursor-pointer"
+                        value={zone.color}
+                        onChange={(e) => onUpdateColor(zone.id, e.target.value)}
+                      />
+                      <span className="text-[10px] text-muted-foreground">Custom</span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Editable label */}
                 <Input

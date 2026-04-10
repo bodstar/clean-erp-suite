@@ -204,6 +204,17 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setZones((prev) => prev.map((z) => (z.id === id ? { ...z, label } : z)));
   }, []);
 
+  const updateZoneColor = useCallback((id: string, color: string) => {
+    setZones((prev) => prev.map((z) => {
+      if (z.id !== id) return z;
+      // Update layer style if it exists
+      if (z.layer && "setStyle" in z.layer) {
+        (z.layer as L.Path).setStyle({ color, fillColor: color });
+      }
+      return { ...z, color };
+    }));
+  }, []);
+
   const clearAll = useCallback(() => {
     zones.forEach((z) => {
       if (z.layer) layerGroupRef.current.removeLayer(z.layer as L.Layer);
@@ -813,6 +824,7 @@ export function useAdvancedAreaSelection({ map, partners, active }: UseAdvancedA
     setActiveZone: setActiveZoneId,
     setShapeMode,
     updateZoneLabel,
+    updateZoneColor,
     updatePolygonPointCount,
     updatePolygonEndMode,
     clearAll,
