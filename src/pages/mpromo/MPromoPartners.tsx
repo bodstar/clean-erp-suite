@@ -163,7 +163,7 @@ export default function MPromoPartners() {
               <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
                 <Plus className="h-4 w-4" /> Add Partner
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setImportOpen(true)}>
                 <Upload className="h-4 w-4" /> Import CSV
               </Button>
             </div>
