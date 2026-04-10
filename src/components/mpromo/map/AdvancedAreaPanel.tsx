@@ -138,11 +138,26 @@ export function AdvancedAreaPanel({
                     <div className="mt-2 flex items-center gap-1.5">
                       <Input
                         type="color"
-                        className="h-6 w-6 p-0 border-none cursor-pointer"
+                        className="h-6 w-6 p-0 border-none cursor-pointer shrink-0"
                         value={zone.color}
                         onChange={(e) => onUpdateColor(zone.id, e.target.value)}
                       />
-                      <span className="text-[10px] text-muted-foreground">Custom</span>
+                      <Input
+                        className="h-6 w-20 text-[10px] px-1.5 font-mono uppercase"
+                        value={zone.color}
+                        maxLength={7}
+                        onChange={(e) => {
+                          let v = e.target.value;
+                          if (!v.startsWith("#")) v = "#" + v;
+                          if (/^#[0-9a-fA-F]{0,6}$/.test(v)) {
+                            if (v.length === 7) onUpdateColor(zone.id, v);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const v = e.target.value;
+                          if (/^#[0-9a-fA-F]{6}$/.test(v)) onUpdateColor(zone.id, v);
+                        }}
+                      />
                     </div>
                   </PopoverContent>
                 </Popover>
