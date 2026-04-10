@@ -184,6 +184,12 @@ export default function MPromoPartners() {
         variant={confirmPartner?.status === "active" ? "destructive" : "default"}
         onConfirm={handleToggleStatus}
       />
+      <ImportPartnersDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        scope={scope}
+        onSuccess={() => { setPage(1); setRefetchKey((k) => k + 1); }}
+      />
     </div>
   );
 }
