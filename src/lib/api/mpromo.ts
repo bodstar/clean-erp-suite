@@ -692,3 +692,12 @@ export async function getPartnersWithoutGeo(
   });
   return res.data;
 }
+
+export async function exportList(
+  signPath: string,
+  params?: Record<string, unknown>
+): Promise<void> {
+  const res = await api.post(signPath, params || {});
+  const url: string = res.data.data?.url || res.data.url;
+  if (url) window.open(url, '_blank');
+}

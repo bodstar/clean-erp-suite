@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Edit, Ban, CheckCircle, MapPin, LocateFixed, Star, PenLine, Map, ChevronDown, ChevronRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,7 +25,7 @@ import { AdjustPointsModal } from "@/components/mpromo/AdjustPointsModal";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, adjustPartnerPoints, suspendPartner, activatePartner, AccessDeniedError } from "@/lib/api/mpromo";
+import { getPartner, updatePartner, updatePartnerGeolocation, getPartnerRedemptions, getPartnerOrders, getPartnerPointsHistory, adjustPartnerPoints, suspendPartner, activatePartner, AccessDeniedError, exportList } from "@/lib/api/mpromo";
 import { getForms, getSubmissions } from "@/lib/api/market-data";
 import { FormSubmissionsTable } from "@/components/mpromo/FormSubmissionsTable";
 import { FormSubmissionModal } from "@/components/mpromo/FormSubmissionModal";
@@ -71,6 +71,7 @@ export default function MPromoPartnerDetail() {
   const [formSubmissions, setFormSubmissions] = useState<Record<string, FormSubmission[]>>({});
   const [submitFormTarget, setSubmitFormTarget] = useState<FormDefinition | null>(null);
   const [openForms, setOpenForms] = useState<Record<string, boolean>>({});
+  const [isExporting, setIsExporting] = useState(false);
 
   // Load market data forms and submissions for this partner
   useEffect(() => {
@@ -248,6 +249,21 @@ export default function MPromoPartnerDetail() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={isExporting}
+                onClick={async () => {
+                  setIsExporting(true);
+                  try { await exportList(`/mpromo/export/partner/${partner.id}/sign`); }
+                  catch { toast.error('Export failed'); }
+                  finally { setIsExporting(false); }
+                }}
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
               {partner.latitude && partner.longitude && (
                 <Button variant="outline" size="sm" onClick={() => navigate(`/mpromo/map?partner=${partner.id}`)}>
                   <Map className="h-4 w-4 mr-1.5" /> View on Map

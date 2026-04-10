@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +12,7 @@ import { TeamBadge } from "@/components/shared/TeamBadge";
 import { ImportPartnersDialog } from "@/components/mpromo/ImportPartnersDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
-import { getPartners, suspendPartner, activatePartner } from "@/lib/api/mpromo";
+import { getPartners, suspendPartner, activatePartner, exportList } from "@/lib/api/mpromo";
 import type { Partner, PartnerType } from "@/types/mpromo";
 import {
   DropdownMenu,
@@ -39,6 +39,7 @@ export default function MPromoPartners() {
   const [isLoading, setIsLoading] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
   const [refetchKey, setRefetchKey] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [confirmPartner, setConfirmPartner] = useState<Partner | null>(null);
 
@@ -158,16 +159,38 @@ export default function MPromoPartners() {
           </div>
         }
         headerActions={
-          canCreate ? (
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
-                <Plus className="h-4 w-4" /> Add Partner
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setImportOpen(true)}>
-                <Upload className="h-4 w-4" /> Import CSV
-              </Button>
-            </div>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            {canCreate && (
+              <>
+                <Button size="sm" className="gap-1.5" onClick={() => navigate("/mpromo/partners/new")}>
+                  <Plus className="h-4 w-4" /> Add Partner
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setImportOpen(true)}>
+                  <Upload className="h-4 w-4" /> Import CSV
+                </Button>
+              </>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={isExporting}
+              onClick={async () => {
+                setIsExporting(true);
+                try {
+                  await exportList('/mpromo/export/partners/sign', {
+                    search,
+                    type: partnerType !== 'all' ? partnerType : undefined,
+                    geo_missing: geoMissing || undefined,
+                  });
+                } catch { toast.error('Export failed'); }
+                finally { setIsExporting(false); }
+              }}
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? 'Exporting...' : 'Export'}
+            </Button>
+          </div>
         }
       />
 
