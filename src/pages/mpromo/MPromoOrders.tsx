@@ -60,7 +60,7 @@ export default function MPromoOrders() {
           disabled={isExporting}
           onClick={async () => {
             setIsExporting(true);
-            try { await exportList('/mpromo/export/orders/sign', { search }); }
+            try { await exportList('/mpromo/export/orders/sign', { search: search || undefined }, scope); }
             catch { toast.error('Export failed'); }
             finally { setIsExporting(false); }
           }}

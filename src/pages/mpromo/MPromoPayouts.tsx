@@ -117,7 +117,7 @@ export default function MPromoPayouts() {
             disabled={isExportingPending}
             onClick={async () => {
               setIsExportingPending(true);
-              try { await exportList('/mpromo/export/payouts/sign', { search, status: 'pending' }); }
+              try { await exportList('/mpromo/export/payouts/sign', { search: search || undefined, status: 'pending' }, scope); }
               catch { toast.error('Export failed'); }
               finally { setIsExportingPending(false); }
             }}
@@ -141,7 +141,7 @@ export default function MPromoPayouts() {
             disabled={isExportingPaid}
             onClick={async () => {
               setIsExportingPaid(true);
-              try { await exportList('/mpromo/export/payouts/sign', { search, status: 'paid' }); }
+              try { await exportList('/mpromo/export/payouts/sign', { search: search || undefined, status: 'paid' }, scope); }
               catch { toast.error('Export failed'); }
               finally { setIsExportingPaid(false); }
             }}
