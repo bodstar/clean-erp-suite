@@ -194,7 +194,12 @@ export function BatchCard({ batch, scopeMode = "current", canCancel = false, hid
           <div className="flex flex-wrap items-center gap-4 justify-between">
             <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                {!hideCampaignName && <Link to={`/mpromo/campaigns/${batch.campaign_id}`} className="font-semibold text-sm hover:underline">{batch.campaign_name}</Link>}
+                {!hideCampaignName && (
+                  <>
+                    <Link to={`/mpromo/campaigns/${batch.campaign_id}`} className="font-semibold text-sm hover:underline">{batch.campaign_name}</Link>
+                    <span className="text-xs text-muted-foreground">Batch #{batch.id}</span>
+                  </>
+                )}
                 {hideCampaignName && <span className="font-semibold text-sm">Batch #{batch.id}</span>}
                 {scopeMode === "all" && <TeamBadge teamName={batch.team_name} />}
               </div>
