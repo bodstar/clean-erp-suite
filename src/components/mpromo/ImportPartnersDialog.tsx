@@ -130,15 +130,19 @@ export function ImportPartnersDialog({ open, onOpenChange, scope, onSuccess }: I
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const text = reader.result as string;
-      const lines = text.split(/\r?\n/).filter((l) => l.trim() && !l.trim().startsWith("#"));
-      // skip header
-      const dataLines = lines.slice(1);
-      const parsed = dataLines.map((line, i) => validateRow(line.split(","), i + 2));
+      const data = new Uint8Array(reader.result as ArrayBuffer);
+      const wb = XLSX.read(data, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const jsonRows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      // skip header row
+      const dataRows = jsonRows.slice(1).filter((r) => r.some((c) => String(c).trim()));
+      const parsed = dataRows.map((fields, i) =>
+        validateRow(fields.map(String), i + 2)
+      );
       setRows(parsed);
       setStep("preview");
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const validRows = rows.filter((r) => r.valid);
