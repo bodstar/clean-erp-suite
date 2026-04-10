@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Download, ChevronDown, ChevronUp, XCircle, Check, ChevronsUpDown, FileText, FileSpreadsheet, Printer } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,17 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { TeamBadge } from "@/components/shared/TeamBadge";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
 import { getCodeBatches, getCodeBatch, generateCodes, getCampaigns, type CodeBatch } from "@/lib/api/mpromo";
-import type { PromoCode, Campaign } from "@/types/mpromo";
+import type { Campaign } from "@/types/mpromo";
 import { toast } from "sonner";
+import { BatchCard } from "@/components/mpromo/BatchCard";
 
 function BatchCodeTable({ codes, canCancel, onCancel }: { codes: PromoCode[]; canCancel: boolean; onCancel: (code: PromoCode) => void }) {
   return (
