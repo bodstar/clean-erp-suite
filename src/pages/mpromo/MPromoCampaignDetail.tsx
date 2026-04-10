@@ -52,7 +52,7 @@ export default function MPromoCampaignDetail() {
     ])
       .then(([c, batchesRes, redsRes]) => {
         setCampaign(c);
-        setCodeBatches(Array.isArray(batchesRes) ? batchesRes : batchesRes?.data ?? []);
+        setCodeBatches(Array.isArray(batchesRes) ? batchesRes : (batchesRes as any)?.data ?? []);
         setRedemptions(redsRes.data);
       })
       .catch((err) => {
