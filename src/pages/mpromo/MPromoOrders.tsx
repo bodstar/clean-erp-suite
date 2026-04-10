@@ -17,6 +17,7 @@ export default function MPromoOrders() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
