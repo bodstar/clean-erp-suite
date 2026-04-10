@@ -635,7 +635,7 @@ export async function getCampaignCodeBatches(
   const res = await api.get(`/mpromo/campaigns/${campaignId}/codes/batches`, {
     params: scopeParams(scope),
   });
-  return res.data;
+  return res.data.data;
 }
 
 export async function getCampaignRedemptions(
