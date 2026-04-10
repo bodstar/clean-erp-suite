@@ -6,6 +6,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Download, Upload, CheckCircle2, XCircle, FileText } from "lucide-react";
+import * as XLSX from "xlsx";
 import { createPartner } from "@/lib/api/mpromo";
 import type { MPromoScope } from "@/types/mpromo";
 
