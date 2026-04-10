@@ -11,11 +11,12 @@
  * Form metrics use the composite key format: `form_metric:{formId}:{metricId}:{groupValue}`
  */
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import type { MapPartner } from "@/types/mpromo";
 import type { HeatMetric, HeatStyle } from "./MapFilterBar";
 import { getFormMetricHeatmapData, getFormHeatMetricOptions } from "@/lib/api/market-data";
+import type { HeatmapMetricDef } from "@/types/market-data";
 
 /** Map a normalized ratio (0–1) to a green→yellow→red color gradient */
 function getHeatColor(ratio: number): string {
@@ -49,13 +50,15 @@ function getMetricValue(p: MapPartner, metric: HeatMetric, formMetricData?: Reco
 }
 
 /** Get a human-readable label for a heatmap metric (used in tooltips) */
-function getMetricLabel(metric: HeatMetric): string {
+function getMetricLabel(
+  metric: HeatMetric,
+  cachedOptions: { formId: string; formName: string; metrics: HeatmapMetricDef[] }[]
+): string {
   if (metric.startsWith("form_metric:")) {
     const parts = metric.split(":");
     const formId = parts[1];
     const metricId = parts[2];
-    const options = getFormHeatMetricOptions();
-    const form = options.find((f) => f.formId === formId);
+    const form = cachedOptions.find((f) => f.formId === formId);
     const m = form?.metrics.find((m) => m.id === metricId);
     return m ? `${form!.formName}: ${m.name}` : "Market Data";
   }
@@ -74,12 +77,15 @@ function getMetricLabel(metric: HeatMetric): string {
 }
 
 /** Get a short intensity label for the heatmap legend */
-export function getHeatMetricIntensityLabel(metric: HeatMetric): string {
+export function getHeatMetricIntensityLabel(
+  metric: HeatMetric,
+  cachedOptions?: { formId: string; formName: string; metrics: HeatmapMetricDef[] }[]
+): string {
   if (metric.startsWith("form_metric:")) {
     const parts = metric.split(":");
     const formId = parts[1];
     const metricId = parts[2];
-    const options = getFormHeatMetricOptions();
+    const options = cachedOptions ?? [];
     const form = options.find((f) => f.formId === formId);
     const m = form?.metrics.find((m) => m.id === metricId);
     return m ? m.name : "Market Data";
@@ -108,15 +114,6 @@ function pixelRadiusToMeters(map: L.Map, center: L.LatLng, pixelRadius: number):
 
 /**
  * Render a smooth density heatmap onto an HTML canvas using radial gradients.
- * Each data point creates a circular alpha gradient; the combined alpha values
- * are then colorized using a green→yellow→red palette lookup table.
- *
- * @param map - Leaflet map instance (for coordinate→pixel conversion)
- * @param canvas - Target canvas element positioned over the map
- * @param data - Array of geographic points with normalized intensity (0–1)
- * @param radius - Base radius in pixels for each heat point
- * @param blur - Additional blur radius in pixels
- * @param gradient - Color stops for the palette (0.0–1.0)
  */
 function drawSmoothHeatmap(
   map: L.Map,
@@ -189,14 +186,26 @@ interface UseMapHeatLayerOptions {
  * Cleans up canvas and event listeners on unmount.
  */
 export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, onCircleClick }: UseMapHeatLayerOptions) {
+  // Cache form metric options for label lookups
+  const [formOptions, setFormOptions] = useState<{ formId: string; formName: string; metrics: HeatmapMetricDef[] }[]>([]);
+
+  useEffect(() => {
+    getFormHeatMetricOptions().then(setFormOptions);
+  }, []);
+
   // Compute form metric data if needed
-  const formMetricData = useMemo(() => {
-    if (!heatMetric.startsWith("form_metric:")) return undefined;
+  const [formMetricData, setFormMetricData] = useState<Record<number, number> | undefined>(undefined);
+
+  useEffect(() => {
+    if (!heatMetric.startsWith("form_metric:")) {
+      setFormMetricData(undefined);
+      return;
+    }
     const parts = heatMetric.split(":");
     const formId = parts[1];
     const metricId = parts[2];
-    const groupValue = parts[3]; // may be undefined
-    return getFormMetricHeatmapData(formId, metricId, groupValue);
+    const groupValue = parts[3];
+    getFormMetricHeatmapData(formId, metricId, groupValue).then(setFormMetricData);
   }, [heatMetric]);
 
   const circleLayerRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -272,7 +281,7 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
       map.on("moveend", redraw);
       map.on("zoomend", redraw);
     } else {
-      const label = getMetricLabel(heatMetric);
+      const label = getMetricLabel(heatMetric, formOptions);
 
       partners.forEach((p) => {
         const val = getMetricValue(p, heatMetric, formMetricData);
@@ -305,5 +314,5 @@ export function useMapHeatLayer({ map, partners, heatmap, heatMetric, heatStyle,
         circleLayerRef.current.addLayer(circle);
       });
     }
-  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick, formMetricData]);
+  }, [partners, heatmap, heatMetric, heatStyle, heatRadius, heatBlur, heatOpacity, map, onCircleClick, formMetricData, formOptions]);
 }

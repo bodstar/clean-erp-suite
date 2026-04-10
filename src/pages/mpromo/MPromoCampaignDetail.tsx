@@ -30,7 +30,8 @@ export default function MPromoCampaignDetail() {
   const navigate = useNavigate();
   const { hasPermission, currentTeamId } = useAuth();
   const { scopeMode, targetTeamId } = useMPromoScope();
-  const canManage = hasPermission("mpromo.campaign.manage") && scopeMode !== "all";
+  const canManage   = hasPermission("mpromo.campaigns.manage") && scopeMode !== "all";
+  const canActivate = hasPermission("mpromo.campaigns.activate") && scopeMode !== "all";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [codes, setCodes] = useState<PromoCode[]>([]);
@@ -221,7 +222,7 @@ export default function MPromoCampaignDetail() {
                 </div>
               )}
             </div>
-            {canManage && (
+            {canActivate && (
               <div className="flex gap-2 shrink-0">
                 {campaign.status !== "active" && campaign.status !== "ended" && (
                   <Button size="sm" onClick={() => handleAction("activate")} className="gap-1.5">

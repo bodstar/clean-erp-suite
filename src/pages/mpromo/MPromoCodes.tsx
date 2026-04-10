@@ -21,7 +21,8 @@ import { toast } from "sonner";
 export default function MPromoCodes() {
   const { hasPermission } = useAuth();
   const { scope, scopeMode } = useMPromoScope();
-  const canManage = hasPermission("mpromo.codes.manage") && scopeMode !== "all";
+  const canGenerate = hasPermission("mpromo.codes.generate") && scopeMode !== "all";
+  const canCancel   = hasPermission("mpromo.codes.cancel") && scopeMode !== "all";
 
   const [data, setData] = useState<PromoCode[]>([]);
   const [total, setTotal] = useState(0);
@@ -120,7 +121,7 @@ export default function MPromoCodes() {
     ...(scopeMode === "all"
       ? [{ key: "team_name", header: "Team", render: (r: PromoCode) => <TeamBadge teamName={r.team_name} /> } as DataTableColumn<PromoCode>]
       : []),
-    ...(canManage
+    ...(canCancel
       ? [{
           key: "action",
           header: "",
@@ -137,7 +138,7 @@ export default function MPromoCodes() {
 
   return (
     <div className="space-y-4">
-      {canManage && (
+      {canGenerate && (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Generate Codes</CardTitle>

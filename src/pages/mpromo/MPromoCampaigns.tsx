@@ -27,7 +27,7 @@ export default function MPromoCampaigns() {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const { scope, scopeMode } = useMPromoScope();
-  const canManage = hasPermission("mpromo.campaign.manage") && scopeMode !== "all";
+  const canManage = hasPermission("mpromo.campaigns.manage") && scopeMode !== "all";
 
   const [data, setData] = useState<Campaign[]>([]);
   const [total, setTotal] = useState(0);

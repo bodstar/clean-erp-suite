@@ -101,14 +101,13 @@ export function MapFilterBar({
   const [groupValues, setGroupValues] = useState<string[]>([]);
 
   useEffect(() => {
-    setFormOptions(getFormHeatMetricOptions());
+    getFormHeatMetricOptions().then(setFormOptions);
   }, []);
 
   // Load group values when metric changes
   useEffect(() => {
     if (heatFormId && heatMetricId) {
-      const vals = getGroupByValues(heatFormId, heatMetricId);
-      setGroupValues(vals);
+      getGroupByValues(heatFormId, heatMetricId).then(setGroupValues);
     } else {
       setGroupValues([]);
     }
