@@ -9,6 +9,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute, PublicRoute } from "@/components/auth/RouteGuards";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 import { MPromoLayout } from "@/components/mpromo/MPromoLayout";
+import { SDLayout } from "@/components/sd/SDLayout";
 
 import LoginPage from "@/pages/Login";
 import ForgotPasswordPage from "@/pages/ForgotPassword";
@@ -18,6 +19,15 @@ import MasterDataPage from "@/pages/MasterData";
 import InventoryPage from "@/pages/Inventory";
 import ProductionPage from "@/pages/Production";
 import SalesPage from "@/pages/Sales";
+import SDOverview from "@/pages/sd/SDOverview";
+import SDOrders from "@/pages/sd/SDOrders";
+import SDOrderDetail from "@/pages/sd/SDOrderDetail";
+import SDOrderCreate from "@/pages/sd/SDOrderCreate";
+import SDProducts from "@/pages/sd/SDProducts";
+import SDCustomers from "@/pages/sd/SDCustomers";
+import SDDrivers from "@/pages/sd/SDDrivers";
+import SDRoutes from "@/pages/sd/SDRoutes";
+import SDMap from "@/pages/sd/SDMap";
 import FinancePage from "@/pages/Finance";
 import FranchisePage from "@/pages/Franchise";
 import ReportsPage from "@/pages/Reports";
@@ -65,6 +75,20 @@ const App = () => (
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/production" element={<ProductionPage />} />
                 <Route path="/sales" element={<SalesPage />} />
+
+                {/* S&D module */}
+                <Route path="/sd" element={<SDLayout />}>
+                  <Route index element={<Navigate to="/sd/overview" replace />} />
+                  <Route path="overview" element={<SDOverview />} />
+                  <Route path="orders" element={<SDOrders />} />
+                  <Route path="orders/new" element={<SDOrderCreate />} />
+                  <Route path="orders/:id" element={<SDOrderDetail />} />
+                  <Route path="products" element={<SDProducts />} />
+                  <Route path="customers" element={<SDCustomers />} />
+                  <Route path="drivers" element={<SDDrivers />} />
+                  <Route path="routes" element={<SDRoutes />} />
+                  <Route path="map" element={<SDMap />} />
+                </Route>
                 <Route path="/finance" element={<FinancePage />} />
                 <Route path="/franchise" element={<FranchisePage />} />
                 <Route path="/reports" element={<ReportsPage />} />
