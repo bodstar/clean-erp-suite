@@ -209,3 +209,133 @@ export async function updateSDOrderStatus(
   if (DEMO_MODE) return;
   await api.post(`/sd/orders/${id}/status`, { status, notes });
 }
+
+// ─── Drivers ────────────────────────────────────────────────────────────────
+
+export async function getDrivers(
+  params?: Record<string, unknown>,
+  scope?: SDScope
+): Promise<{ data: SDDriver[]; total: number }> {
+  if (DEMO_MODE) {
+    let filtered = filterByScope([...demoDrivers], scope);
+    if (params?.search) {
+      const q = String(params.search).toLowerCase();
+      filtered = filtered.filter(d =>
+        d.name.toLowerCase().includes(q) || d.phone.includes(String(params.search))
+      );
+    }
+    if (params?.status && params.status !== 'all') {
+      filtered = filtered.filter(d => d.status === params.status);
+    }
+    return { data: filtered, total: filtered.length };
+  }
+  const res = await api.get('/sd/drivers', { params: { ...params, ...scopeParams(scope) } });
+  return res.data;
+}
+
+export async function getDriver(id: number): Promise<SDDriver> {
+  if (DEMO_MODE) {
+    const found = demoDrivers.find(d => d.id === id);
+    if (!found) throw new Error('Driver not found');
+    return found;
+  }
+  const res = await api.get(`/sd/drivers/${id}`);
+  return res.data;
+}
+
+export async function createDriver(data: Partial<SDDriver>): Promise<SDDriver> {
+  if (DEMO_MODE) {
+    return { ...data, id: Date.now(), status: 'available' as const, is_available: true,
+      team_id: 1, created_at: new Date().toISOString() } as SDDriver;
+  }
+  const res = await api.post('/sd/drivers', data);
+  return res.data;
+}
+
+export async function updateDriver(id: number, data: Partial<SDDriver>): Promise<SDDriver> {
+  if (DEMO_MODE) {
+    const found = demoDrivers.find(d => d.id === id) ?? ({} as SDDriver);
+    return { ...found, ...data };
+  }
+  const res = await api.put(`/sd/drivers/${id}`, data);
+  return res.data;
+}
+
+export async function toggleDriverAvailability(id: number): Promise<void> {
+  if (DEMO_MODE) return;
+  await api.post(`/sd/drivers/${id}/toggle-availability`);
+}
+
+export async function assignDriver(orderId: number, driverId: number): Promise<void> {
+  if (DEMO_MODE) return;
+  await api.post(`/sd/orders/${orderId}/assign-driver`, { driver_id: driverId });
+}
+
+// ─── Routes ─────────────────────────────────────────────────────────────────
+
+export async function getRoutes(
+  params?: Record<string, unknown>,
+  scope?: SDScope
+): Promise<{ data: SDRouteSummary[]; total: number }> {
+  if (DEMO_MODE) {
+    let filtered = filterByScope([...demoRoutes], scope);
+    if (params?.status && params.status !== 'all') {
+      filtered = filtered.filter(r => r.status === params.status);
+    }
+    if (params?.driver_id) {
+      filtered = filtered.filter(r => r.driver_id === Number(params.driver_id));
+    }
+    return { data: filtered, total: filtered.length };
+  }
+  const res = await api.get('/sd/routes', { params: { ...params, ...scopeParams(scope) } });
+  return res.data;
+}
+
+export async function getRoute(id: number): Promise<SDRoute> {
+  if (DEMO_MODE) {
+    const detail = demoRouteDetails[id];
+    if (detail) return detail;
+    const summary = demoRoutes.find(r => r.id === id);
+    if (summary) return { ...summary, stops: [] };
+    throw new Error('Route not found');
+  }
+  const res = await api.get(`/sd/routes/${id}`);
+  return res.data;
+}
+
+export async function createRoute(data: {
+  driver_id: number;
+  date: string;
+  stops: { order_id: number; sequence: number }[];
+}, scope?: SDScope): Promise<SDRoute> {
+  if (DEMO_MODE) {
+    return { id: Date.now(), driver_id: data.driver_id, driver_name: 'Demo Driver',
+      driver_vehicle: 'Vehicle', team_id: 1, status: 'draft', date: data.date,
+      optimised_by: 'manual', stop_count: data.stops.length, completed_stops: 0,
+      stops: [], created_at: new Date().toISOString() } as SDRoute;
+  }
+  const res = await api.post('/sd/routes', data, { params: scopeParams(scope) });
+  return res.data;
+}
+
+export async function optimiseRoute(id: number): Promise<SDRoute> {
+  if (DEMO_MODE) {
+    const route = await getRoute(id);
+    const optimised = { ...route,
+      optimised_by: 'system' as RouteOptimisedBy,
+      stops: [...route.stops].reverse().map((s, i) => ({ ...s, sequence: i + 1 }))
+    };
+    return optimised;
+  }
+  const res = await api.post(`/sd/routes/${id}/optimise`);
+  return res.data;
+}
+
+export async function updateRouteStopStatus(
+  routeId: number,
+  stopId: number,
+  status: RouteStopStatus
+): Promise<void> {
+  if (DEMO_MODE) return;
+  await api.post(`/sd/routes/${routeId}/stops/${stopId}/status`, { status });
+}
