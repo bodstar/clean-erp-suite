@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Save, LocateFixed, MapPin } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -91,7 +91,11 @@ function LocationPreviewMap({ latitude, longitude }: { latitude: number; longitu
 
 export default function MPromoPartnerCreate() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { scope } = useMPromoScope();
+
+  const prefillName = searchParams.get("name") || "";
+  const prefillPhone = searchParams.get("phone") || "";
 
   const [mapOpen, setMapOpen] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -100,8 +104,8 @@ export default function MPromoPartnerCreate() {
   const form = useForm<PartnerFormValues>({
     resolver: zodResolver(partnerSchema),
     defaultValues: {
-      name: "",
-      phone: "",
+      name: prefillName,
+      phone: prefillPhone,
       type: "CHILLER",
       location: "",
     },

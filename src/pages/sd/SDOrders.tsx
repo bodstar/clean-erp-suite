@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { SourceBadge } from "@/components/sd/SourceBadge";
 import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useAuth } from "@/providers/AuthProvider";
 import { getSDOrders } from "@/lib/api/sd";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -45,16 +47,26 @@ export default function SDOrders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const canCreate = hasPermission("sd.orders.create");
 
   useEffect(() => {
     setIsLoading(true);
-    getSDOrders({ page, search: search || undefined, status: statusFilter, source: sourceFilter })
+    getSDOrders({
+      page,
+      search: search || undefined,
+      status: statusFilter,
+      source: sourceFilter,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
+    })
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [page, search, statusFilter, sourceFilter]);
+  }, [page, search, statusFilter, sourceFilter, dateFrom, dateTo]);
 
   const columns: DataTableColumn<SDOrderSummary>[] = [
     {
@@ -141,15 +153,45 @@ export default function SDOrders() {
               ))}
             </SelectContent>
           </Select>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-[150px]"
+            placeholder="From"
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-[150px]"
+            placeholder="To"
+          />
         </>
       }
       headerActions={
-        canCreate ? (
-          <Button size="sm" className="gap-1.5" onClick={() => navigate("/sd/orders/new")}>
-            <Plus className="h-4 w-4" />
-            New Order
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={isExporting}
+            onClick={() => {
+              setIsExporting(true);
+              toast.info("Export coming soon");
+              setIsExporting(false);
+            }}
+          >
+            <Download className="h-4 w-4" />
+            Export
           </Button>
-        ) : undefined
+          {canCreate && (
+            <Button size="sm" className="gap-1.5" onClick={() => navigate("/sd/orders/new")}>
+              <Plus className="h-4 w-4" />
+              New Order
+            </Button>
+          )}
+        </div>
       }
     />
   );
