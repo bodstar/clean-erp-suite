@@ -152,6 +152,8 @@ export default function SDRoutes() {
         </button>
       ),
     },
+    {
+      key: "driver", header: "Driver & Vehicle",
       render: (row) => (
         <div>
           <span className="font-medium">{row.driver_name}</span>
