@@ -278,7 +278,41 @@ export default function SDOrderDetail() {
         </Card>
       </div>
 
-      {/* Items Table */}
+      {/* Driver Assignment */}
+      {order.status === "confirmed" && canManage && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">Assign Driver</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
+                <SelectTrigger className="sm:w-[280px]">
+                  <SelectValue placeholder="Select a driver" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDrivers.map(d => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.name} · {d.vehicle_type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                disabled={!selectedDriverId || isAssigning}
+                onClick={handleAssignDriver}
+              >
+                {isAssigning ? "Assigning..." : "Assign Driver"}
+              </Button>
+            </div>
+            {availableDrivers.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-2">No available drivers at the moment.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-semibold">Order Items</CardTitle>
