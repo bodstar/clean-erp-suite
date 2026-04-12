@@ -222,12 +222,8 @@ export default function SDRoutes() {
         }
       />
 
-      {/* Clickable rows - using CSS on the table */}
-      {!isLoading && data.length > 0 && (
-        <style>{`
-          .route-table-clickable tr[data-route-id] { cursor: pointer; }
-        `}</style>
-      )}
+
+
 
       {/* Create Route Wizard */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
