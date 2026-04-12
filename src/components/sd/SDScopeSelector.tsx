@@ -31,7 +31,7 @@ export function SDScopeSelector() {
   return (
     <div className="flex flex-col gap-2 p-3 bg-muted/50 rounded-lg border border-border">
       <span className="text-xs font-medium text-muted-foreground">Scope:</span>
-      <div className={isMobile ? "flex flex-col gap-1.5" : "flex flex-wrap gap-1"}>
+      <div className={isMobile ? "flex flex-col gap-1.5" : "flex flex-wrap items-center gap-1"}>
         {modes.filter((m) => m.show).map((m) => (
           <Button
             key={m.value}
@@ -44,13 +44,33 @@ export function SDScopeSelector() {
             {m.label}
           </Button>
         ))}
+        {scopeMode === "target" && !isMobile && (
+          <Select
+            value={targetTeamId ? String(targetTeamId) : ""}
+            onValueChange={(v) => setTargetTeamId(Number(v))}
+          >
+            <SelectTrigger className="w-[200px] h-8 text-xs">
+              <SelectValue placeholder="Select team..." />
+            </SelectTrigger>
+            <SelectContent>
+              {teams.map((t) => (
+                <SelectItem key={t.id} value={String(t.id)}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {scopeMode === "all" && !isMobile && (
+          <span className="text-xs text-muted-foreground italic ml-1">Read-only aggregated view</span>
+        )}
       </div>
-      {scopeMode === "target" && (
+      {scopeMode === "target" && isMobile && (
         <Select
           value={targetTeamId ? String(targetTeamId) : ""}
           onValueChange={(v) => setTargetTeamId(Number(v))}
         >
-          <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs">
+          <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Select team..." />
           </SelectTrigger>
           <SelectContent>
@@ -62,7 +82,7 @@ export function SDScopeSelector() {
           </SelectContent>
         </Select>
       )}
-      {scopeMode === "all" && (
+      {scopeMode === "all" && isMobile && (
         <span className="text-xs text-muted-foreground italic">Read-only aggregated view</span>
       )}
     </div>
