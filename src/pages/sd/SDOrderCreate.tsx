@@ -151,7 +151,7 @@ export default function SDOrderCreate() {
           line_total: it.quantity * it.unit_price,
           price_override_note: it.unit_price !== it.computed_unit_price ? "Manual price override" : undefined,
         })),
-      });
+      }, scope);
       toast.success(`Order ${order.order_no} created`);
       navigate(`/sd/orders/${order.id}`);
     } catch {
