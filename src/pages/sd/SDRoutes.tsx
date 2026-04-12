@@ -141,9 +141,17 @@ export default function SDRoutes() {
   const selectedDriverObj = availableDrivers.find(d => d.id === Number(selectedDriverId));
 
   const columns: DataTableColumn<SDRouteSummary>[] = [
-    { key: "date", header: "Date" },
     {
-      key: "driver", header: "Driver & Vehicle",
+      key: "date", header: "Date",
+      render: (row) => (
+        <button
+          className="text-primary hover:underline font-medium text-left"
+          onClick={() => navigate(`/sd/routes/${row.id}`)}
+        >
+          {row.date}
+        </button>
+      ),
+    },
       render: (row) => (
         <div>
           <span className="font-medium">{row.driver_name}</span>
