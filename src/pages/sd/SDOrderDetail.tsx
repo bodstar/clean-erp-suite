@@ -8,6 +8,9 @@ import { SourceBadge } from "@/components/sd/SourceBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,13 +23,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getSDOrder, updateSDOrderStatus } from "@/lib/api/sd";
+import { getSDOrder, updateSDOrderStatus, getDrivers, assignDriver } from "@/lib/api/sd";
+import { useSDScope } from "@/providers/SDScopeProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "sonner";
-import type { SDOrder } from "@/types/sd";
+import type { SDOrder, SDDriver } from "@/types/sd";
 
 export default function SDOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { scope } = useSDScope();
+  const { hasPermission } = useAuth();
+  const canManage = hasPermission("sd.orders.manage");
+
   const [order, setOrder] = useState<SDOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmAction, setConfirmAction] = useState<{
@@ -35,6 +44,11 @@ export default function SDOrderDetail() {
     status: string;
     variant?: "default" | "destructive";
   } | null>(null);
+
+  // Driver assignment state
+  const [availableDrivers, setAvailableDrivers] = useState<SDDriver[]>([]);
+  const [selectedDriverId, setSelectedDriverId] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     if (!id) return;
