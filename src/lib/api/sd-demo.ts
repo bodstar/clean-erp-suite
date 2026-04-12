@@ -4,6 +4,9 @@ import type {
   UnregisteredCustomer,
   SDOrder,
   SDOrderSummary,
+  SDDriver,
+  SDRoute,
+  SDRouteSummary,
 } from "@/types/sd";
 
 export const demoCategories: ProductCategory[] = [
@@ -215,6 +218,82 @@ export const demoOrderDetails: Record<number, SDOrder> = {
         id: 5, product_id: 3, product_name: "1L PET Bottle", product_sku: "MW-1LP",
         unit_of_measure: "pack", quantity: 2, computed_unit_price: 34.00, unit_price: 34.00,
         line_total: 68.00,
+      },
+    ],
+  },
+};
+
+// ─── Drivers ─────────────────────────────────────────────────────────────────
+
+export const demoDrivers: SDDriver[] = [
+  {
+    id: 1, user_id: 10, name: 'Emmanuel Tetteh', phone: '0244123456',
+    license_no: 'GH-DL-2021-004521', vehicle_type: 'Pickup Truck',
+    vehicle_plate: 'GR-1234-21', status: 'on_delivery', is_available: true,
+    current_lat: 5.6037, current_lng: -0.1870,
+    last_location_at: new Date().toISOString(),
+    active_route_id: 1, team_id: 2, team_name: 'Franchise – Accra Central',
+    created_at: '2026-01-15T00:00:00Z',
+  },
+  {
+    id: 2, user_id: 11, name: 'Isaac Owusu', phone: '0201987654',
+    license_no: 'GH-DL-2020-003311', vehicle_type: 'Motorbike',
+    vehicle_plate: 'M-4521-22', status: 'available', is_available: true,
+    current_lat: 5.5913, current_lng: -0.2068,
+    last_location_at: new Date().toISOString(),
+    team_id: 2, team_name: 'Franchise – Accra Central',
+    created_at: '2026-02-01T00:00:00Z',
+  },
+  {
+    id: 3, user_id: 12, name: 'Abena Kyei', phone: '0559876543',
+    license_no: 'GH-DL-2022-007812', vehicle_type: 'Van',
+    vehicle_plate: 'AS-3310-20', status: 'off_duty', is_available: false,
+    team_id: 3, team_name: 'Franchise – Kumasi',
+    created_at: '2026-03-01T00:00:00Z',
+  },
+];
+
+// ─── Routes ──────────────────────────────────────────────────────────────────
+
+export const demoRoutes: SDRouteSummary[] = [
+  {
+    id: 1, driver_id: 1, driver_name: 'Emmanuel Tetteh',
+    driver_vehicle: 'Pickup Truck · GR-1234-21',
+    team_id: 2, team_name: 'Franchise – Accra Central',
+    status: 'active', date: '2026-04-12', optimised_by: 'system',
+    stop_count: 3, completed_stops: 1, created_at: '2026-04-11T18:00:00Z',
+  },
+  {
+    id: 2, driver_id: 2, driver_name: 'Isaac Owusu',
+    driver_vehicle: 'Motorbike · M-4521-22',
+    team_id: 2, team_name: 'Franchise – Accra Central',
+    status: 'draft', date: '2026-04-13', optimised_by: 'manual',
+    stop_count: 2, completed_stops: 0, created_at: '2026-04-11T20:00:00Z',
+  },
+];
+
+export const demoRouteDetails: Record<number, SDRoute> = {
+  1: {
+    ...demoRoutes[0],
+    stops: [
+      {
+        id: 1, route_id: 1, order_id: 1, order_no: 'SD-2026-00001', sequence: 1,
+        status: 'completed', customer_name: 'Kwame Asante Cold Store',
+        delivery_address: 'Kaneshie Market, Accra',
+        delivery_lat: 5.5502, delivery_lng: -0.2174,
+        completed_at: '2026-04-12T10:30:00Z',
+      },
+      {
+        id: 2, route_id: 1, order_id: 2, order_no: 'SD-2026-00002', sequence: 2,
+        status: 'arrived', customer_name: 'Afia Ice Water',
+        delivery_address: 'Tema Station, Accra',
+        delivery_lat: 5.6168, delivery_lng: -0.0165,
+      },
+      {
+        id: 3, route_id: 1, order_id: 4, order_no: 'SD-2026-00004', sequence: 3,
+        status: 'pending', customer_name: 'Yaw Boateng Chillers',
+        delivery_address: 'Lapaz, Accra',
+        delivery_lat: 5.6270, delivery_lng: -0.2341,
       },
     ],
   },

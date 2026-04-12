@@ -52,6 +52,7 @@ import MPromoFormDetail from "@/pages/mpromo/MPromoFormDetail";
 const MPromoPartnerDetail = lazy(() => import("@/pages/mpromo/MPromoPartnerDetail"));
 const MPromoMap = lazy(() => import("@/pages/mpromo/MPromoMap"));
 const MPromoGeoQueue = lazy(() => import("@/pages/mpromo/MPromoGeoQueue"));
+const SDRouteDetail = lazy(() => import("@/pages/sd/SDRouteDetail"));
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -87,6 +88,7 @@ const App = () => (
                   <Route path="customers" element={<SDCustomers />} />
                   <Route path="drivers" element={<SDDrivers />} />
                   <Route path="routes" element={<SDRoutes />} />
+                  <Route path="routes/:id" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading route...</div>}><SDRouteDetail /></Suspense>} />
                   <Route path="map" element={<SDMap />} />
                 </Route>
                 <Route path="/finance" element={<FinancePage />} />

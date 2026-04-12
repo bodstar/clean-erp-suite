@@ -8,6 +8,9 @@ import { SourceBadge } from "@/components/sd/SourceBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,13 +23,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getSDOrder, updateSDOrderStatus } from "@/lib/api/sd";
+import { getSDOrder, updateSDOrderStatus, getDrivers, assignDriver } from "@/lib/api/sd";
+import { useSDScope } from "@/providers/SDScopeProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "sonner";
-import type { SDOrder } from "@/types/sd";
+import type { SDOrder, SDDriver } from "@/types/sd";
 
 export default function SDOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { scope } = useSDScope();
+  const { hasPermission } = useAuth();
+  const canManage = hasPermission("sd.orders.manage");
+
   const [order, setOrder] = useState<SDOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmAction, setConfirmAction] = useState<{
@@ -35,6 +44,11 @@ export default function SDOrderDetail() {
     status: string;
     variant?: "default" | "destructive";
   } | null>(null);
+
+  // Driver assignment state
+  const [availableDrivers, setAvailableDrivers] = useState<SDDriver[]>([]);
+  const [selectedDriverId, setSelectedDriverId] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -47,6 +61,35 @@ export default function SDOrderDetail() {
       })
       .finally(() => setIsLoading(false));
   }, [id, navigate]);
+
+  // Load available drivers when order is confirmed
+  useEffect(() => {
+    if (order?.status === "confirmed" && canManage) {
+      getDrivers({ status: "available" }, scope).then(res => {
+        setAvailableDrivers(res.data);
+      }).catch(() => {});
+    }
+  }, [order?.status, canManage, scope]);
+
+  const handleAssignDriver = async () => {
+    if (!order || !selectedDriverId) return;
+    setIsAssigning(true);
+    try {
+      await assignDriver(order.id, Number(selectedDriverId));
+      const driverObj = availableDrivers.find(d => d.id === Number(selectedDriverId));
+      setOrder(prev => prev ? {
+        ...prev,
+        status: "assigned" as const,
+        driver_id: Number(selectedDriverId),
+        driver_name: driverObj?.name || "Assigned Driver",
+      } : prev);
+      toast.success("Driver assigned");
+    } catch {
+      toast.error("Failed to assign driver");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const handleStatusUpdate = async () => {
     if (!order || !confirmAction) return;
@@ -235,7 +278,41 @@ export default function SDOrderDetail() {
         </Card>
       </div>
 
-      {/* Items Table */}
+      {/* Driver Assignment */}
+      {order.status === "confirmed" && canManage && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">Assign Driver</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
+                <SelectTrigger className="sm:w-[280px]">
+                  <SelectValue placeholder="Select a driver" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDrivers.map(d => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.name} · {d.vehicle_type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                disabled={!selectedDriverId || isAssigning}
+                onClick={handleAssignDriver}
+              >
+                {isAssigning ? "Assigning..." : "Assign Driver"}
+              </Button>
+            </div>
+            {availableDrivers.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-2">No available drivers at the moment.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-semibold">Order Items</CardTitle>

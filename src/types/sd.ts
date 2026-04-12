@@ -122,3 +122,66 @@ export interface SDOrder {
 export interface SDOrderSummary extends Omit<SDOrder, "items"> {
   item_count: number;
 }
+
+// ─── Drivers ─────────────────────────────────────────────────────────────────
+
+export type DriverStatus = 'available' | 'on_delivery' | 'off_duty';
+
+export interface SDDriver {
+  id: number;
+  user_id: number;
+  name: string;
+  phone: string;
+  license_no: string;
+  vehicle_type: string;
+  vehicle_plate: string;
+  status: DriverStatus;
+  is_available: boolean;
+  current_lat?: number;
+  current_lng?: number;
+  last_location_at?: string;
+  active_route_id?: number;
+  team_id: number;
+  team_name?: string;
+  created_at: string;
+}
+
+// ─── Routes ──────────────────────────────────────────────────────────────────
+
+export type RouteStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+export type RouteStopStatus = 'pending' | 'arrived' | 'completed' | 'skipped';
+export type RouteOptimisedBy = 'manual' | 'system';
+
+export interface SDRouteStop {
+  id: number;
+  route_id: number;
+  order_id: number;
+  order_no: string;
+  sequence: number;
+  status: RouteStopStatus;
+  customer_name: string;
+  delivery_address: string;
+  delivery_lat?: number;
+  delivery_lng?: number;
+  arrived_at?: string;
+  completed_at?: string;
+  notes?: string;
+}
+
+export interface SDRoute {
+  id: number;
+  driver_id: number;
+  driver_name: string;
+  driver_vehicle: string;
+  team_id: number;
+  team_name?: string;
+  status: RouteStatus;
+  date: string;
+  optimised_by: RouteOptimisedBy;
+  stop_count: number;
+  completed_stops: number;
+  stops: SDRouteStop[];
+  created_at: string;
+}
+
+export interface SDRouteSummary extends Omit<SDRoute, 'stops'> {}
