@@ -49,7 +49,7 @@ export function ScopeSelector() {
             value={targetTeamId ? String(targetTeamId) : ""}
             onValueChange={(v) => setTargetTeamId(Number(v))}
           >
-            <SelectTrigger className="w-[200px] h-8 text-xs">
+            <SelectTrigger className="w-full lg:w-[200px] h-8 text-xs">
               <SelectValue placeholder="Select team..." />
             </SelectTrigger>
             <SelectContent>
