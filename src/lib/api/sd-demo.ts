@@ -4,6 +4,9 @@ import type {
   UnregisteredCustomer,
   SDOrder,
   SDOrderSummary,
+  SDDriver,
+  SDRoute,
+  SDRouteSummary,
 } from "@/types/sd";
 
 export const demoCategories: ProductCategory[] = [
