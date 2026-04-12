@@ -24,7 +24,7 @@ export const navigationItems: NavItem[] = [
   { label: "Master Data", path: "/master-data", icon: Database, permission: "master-data.view" },
   { label: "Inventory", path: "/inventory", icon: Package, permission: "inventory.view" },
   { label: "Production", path: "/production", icon: Factory, permission: "production.view" },
-  { label: "Sales & Distribution", path: "/sales", icon: Truck, permission: "sales.view" },
+  { label: "Sales & Distribution", path: "/sd", icon: Truck, permission: "sd.view" },
   { label: "Finance", path: "/finance", icon: DollarSign, permission: "finance.view" },
   { label: "Franchise Management", path: "/franchise", icon: Handshake, permission: "franchise.manage" },
   { label: "M-Promo", path: "/mpromo", icon: Gift, permission: "mpromo.view" },
