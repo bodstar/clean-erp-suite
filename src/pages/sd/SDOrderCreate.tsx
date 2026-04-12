@@ -19,6 +19,7 @@ import { getPartners } from "@/lib/api/mpromo";
 import { toast } from "sonner";
 import type { Product, UnregisteredCustomer, SDOrderItem } from "@/types/sd";
 import type { Partner } from "@/types/mpromo";
+import { useSDScope } from "@/providers/SDScopeProvider";
 
 interface OrderItemDraft {
   product: Product;
@@ -30,6 +31,7 @@ interface OrderItemDraft {
 
 export default function SDOrderCreate() {
   const navigate = useNavigate();
+  const { scope } = useSDScope();
   const [step, setStep] = useState(1);
 
   // Step 1 — Customer
