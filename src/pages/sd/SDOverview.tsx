@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Truck, Clock, CheckCircle } from "lucide-react";
+import { ShoppingCart, Truck, Clock, CheckCircle, Banknote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { SourceBadge } from "@/components/sd/SourceBadge";
 import { getSDOrders } from "@/lib/api/sd";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
@@ -34,6 +33,7 @@ export default function SDOverview() {
   const deliveredToday = orders.filter(
     (o) => o.status === "delivered" && o.delivered_at?.startsWith(todayStr)
   );
+  const revenueToday = deliveredToday.reduce((sum, o) => sum + o.total, 0);
 
   const statusCounts = orders.reduce<Record<string, number>>((acc, o) => {
     acc[o.status] = (acc[o.status] || 0) + 1;
@@ -56,11 +56,12 @@ export default function SDOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard icon={ShoppingCart} label="Total Orders Today" value={todayOrders.length} isLoading={isLoading} />
         <KpiCard icon={Truck} label="Orders In Transit" value={inTransit.length} isLoading={isLoading} />
         <KpiCard icon={Clock} label="Pending Confirmation" value={pendingConfirm.length} isLoading={isLoading} />
         <KpiCard icon={CheckCircle} label="Delivered Today" value={deliveredToday.length} isLoading={isLoading} />
+        <KpiCard icon={Banknote} label="Revenue Today" value={`GH₵${revenueToday.toLocaleString()}`} isLoading={isLoading} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

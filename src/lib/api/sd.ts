@@ -116,6 +116,14 @@ export async function getSDOrders(
           (o.unregistered_customer_name ?? "").toLowerCase().includes(q)
       );
     }
+    if (params?.date_from) {
+      const from = String(params.date_from);
+      filtered = filtered.filter((o) => o.created_at.slice(0, 10) >= from);
+    }
+    if (params?.date_to) {
+      const to = String(params.date_to);
+      filtered = filtered.filter((o) => o.created_at.slice(0, 10) <= to);
+    }
     return { data: filtered, total: filtered.length };
   }
   const res = await api.get("/sd/orders", { params });
