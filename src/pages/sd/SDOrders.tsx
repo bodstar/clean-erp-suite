@@ -138,7 +138,7 @@ export default function SDOrders() {
       filters={
         <>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -148,7 +148,7 @@ export default function SDOrders() {
             </SelectContent>
           </Select>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -161,14 +161,14 @@ export default function SDOrders() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-[150px]"
+            className="w-full sm:w-[150px]"
             placeholder="From"
           />
           <Input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="w-[150px]"
+            className="w-full sm:w-[150px]"
             placeholder="To"
           />
         </>

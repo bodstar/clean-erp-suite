@@ -93,7 +93,7 @@ export default function MPromoCampaigns() {
       emptyMessage="No campaigns found."
       filters={
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-32 h-8 text-xs">
+          <SelectTrigger className="w-full sm:w-32 h-8 text-xs">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>

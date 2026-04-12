@@ -88,7 +88,7 @@ export default function MPromoRedemptions() {
       emptyMessage="No redemptions found."
       filters={
         <Select value={payoutFilter} onValueChange={setPayoutFilter}>
-          <SelectTrigger className="w-32 h-8 text-xs">
+          <SelectTrigger className="w-full sm:w-32 h-8 text-xs">
             <SelectValue placeholder="Payout Status" />
           </SelectTrigger>
           <SelectContent>
