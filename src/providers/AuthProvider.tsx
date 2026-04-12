@@ -34,6 +34,7 @@ const DEMO_DATA: AuthResponse = {
         "sd.customers.view", "sd.customers.manage",
         "sd.drivers.view", "sd.drivers.manage",
         "sd.routes.view", "sd.routes.manage",
+        "sd.hq.global_view", "sd.hq.act_any_team",
       ],
     },
     {

@@ -1,3 +1,11 @@
+import type { ScopeMode } from "@/types/mpromo";
+
+/** Describes which team's data should be shown in the S&D module */
+export interface SDScope {
+  mode: ScopeMode;
+  targetTeamId?: number | null;
+}
+
 // ─── Products ────────────────────────────────────────────────────────────────
 
 export interface ProductCategory {
