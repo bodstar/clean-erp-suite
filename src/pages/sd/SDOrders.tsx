@@ -157,20 +157,24 @@ export default function SDOrders() {
               ))}
             </SelectContent>
           </Select>
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full sm:w-[150px]"
-            placeholder="From"
-          />
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="w-full sm:w-[150px]"
-            placeholder="To"
-          />
+          <div className="w-full sm:w-[150px] space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">From</label>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <div className="w-full sm:w-[150px] space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">To</label>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full"
+            />
+          </div>
         </>
       }
       headerActions={
