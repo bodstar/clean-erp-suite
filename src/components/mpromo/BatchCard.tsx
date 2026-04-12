@@ -15,8 +15,8 @@ import { toast } from "sonner";
 
 function BatchCodeTable({ codes, canCancel, onCancel }: { codes: PromoCode[]; canCancel: boolean; onCancel: (code: PromoCode) => void }) {
   return (
-    <div className="border rounded-md overflow-hidden mt-3">
-      <table className="w-full text-sm">
+    <div className="border rounded-md overflow-x-auto mt-3">
+      <table className="w-full text-sm min-w-[500px]">
         <thead>
           <tr className="bg-muted/50 text-left">
             <th className="px-3 py-2 font-medium">Code</th>
