@@ -17,11 +17,13 @@ import {
 import { getUnregisteredCustomers, createUnregisteredCustomer } from "@/lib/api/sd";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
+import { useSDScope } from "@/providers/SDScopeProvider";
 import type { UnregisteredCustomer } from "@/types/sd";
 
 export default function SDCustomers() {
   const { hasPermission } = useAuth();
-  const canManage = hasPermission("sd.customers.manage");
+  const { scope, scopeMode } = useSDScope();
+  const canManage = hasPermission("sd.customers.manage") && scopeMode !== "all";
 
   const [data, setData] = useState<UnregisteredCustomer[]>([]);
   const [total, setTotal] = useState(0);
@@ -33,13 +35,13 @@ export default function SDCustomers() {
 
   const loadData = () => {
     setIsLoading(true);
-    getUnregisteredCustomers({ search: search || undefined })
+    getUnregisteredCustomers({ search: search || undefined }, scope)
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => { loadData(); }, [search]);
+  useEffect(() => { loadData(); }, [search, scope]);
 
   const handleCreate = async () => {
     if (!form.name || !form.phone) return;
@@ -61,11 +63,13 @@ export default function SDCustomers() {
     { key: "name", header: "Name", render: (r) => <span className="font-medium">{r.name}</span> },
     { key: "phone", header: "Phone" },
     { key: "address", header: "Address" },
-    {
-      key: "team_name",
-      header: "Team",
-      render: (r) => r.team_name ? <TeamBadge teamName={r.team_name} /> : "—",
-    },
+    ...(scopeMode === "all"
+      ? [{
+          key: "team_name",
+          header: "Team",
+          render: (r: UnregisteredCustomer) => r.team_name ? <TeamBadge teamName={r.team_name} /> : "—",
+        } as DataTableColumn<UnregisteredCustomer>]
+      : []),
     {
       key: "converted",
       header: "Registered",

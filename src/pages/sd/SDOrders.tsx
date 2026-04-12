@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { SourceBadge } from "@/components/sd/SourceBadge";
 import { TeamBadge } from "@/components/shared/TeamBadge";
 import { useAuth } from "@/providers/AuthProvider";
+import { useSDScope } from "@/providers/SDScopeProvider";
 import { getSDOrders } from "@/lib/api/sd";
 import { toast } from "sonner";
 import {
@@ -41,6 +42,7 @@ const sourceOptions: { value: string; label: string }[] = [
 export default function SDOrders() {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { scope, scopeMode } = useSDScope();
   const [data, setData] = useState<SDOrderSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -51,7 +53,7 @@ export default function SDOrders() {
   const [dateTo, setDateTo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const canCreate = hasPermission("sd.orders.create");
+  const canCreate = hasPermission("sd.orders.create") && scopeMode !== "all";
 
   useEffect(() => {
     setIsLoading(true);
@@ -62,11 +64,11 @@ export default function SDOrders() {
       source: sourceFilter,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
-    })
+    }, scope)
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [page, search, statusFilter, sourceFilter, dateFrom, dateTo]);
+  }, [page, search, statusFilter, sourceFilter, dateFrom, dateTo, scope]);
 
   const columns: DataTableColumn<SDOrderSummary>[] = [
     {
@@ -112,11 +114,13 @@ export default function SDOrders() {
       header: "Created",
       render: (r) => new Date(r.created_at).toLocaleDateString(),
     },
-    {
-      key: "team_name",
-      header: "Team",
-      render: (r) => r.team_name ? <TeamBadge teamName={r.team_name} /> : "—",
-    },
+    ...(scopeMode === "all"
+      ? [{
+          key: "team_name",
+          header: "Team",
+          render: (r: SDOrderSummary) => r.team_name ? <TeamBadge teamName={r.team_name} /> : "—",
+        } as DataTableColumn<SDOrderSummary>]
+      : []),
   ];
 
   return (

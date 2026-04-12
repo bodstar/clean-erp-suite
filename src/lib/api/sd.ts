@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { Product, ProductCategory, SDOrder, SDOrderSummary, UnregisteredCustomer } from "@/types/sd";
+import type { Product, ProductCategory, SDOrder, SDOrderSummary, UnregisteredCustomer, SDScope } from "@/types/sd";
 import {
   demoProducts,
   demoOrders,
@@ -10,6 +10,34 @@ import {
 
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
 
+// ─── Scope helpers ───────────────────────────────────────────────────────────
+
+function scopeParams(scope?: SDScope): Record<string, unknown> {
+  if (!scope) return {};
+  if (scope.mode === "all") return { scope_mode: "all" };
+  if (scope.mode === "target" && scope.targetTeamId)
+    return { scope_mode: "target", target_team_id: scope.targetTeamId };
+  return {};
+}
+
+function resolveEffectiveTeamId(scope?: SDScope): { mode: string; currentTeamId: number } {
+  const currentTeamId = Number(localStorage.getItem("clean-team-id")) || 1;
+  const hasGlobalView = currentTeamId === 1; // HQ only in demo
+  if (!hasGlobalView) return { mode: "current", currentTeamId };
+  return { mode: scope?.mode ?? "current", currentTeamId };
+}
+
+function filterByScope<T extends { team_id?: number | null }>(
+  items: T[],
+  scope?: SDScope
+): T[] {
+  const es = resolveEffectiveTeamId(scope);
+  if (es.mode === "all") return items;
+  if (es.mode === "target" && scope?.targetTeamId)
+    return items.filter((i) => i.team_id === scope.targetTeamId);
+  return items.filter((i) => i.team_id === es.currentTeamId);
+}
+
 // ─── Products ────────────────────────────────────────────────────────────────
 
 export function getCategories(): ProductCategory[] {
@@ -17,7 +45,8 @@ export function getCategories(): ProductCategory[] {
 }
 
 export async function getProducts(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: SDScope
 ): Promise<{ data: Product[]; total: number }> {
   if (DEMO_MODE) {
     let filtered = [...demoProducts];
@@ -35,7 +64,7 @@ export async function getProducts(
     }
     return { data: filtered, total: filtered.length };
   }
-  const res = await api.get("/sd/products", { params });
+  const res = await api.get("/sd/products", { params: { ...params, ...scopeParams(scope) } });
   return res.data;
 }
 
@@ -62,10 +91,11 @@ export async function computeItemPrice(
 // ─── Unregistered Customers ──────────────────────────────────────────────────
 
 export async function getUnregisteredCustomers(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: SDScope
 ): Promise<{ data: UnregisteredCustomer[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoUnregisteredCustomers];
+    let filtered = filterByScope([...demoUnregisteredCustomers], scope);
     if (params?.search) {
       const q = String(params.search).toLowerCase();
       filtered = filtered.filter(
@@ -75,7 +105,7 @@ export async function getUnregisteredCustomers(
     }
     return { data: filtered, total: filtered.length };
   }
-  const res = await api.get("/sd/customers", { params });
+  const res = await api.get("/sd/customers", { params: { ...params, ...scopeParams(scope) } });
   return res.data;
 }
 
@@ -97,10 +127,11 @@ export async function createUnregisteredCustomer(
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
 export async function getSDOrders(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  scope?: SDScope
 ): Promise<{ data: SDOrderSummary[]; total: number }> {
   if (DEMO_MODE) {
-    let filtered = [...demoOrders];
+    let filtered = filterByScope([...demoOrders], scope);
     if (params?.status && params.status !== "all") {
       filtered = filtered.filter((o) => o.status === params.status);
     }
@@ -126,7 +157,7 @@ export async function getSDOrders(
     }
     return { data: filtered, total: filtered.length };
   }
-  const res = await api.get("/sd/orders", { params });
+  const res = await api.get("/sd/orders", { params: { ...params, ...scopeParams(scope) } });
   return res.data;
 }
 
