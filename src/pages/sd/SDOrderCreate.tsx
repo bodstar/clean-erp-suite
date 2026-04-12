@@ -57,16 +57,16 @@ export default function SDOrderCreate() {
   // Load partners or customers
   useEffect(() => {
     if (customerType === "registered") {
-      getPartners({ search: partnerSearch, page_size: 20 }).then((res) => setPartners(res.data));
+      getPartners({ search: partnerSearch, page_size: 20 }, scope).then((res) => setPartners(res.data));
     } else {
-      getUnregisteredCustomers({ search: partnerSearch }).then((res) => setUnregisteredCustomers(res.data));
+      getUnregisteredCustomers({ search: partnerSearch }, scope).then((res) => setUnregisteredCustomers(res.data));
     }
-  }, [customerType, partnerSearch]);
+  }, [customerType, partnerSearch, scope]);
 
   // Load products
   useEffect(() => {
-    getProducts({ active_only: true }).then((res) => setProducts(res.data));
-  }, []);
+    getProducts({ active_only: true }, scope).then((res) => setProducts(res.data));
+  }, [scope]);
 
   const addItem = (product: Product) => {
     if (items.some((it) => it.product.id === product.id)) return;
