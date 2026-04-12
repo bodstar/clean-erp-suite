@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TeamBadge } from "@/components/shared/TeamBadge";
+import { useSDScope } from "@/providers/SDScopeProvider";
 import { getSDOrders } from "@/lib/api/sd";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
@@ -15,16 +17,17 @@ const chartConfig = {
 };
 
 export default function SDOverview() {
+  const { scope, scopeMode } = useSDScope();
   const [orders, setOrders] = useState<SDOrderSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
-    getSDOrders({})
+    getSDOrders({}, scope)
       .then((res) => setOrders(res.data))
       .catch(() => setOrders([]))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [scope]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayOrders = orders.filter((o) => o.created_at.startsWith(todayStr));

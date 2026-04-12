@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/providers/AuthProvider";
+import { useSDScope } from "@/providers/SDScopeProvider";
 import type { Product } from "@/types/sd";
 
 const demoPriceTiers: Record<number, { min_qty: number; max_qty?: number; unit_price: number; valid_from?: string; valid_until?: string }[]> = {
@@ -44,7 +45,8 @@ const demoPriceTiers: Record<number, { min_qty: number; max_qty?: number; unit_p
 
 export default function SDProducts() {
   const { hasPermission } = useAuth();
-  const canManage = hasPermission("sd.products.manage");
+  const { scope, scopeMode } = useSDScope();
+  const canManage = hasPermission("sd.products.manage") && scopeMode !== "all";
 
   const [data, setData] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
@@ -60,11 +62,11 @@ export default function SDProducts() {
     getProducts({
       search: search || undefined,
       category_id: categoryFilter !== "all" ? Number(categoryFilter) : undefined,
-    })
+    }, scope)
       .then((res) => { setData(res.data); setTotal(res.total); })
       .catch(() => { setData([]); setTotal(0); })
       .finally(() => setIsLoading(false));
-  }, [search, categoryFilter]);
+  }, [search, categoryFilter, scope]);
 
   const columns: DataTableColumn<Product>[] = [
     { key: "sku", header: "SKU" },
