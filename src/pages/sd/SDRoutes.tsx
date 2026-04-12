@@ -165,7 +165,7 @@ export default function SDRoutes() {
     },
     ...(canUseGlobalScope ? [{
       key: "team_name" as const, header: "Team",
-      render: (row: SDRouteSummary) => <TeamBadge name={row.team_name} />,
+      render: (row: SDRouteSummary) => <TeamBadge teamName={row.team_name} />,
     }] : []),
   ];
 

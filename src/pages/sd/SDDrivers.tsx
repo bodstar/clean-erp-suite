@@ -173,7 +173,7 @@ export default function SDDrivers() {
     },
     ...(canUseGlobalScope ? [{
       key: "team_name" as const, header: "Team",
-      render: (row: SDDriver) => <TeamBadge name={row.team_name} />,
+      render: (row: SDDriver) => <TeamBadge teamName={row.team_name} />,
     }] : []),
   ];
 
@@ -316,7 +316,7 @@ export default function SDDrivers() {
                     {selectedDriver.team_name && (
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Team</span>
-                        <TeamBadge name={selectedDriver.team_name} />
+                        <TeamBadge teamName={selectedDriver.team_name} />
                       </div>
                     )}
                   </div>
