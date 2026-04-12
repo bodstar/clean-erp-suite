@@ -62,6 +62,35 @@ export default function SDOrderDetail() {
       .finally(() => setIsLoading(false));
   }, [id, navigate]);
 
+  // Load available drivers when order is confirmed
+  useEffect(() => {
+    if (order?.status === "confirmed" && canManage) {
+      getDrivers({ status: "available" }, scope).then(res => {
+        setAvailableDrivers(res.data);
+      }).catch(() => {});
+    }
+  }, [order?.status, canManage, scope]);
+
+  const handleAssignDriver = async () => {
+    if (!order || !selectedDriverId) return;
+    setIsAssigning(true);
+    try {
+      await assignDriver(order.id, Number(selectedDriverId));
+      const driverObj = availableDrivers.find(d => d.id === Number(selectedDriverId));
+      setOrder(prev => prev ? {
+        ...prev,
+        status: "assigned" as const,
+        driver_id: Number(selectedDriverId),
+        driver_name: driverObj?.name || "Assigned Driver",
+      } : prev);
+      toast.success("Driver assigned");
+    } catch {
+      toast.error("Failed to assign driver");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
   const handleStatusUpdate = async () => {
     if (!order || !confirmAction) return;
     try {
