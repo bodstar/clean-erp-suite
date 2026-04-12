@@ -1,11 +1,18 @@
 import api from "@/lib/api";
-import type { Product, ProductCategory, SDOrder, SDOrderSummary, UnregisteredCustomer, SDScope } from "@/types/sd";
+import type {
+  Product, ProductCategory, SDOrder, SDOrderSummary,
+  UnregisteredCustomer, SDScope, SDDriver, SDRoute,
+  SDRouteSummary, RouteOptimisedBy, RouteStopStatus,
+} from "@/types/sd";
 import {
   demoProducts,
   demoOrders,
   demoOrderDetails,
   demoUnregisteredCustomers,
   demoCategories,
+  demoDrivers,
+  demoRoutes,
+  demoRouteDetails,
 } from "@/lib/api/sd-demo";
 
 const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
