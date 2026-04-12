@@ -130,16 +130,14 @@ export default function MPromoGeoQueue() {
         isLoading={isLoading}
         emptyMessage="All partners have locations captured!"
         filters={
-          <div className="space-y-1">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Type" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="CHILLER">Chillers</SelectItem>
-                <SelectItem value="ICE_WATER_SELLER">Ice Water Sellers</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-full sm:w-40 h-8 text-xs"><SelectValue placeholder="Type" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="CHILLER">Chillers</SelectItem>
+              <SelectItem value="ICE_WATER_SELLER">Ice Water Sellers</SelectItem>
+            </SelectContent>
+          </Select>
         }
       />
 
