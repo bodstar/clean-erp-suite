@@ -9,11 +9,13 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMPromoScope } from "@/providers/MPromoScopeProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { ScopeMode } from "@/types/mpromo";
 
 export function ScopeSelector() {
   const { hasPermission, teams } = useAuth();
   const { scopeMode, targetTeamId, setScopeMode, setTargetTeamId } = useMPromoScope();
+  const isMobile = useIsMobile();
 
   const canViewAll = hasPermission("mpromo.hq.global_view");
   const canActOnTeam = hasPermission("mpromo.hq.run_campaigns_any_team");
@@ -27,15 +29,15 @@ export function ScopeSelector() {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
-      <span className="text-xs font-medium text-muted-foreground mr-1">Scope:</span>
-      <div className="flex flex-wrap gap-1">
+    <div className="flex flex-col gap-2 p-3 bg-muted/50 rounded-lg border border-border">
+      <span className="text-xs font-medium text-muted-foreground">Scope:</span>
+      <div className={isMobile ? "flex flex-col gap-1.5" : "flex flex-wrap gap-1"}>
         {modes.filter((m) => m.show).map((m) => (
           <Button
             key={m.value}
             variant={scopeMode === m.value ? "default" : "outline"}
             size="sm"
-            className="gap-1.5 text-xs"
+            className={`gap-1.5 text-xs ${isMobile ? "w-full justify-center" : ""}`}
             onClick={() => setScopeMode(m.value)}
           >
             {m.icon}
@@ -48,7 +50,7 @@ export function ScopeSelector() {
           value={targetTeamId ? String(targetTeamId) : ""}
           onValueChange={(v) => setTargetTeamId(Number(v))}
         >
-          <SelectTrigger className="w-48 h-8 text-xs">
+          <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Select team..." />
           </SelectTrigger>
           <SelectContent>
