@@ -19,6 +19,7 @@ import { getPartners } from "@/lib/api/mpromo";
 import { toast } from "sonner";
 import type { Product, UnregisteredCustomer, SDOrderItem } from "@/types/sd";
 import type { Partner } from "@/types/mpromo";
+import { useSDScope } from "@/providers/SDScopeProvider";
 
 interface OrderItemDraft {
   product: Product;
@@ -30,6 +31,7 @@ interface OrderItemDraft {
 
 export default function SDOrderCreate() {
   const navigate = useNavigate();
+  const { scope } = useSDScope();
   const [step, setStep] = useState(1);
 
   // Step 1 — Customer
@@ -55,16 +57,16 @@ export default function SDOrderCreate() {
   // Load partners or customers
   useEffect(() => {
     if (customerType === "registered") {
-      getPartners({ search: partnerSearch, page_size: 20 }).then((res) => setPartners(res.data));
+      getPartners({ search: partnerSearch, page_size: 20 }, scope).then((res) => setPartners(res.data));
     } else {
-      getUnregisteredCustomers({ search: partnerSearch }).then((res) => setUnregisteredCustomers(res.data));
+      getUnregisteredCustomers({ search: partnerSearch }, scope).then((res) => setUnregisteredCustomers(res.data));
     }
-  }, [customerType, partnerSearch]);
+  }, [customerType, partnerSearch, scope]);
 
   // Load products
   useEffect(() => {
-    getProducts({ active_only: true }).then((res) => setProducts(res.data));
-  }, []);
+    getProducts({ active_only: true }, scope).then((res) => setProducts(res.data));
+  }, [scope]);
 
   const addItem = (product: Product) => {
     if (items.some((it) => it.product.id === product.id)) return;
@@ -149,7 +151,7 @@ export default function SDOrderCreate() {
           line_total: it.quantity * it.unit_price,
           price_override_note: it.unit_price !== it.computed_unit_price ? "Manual price override" : undefined,
         })),
-      });
+      }, scope);
       toast.success(`Order ${order.order_no} created`);
       navigate(`/sd/orders/${order.id}`);
     } catch {

@@ -108,7 +108,7 @@ export default function SDProducts() {
   const tiers = selectedProduct ? demoPriceTiers[selectedProduct.id] : undefined;
 
   const addButton = canManage ? (
-    <Button size="sm" className="gap-1.5" disabled>
+    <Button size="sm" className="gap-1.5">
       <Plus className="h-4 w-4" />
       Add Product
     </Button>

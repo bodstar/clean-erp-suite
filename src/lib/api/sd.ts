@@ -14,9 +14,9 @@ const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
 
 function scopeParams(scope?: SDScope): Record<string, unknown> {
   if (!scope) return {};
-  if (scope.mode === "all") return { scope_mode: "all" };
+  if (scope.mode === "all") return { scope: "all" };
   if (scope.mode === "target" && scope.targetTeamId)
-    return { scope_mode: "target", target_team_id: scope.targetTeamId };
+    return { scope: "target", target_team_id: scope.targetTeamId };
   return {};
 }
 
@@ -174,7 +174,8 @@ export async function getSDOrder(id: number): Promise<SDOrder> {
 }
 
 export async function createSDOrder(
-  data: Partial<SDOrder>
+  data: Partial<SDOrder>,
+  scope?: SDScope
 ): Promise<SDOrder> {
   if (DEMO_MODE) {
     return {
@@ -187,7 +188,9 @@ export async function createSDOrder(
       updated_at: new Date().toISOString(),
     } as SDOrder;
   }
-  const res = await api.post("/sd/orders", data);
+  const res = await api.post("/sd/orders", data, {
+    params: scopeParams(scope),
+  });
   return res.data;
 }
 
