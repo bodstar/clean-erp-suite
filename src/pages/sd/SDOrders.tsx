@@ -138,7 +138,7 @@ export default function SDOrders() {
       filters={
         <>
           <div className="w-full sm:w-[150px] space-y-1">
-            <label className="text-xs font-medium text-muted-foreground sm:block hidden">&nbsp;</label>
+            <label className="text-xs font-medium text-muted-foreground">Status</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -151,7 +151,7 @@ export default function SDOrders() {
             </Select>
           </div>
           <div className="w-full sm:w-[140px] space-y-1">
-            <label className="text-xs font-medium text-muted-foreground sm:block hidden">&nbsp;</label>
+            <label className="text-xs font-medium text-muted-foreground">Source</label>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger className="w-full">
                 <SelectValue />
