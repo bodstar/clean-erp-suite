@@ -1,76 +1,49 @@
 
 
-## S&D Phase 2: Driver Management, Route Planning, and Driver Assignment
+## S&D Phase 3: Dispatch Map
 
-This is a large feature spanning 8 files (3 new, 5 modified). All pages will be fully functional in demo mode.
-
----
-
-### Files to Modify
-
-**1. `src/types/sd.ts`** — Add new types
-- `DriverStatus`, `SDDriver`, `RouteStatus`, `RouteStopStatus`, `RouteOptimisedBy`, `SDRouteStop`, `SDRoute`, `SDRouteSummary` — exactly as specified in the request.
-
-**2. `src/lib/api/sd-demo.ts`** — Add demo data
-- `demoDrivers` (3 drivers), `demoRoutes` (2 route summaries), `demoRouteDetails` (1 detailed route with 3 stops) — exactly as specified.
-- Import new types from `@/types/sd`.
-
-**3. `src/lib/api/sd.ts`** — Add API functions
-- Import new types and demo data.
-- Add functions: `getDrivers`, `getDriver`, `createDriver`, `updateDriver`, `toggleDriverAvailability`, `assignDriver`, `getRoutes`, `getRoute`, `createRoute`, `optimiseRoute`, `updateRouteStopStatus` — all with demo mode support and scope filtering.
-
-**4. `src/App.tsx`** — Register new route
-- Import `SDRouteDetail` (lazy, since it uses Leaflet).
-- Add `<Route path="routes/:id" element={<Suspense ...><SDRouteDetail /></Suspense>} />` inside the `/sd` group.
+Replace the SDMap placeholder with a fully functional real-time dispatch map showing live driver positions, delivery destinations, and route lines.
 
 ---
 
 ### Files to Create
 
-**5. `src/pages/sd/SDDrivers.tsx`** — Full driver management page (replaces placeholder)
-- DataTable with columns: Name (clickable), Phone, Vehicle Type, Plate, Status badge, Availability toggle, Team badge (global scope).
-- Search + status filter bar.
-- "Add Driver" button (permission-gated with `sd.drivers.manage`) opens a Dialog with form fields: name, phone, license_no, vehicle_type (Select), vehicle_plate.
-- Detail Sheet on row click: driver info, status, last seen, active route link, edit form, availability toggle.
-- Uses `useSDScope()` for scope-aware data loading.
-
-**6. `src/pages/sd/SDRoutes.tsx`** — Full route planning page (replaces placeholder)
-- DataTable with columns: Date, Driver + vehicle, Status badge, Stop progress ("X of Y"), Team badge.
-- Row click navigates to `/sd/routes/:id`.
-- Status filter (all/draft/active/completed/cancelled).
-- "Create Route" button (gated by `sd.routes.manage`) opens a 3-step Dialog:
-  - Step 1: Select available driver + pick delivery date.
-  - Step 2: Search/select confirmed orders as stops, reorder with Up/Down arrows.
-  - Step 3: Review driver, date, ordered stops → submit via `createRoute()`.
-
-**7. `src/pages/sd/SDRouteDetail.tsx`** — New route detail page
-- Header: date, driver, vehicle, status badge, "Optimise Route" button.
-- Two-column desktop layout (stacked on mobile):
-  - Left: ordered stop cards with sequence, order link, customer, address, status badge, and status action buttons (Mark Arrived / Mark Complete / Skip) for users with `sd.routes.manage`.
-  - Right: Leaflet map with numbered `L.divIcon` markers (green=completed, amber=arrived, grey=pending), polyline connecting stops in sequence. Bounds auto-fit.
-- "Optimise Route" calls `optimiseRoute()`, updates stop order, shows toast. Only visible for draft routes with manage permission.
-- Lazy-loaded in App.tsx to avoid Leaflet context issues.
+**1. `src/hooks/useSDRealtime.ts`** — Real-time driver location hook
+- In demo mode: `setInterval` every 3s nudging driver 1 eastward and driver 2 with small jitter.
+- In production: dynamically imports `laravel-echo` + `pusher-js`, connects to Laravel Reverb on `team.{id}.drivers` channel.
+- Accepts `{ teamId, onDriverLocationUpdate, enabled }` — toggling `enabled` starts/stops updates.
+- Env var comments at top for developer reference.
 
 ---
 
-### File to Update
+### Files to Modify
 
-**8. `src/pages/sd/SDOrderDetail.tsx`** — Add driver assignment section
-- When `order.status === 'confirmed'` and user has `sd.orders.manage`:
-  - Load available drivers via `getDrivers({ status: 'available' }, scope)`.
-  - Show a Select dropdown + "Assign Driver" button.
-  - On assign: call `assignDriver()`, update order status to `assigned` and set `driver_name` locally.
-- Import `useSDScope`, `getDrivers`, `assignDriver` from API layer.
-- Import `useAuth` and check `hasPermission('sd.orders.manage')`.
+**2. `src/types/sd.ts`** — Add new types
+- `DriverLocation` interface (driver_id, latitude, longitude, recorded_at).
+- `DispatchMapDriver` interface (driver info + current destination details for map rendering).
+
+**3. `src/lib/api/sd.ts`** — Add `getDispatchMapDrivers`
+- Import `DispatchMapDriver` type.
+- In demo mode: returns 2 hardcoded drivers (Emmanuel on delivery with destination, Isaac available).
+- In production: `GET /sd/map/drivers` with scope params.
+
+**4. `src/pages/sd/SDMap.tsx`** — Full replacement with dispatch map
+- **Layout**: Two-panel — 320px sidebar on left, Leaflet map filling rest. On mobile, sidebar becomes a toggleable bottom sheet.
+- **Sidebar**: "Dispatch Map" header with real-time on/off Switch, status filter buttons (All/On Delivery/Available/Off Duty), scrollable driver cards showing name, plate, status badge, destination or "No active delivery", relative "last seen" time. Click card → pan map to driver.
+- **Map**: Same Leaflet setup as MPromoMap (icon fix, theme-aware tiles, Ghana center). Driver markers via `L.divIcon` (amber=on_delivery, green=available, grey=off_duty). Red destination markers for on_delivery drivers. Dashed amber polylines connecting driver→destination.
+- **Real-time**: `useSDRealtime` updates marker positions via `setLatLng()` without recreation. Route lines updated via `setLatLngs()`. `driversRef` avoids stale closures.
+- **Controls**: Floating "Fit All" and "Refresh" buttons on map.
+- **Permission**: Gate behind `hasPermission('sd.view')`.
+- **Loading/Empty**: Skeleton while loading; empty message when no drivers match filters.
 
 ---
 
 ### Technical Details
 
-- Leaflet usage mirrors `MPromoMap.tsx`: same icon fix pattern, same tile layer, same `L.divIcon` approach for numbered markers.
-- All existing UI patterns reused: `DataTable`, `StatusBadge`, `Sheet`, `Dialog`, `ConfirmDialog`, `TeamBadge`.
-- Status badge color mapping: available/completed → green, on_delivery/arrived/active → amber, off_duty/pending/draft → grey/muted, cancelled → muted.
-- `RouteOptimisedBy` exported from `sd.ts` for use in demo data.
-- Franchise teams (Accra Central, Kumasi) do not get `sd.drivers.manage` or `sd.routes.manage` — already configured in AuthProvider demo data.
-- No M-Promo files modified.
+- Leaflet pattern identical to MPromoMap.tsx and SDRouteDetail.tsx (icon fix, tile layer, theme switching, cleanup).
+- `useCallback` on `handleDriverLocationUpdate` to prevent re-triggering the realtime hook interval.
+- Marker refs (`Map<number, L.Marker>`) for efficient position updates without marker recreation.
+- Separate `useEffect` for marker rebuild on `[drivers, statusFilter]` vs map init.
+- No M-Promo or Phase 1/2 files modified.
+- `DEMO_MODE` check uses `!import.meta.env.VITE_API_BASE_URL` consistent with existing code (not `VITE_DEMO_MODE`).
 
