@@ -27,6 +27,7 @@ import SDProducts from "@/pages/sd/SDProducts";
 import SDCustomers from "@/pages/sd/SDCustomers";
 import SDDrivers from "@/pages/sd/SDDrivers";
 import SDRoutes from "@/pages/sd/SDRoutes";
+import SDRouteCreate from "@/pages/sd/SDRouteCreate";
 import SDMap from "@/pages/sd/SDMap";
 import FinancePage from "@/pages/Finance";
 import FranchisePage from "@/pages/Franchise";
@@ -88,6 +89,7 @@ const App = () => (
                   <Route path="customers" element={<SDCustomers />} />
                   <Route path="drivers" element={<SDDrivers />} />
                   <Route path="routes" element={<SDRoutes />} />
+                  <Route path="routes/new" element={<SDRouteCreate />} />
                   <Route path="routes/:id" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading route...</div>}><SDRouteDetail /></Suspense>} />
                   <Route path="map" element={<SDMap />} />
                 </Route>
