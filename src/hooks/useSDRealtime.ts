@@ -38,9 +38,9 @@ export function useSDRealtime({ teamId, onDriverLocationUpdate, enabled }: UseSD
   const startEcho = useCallback(async () => {
     try {
       const [{ default: Echo }, { default: Pusher }] = await Promise.all([
-        import("laravel-echo"),
-        import("pusher-js"),
-      ]);
+        import("laravel-echo" as string),
+        import("pusher-js" as string),
+      ] as const);
 
       const echo = new Echo({
         broadcaster: "reverb",
