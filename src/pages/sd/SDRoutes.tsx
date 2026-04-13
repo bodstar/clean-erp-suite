@@ -28,8 +28,24 @@ export default function SDRoutes() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const loadRoutes = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await getRoutes(
+        { status: statusFilter !== "all" ? statusFilter : undefined },
+        scope
+      );
+      setData(res.data);
+      setTotal(res.total);
+    } catch {
+      toast.error("Failed to load routes");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [statusFilter, scope]);
 
-  const columns: DataTableColumn<SDRouteSummary>[] = [
+  useEffect(() => { loadRoutes(); }, [loadRoutes]);
+
     {
       key: "date", header: "Date",
       render: (row) => (
