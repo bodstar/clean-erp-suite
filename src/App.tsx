@@ -27,6 +27,7 @@ import SDProducts from "@/pages/sd/SDProducts";
 import SDCustomers from "@/pages/sd/SDCustomers";
 import SDDrivers from "@/pages/sd/SDDrivers";
 import SDRoutes from "@/pages/sd/SDRoutes";
+import SDRouteCreate from "@/pages/sd/SDRouteCreate";
 import SDMap from "@/pages/sd/SDMap";
 import FinancePage from "@/pages/Finance";
 import FranchisePage from "@/pages/Franchise";
