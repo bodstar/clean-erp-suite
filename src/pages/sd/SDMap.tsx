@@ -242,6 +242,19 @@ export default function SDMap() {
     ? drivers
     : drivers.filter(d => d.status === statusFilter);
 
+  // Permission gate
+  if (!hasPermission("sd.view")) {
+    return (
+      <Card className="flex flex-col items-center justify-center py-20 text-center">
+        <ShieldAlert className="h-10 w-10 text-destructive mb-4" />
+        <h3 className="text-lg font-medium">Access Denied</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          You don&apos;t have permission to view the Dispatch Map.
+        </p>
+      </Card>
+    );
+  }
+
   // Sidebar content
   const sidebarContent = (
     <div className="flex flex-col h-full">
