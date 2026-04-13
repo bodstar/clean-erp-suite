@@ -275,7 +275,6 @@ export default function SDRouteCreate() {
               </div>
             </div>
           )}
-        </div>
 
         {/* Navigation buttons */}
         <div className="flex justify-between pt-4 border-t border-border mt-4 shrink-0">
