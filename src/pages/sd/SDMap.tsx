@@ -132,10 +132,12 @@ export default function SDMap() {
     L.tileLayer(tileUrl, { attribution: "&copy; OpenStreetMap" }).addTo(mapRef.current);
   }, [tileUrl]);
 
-  // Rebuild markers when drivers or filter change
+  // Rebuild markers only when the set of driver IDs or filter changes — NOT on coordinate updates
+  const driverIds = drivers.map(d => d.driver_id).join(",");
+
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || drivers.length === 0) return;
 
     // Clear old
     driverMarkersRef.current.forEach(m => m.remove());
@@ -191,7 +193,8 @@ export default function SDMap() {
     if (bounds.length > 0) {
       map.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]), { padding: [40, 40] });
     }
-  }, [drivers, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driverIds, statusFilter]);
 
   // Real-time updates
   const handleDriverLocationUpdate = useCallback((driverId: number, lat: number, lng: number) => {
