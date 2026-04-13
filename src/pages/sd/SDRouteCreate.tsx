@@ -12,6 +12,7 @@ import { useSDScope } from "@/providers/SDScopeProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { getDrivers, getSDOrders, createRoute } from "@/lib/api/sd";
 import { toast } from "sonner";
+import RouteCreateMap from "@/components/sd/RouteCreateMap";
 import type { SDDriver, SDOrderSummary } from "@/types/sd";
 
 interface StopEntry {
@@ -117,8 +118,9 @@ export default function SDRouteCreate() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col h-[calc(100vh-8rem)] gap-4">
+      {/* Header */}
+      <div className="flex items-center gap-3 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => navigate("/sd/routes")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -129,7 +131,7 @@ export default function SDRouteCreate() {
       </div>
 
       {/* Step indicators */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {[1, 2, 3].map(s => (
           <div key={s} className="flex items-center gap-2">
             <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium border-2 ${
@@ -149,139 +151,167 @@ export default function SDRouteCreate() {
         </span>
       </div>
 
-      {/* Step 1 — Driver & Date */}
-      {step === 1 && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Select Driver *</Label>
-            <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
-              <SelectTrigger><SelectValue placeholder="Choose a driver" /></SelectTrigger>
-              <SelectContent>
-                {availableDrivers.map(d => (
-                  <SelectItem key={d.id} value={String(d.id)}>
-                    {d.name} · {d.vehicle_type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {availableDrivers.length === 0 && (
-              <p className="text-xs text-muted-foreground">No available drivers found.</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Delivery Date *</Label>
-            <Input type="date" value={routeDate} onChange={e => setRouteDate(e.target.value)} />
-          </div>
-        </div>
-      )}
-
-      {/* Step 2 — Add & Order Stops */}
-      {step === 2 && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Search Confirmed Orders</Label>
-            <Input
-              value={orderSearch}
-              onChange={e => setOrderSearch(e.target.value)}
-              placeholder="Search by order no. or customer..."
-            />
-          </div>
-          <div className="max-h-48 overflow-y-auto space-y-1">
-            {filteredOrders.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-2">No confirmed orders available.</p>
-            ) : (
-              filteredOrders.map(o => (
-                <button
-                  key={o.id}
-                  className="w-full text-left px-3 py-2 rounded-md border border-border hover:bg-muted/50 text-sm"
-                  onClick={() => addStop(o)}
-                >
-                  <span className="font-medium">{o.order_no}</span>
-                  <span className="text-muted-foreground ml-2">
-                    {o.partner_name || o.unregistered_customer_name} — {o.delivery_address}
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
-          {stops.length > 0 && (
-            <div className="space-y-2">
-              <Label>Stops ({stops.length})</Label>
-              {stops.map((s, i) => (
-                <Card key={s.order_id}>
-                  <CardContent className="flex items-center gap-2 py-2 px-3">
-                    <span className="font-bold text-sm text-muted-foreground w-6">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{s.order_no} — {s.customer_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{s.delivery_address}</p>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveStop(i, -1)} disabled={i === 0}>
-                        <ChevronUp className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveStop(i, 1)} disabled={i === stops.length - 1}>
-                        <ChevronDown className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeStop(s.order_id)}>
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 3 — Review */}
-      {step === 3 && (
-        <div className="space-y-4">
-          <div className="text-sm space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Driver</span>
-              <span>{selectedDriverObj?.name} · {selectedDriverObj?.vehicle_type}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Date</span>
-              <span>{routeDate}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Stops</span>
-              <span>{stops.length}</span>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {stops.map((s, i) => (
-              <div key={s.order_id} className="flex items-center gap-2 text-sm py-1">
-                <span className="font-bold text-muted-foreground w-6">{i + 1}</span>
-                <span>{s.order_no} — {s.customer_name}</span>
+      {/* Main content: wizard + map side by side */}
+      <div className="flex-1 flex gap-4 min-h-0">
+        {/* Left panel — wizard */}
+        <div className="w-full lg:w-[420px] shrink-0 flex flex-col overflow-y-auto">
+          <div className="flex-1 space-y-4 pr-1">
+            {/* Step 1 — Driver & Date */}
+            {step === 1 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Select Driver *</Label>
+                  <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
+                    <SelectTrigger><SelectValue placeholder="Choose a driver" /></SelectTrigger>
+                    <SelectContent>
+                      {availableDrivers.map(d => (
+                        <SelectItem key={d.id} value={String(d.id)}>
+                          {d.name} · {d.vehicle_type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {availableDrivers.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No available drivers found.</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Delivery Date *</Label>
+                  <Input type="date" value={routeDate} onChange={e => setRouteDate(e.target.value)} />
+                </div>
               </div>
-            ))}
+            )}
+
+            {/* Step 2 — Add & Order Stops */}
+            {step === 2 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Search Confirmed Orders</Label>
+                  <Input
+                    value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)}
+                    placeholder="Search by order no. or customer..."
+                  />
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {filteredOrders.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">No confirmed orders available.</p>
+                  ) : (
+                    filteredOrders.map(o => (
+                      <button
+                        key={o.id}
+                        className="w-full text-left px-3 py-2 rounded-md border border-border hover:bg-muted/50 text-sm"
+                        onClick={() => addStop(o)}
+                      >
+                        <span className="font-medium">{o.order_no}</span>
+                        <span className="text-muted-foreground ml-2">
+                          {o.partner_name || o.unregistered_customer_name} — {o.delivery_address}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                {stops.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Stops ({stops.length})</Label>
+                    {stops.map((s, i) => (
+                      <Card key={s.order_id}>
+                        <CardContent className="flex items-center gap-2 py-2 px-3">
+                          <span className="font-bold text-sm text-muted-foreground w-6">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{s.order_no} — {s.customer_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{s.delivery_address}</p>
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveStop(i, -1)} disabled={i === 0}>
+                              <ChevronUp className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveStop(i, 1)} disabled={i === stops.length - 1}>
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeStop(s.order_id)}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3 — Review */}
+            {step === 3 && (
+              <div className="space-y-4">
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Driver</span>
+                    <span>{selectedDriverObj?.name} · {selectedDriverObj?.vehicle_type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Date</span>
+                    <span>{routeDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Stops</span>
+                    <span>{stops.length}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {stops.map((s, i) => (
+                    <div key={s.order_id} className="flex items-center gap-2 text-sm py-1">
+                      <span className="font-bold text-muted-foreground w-6">{i + 1}</span>
+                      <span>{s.order_no} — {s.customer_name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex justify-between pt-4 border-t border-border mt-4 shrink-0">
+            <Button variant="outline" onClick={() => step === 1 ? navigate("/sd/routes") : setStep(s => s - 1)}>
+              {step === 1 ? "Cancel" : "Back"}
+            </Button>
+            {step < 3 ? (
+              <Button
+                onClick={() => setStep(s => s + 1)}
+                disabled={
+                  (step === 1 && (!selectedDriverId || !routeDate)) ||
+                  (step === 2 && stops.length === 0)
+                }
+              >
+                Next
+              </Button>
+            ) : (
+              <Button onClick={handleCreateRoute} disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Route"}
+              </Button>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Navigation buttons */}
-      <div className="flex justify-between pt-4 border-t border-border">
-        <Button variant="outline" onClick={() => step === 1 ? navigate("/sd/routes") : setStep(s => s - 1)}>
-          {step === 1 ? "Cancel" : "Back"}
-        </Button>
-        {step < 3 ? (
-          <Button
-            onClick={() => setStep(s => s + 1)}
-            disabled={
-              (step === 1 && (!selectedDriverId || !routeDate)) ||
-              (step === 2 && stops.length === 0)
-            }
-          >
-            Next
-          </Button>
-        ) : (
-          <Button onClick={handleCreateRoute} disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Route"}
-          </Button>
-        )}
+        {/* Right panel — map */}
+        <div className="hidden lg:block flex-1 min-h-0">
+          <RouteCreateMap
+            drivers={availableDrivers}
+            orders={confirmedOrders}
+            stops={stops}
+            selectedDriverId={selectedDriverId}
+          />
+        </div>
+      </div>
+
+      {/* Mobile map (below wizard) */}
+      <div className="lg:hidden h-64 shrink-0">
+        <RouteCreateMap
+          drivers={availableDrivers}
+          orders={confirmedOrders}
+          stops={stops}
+          selectedDriverId={selectedDriverId}
+        />
       </div>
     </div>
   );
