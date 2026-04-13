@@ -1,8 +1,10 @@
 import api from "@/lib/api";
+import api from "@/lib/api";
 import type {
   Product, ProductCategory, SDOrder, SDOrderSummary,
   UnregisteredCustomer, SDScope, SDDriver, SDRoute,
   SDRouteSummary, RouteOptimisedBy, RouteStopStatus,
+  DispatchMapDriver,
 } from "@/types/sd";
 import {
   demoProducts,

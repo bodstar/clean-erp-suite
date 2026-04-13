@@ -185,3 +185,31 @@ export interface SDRoute {
 }
 
 export interface SDRouteSummary extends Omit<SDRoute, 'stops'> {}
+
+// ─── Dispatch Map ────────────────────────────────────────────────────────────
+
+export interface DriverLocation {
+  driver_id: number;
+  latitude: number;
+  longitude: number;
+  recorded_at: string;
+}
+
+export interface DispatchMapDriver {
+  driver_id: number;
+  driver_name: string;
+  vehicle_type: string;
+  vehicle_plate: string;
+  status: DriverStatus;
+  current_lat: number;
+  current_lng: number;
+  last_location_at: string;
+  active_route_id?: number;
+  current_order_id?: number;
+  current_order_no?: string;
+  current_destination?: string;
+  current_destination_lat?: number;
+  current_destination_lng?: number;
+  team_id: number;
+  team_name?: string;
+}
