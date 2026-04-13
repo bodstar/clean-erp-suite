@@ -89,6 +89,7 @@ const App = () => (
                   <Route path="customers" element={<SDCustomers />} />
                   <Route path="drivers" element={<SDDrivers />} />
                   <Route path="routes" element={<SDRoutes />} />
+                  <Route path="routes/new" element={<SDRouteCreate />} />
                   <Route path="routes/:id" element={<Suspense fallback={<div className="p-8 text-muted-foreground">Loading route...</div>}><SDRouteDetail /></Suspense>} />
                   <Route path="map" element={<SDMap />} />
                 </Route>
