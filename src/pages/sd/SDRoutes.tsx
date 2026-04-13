@@ -46,6 +46,7 @@ export default function SDRoutes() {
 
   useEffect(() => { loadRoutes(); }, [loadRoutes]);
 
+  const columns: DataTableColumn<SDRouteSummary>[] = [
     {
       key: "date", header: "Date",
       render: (row) => (
