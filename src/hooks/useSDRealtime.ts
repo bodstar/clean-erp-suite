@@ -37,10 +37,14 @@ export function useSDRealtime({ teamId, onDriverLocationUpdate, enabled }: UseSD
 
   const startEcho = useCallback(async () => {
     try {
+      // Dynamic imports use variables to prevent Rollup from resolving at build time.
+      // These packages are only installed in production deployments.
+      const echoModule = "laravel-echo";
+      const pusherModule = "pusher-js";
       const [{ default: Echo }, { default: Pusher }] = await Promise.all([
-        import("laravel-echo" as string),
-        import("pusher-js" as string),
-      ] as const);
+        import(/* @vite-ignore */ echoModule),
+        import(/* @vite-ignore */ pusherModule),
+      ]);
 
       const echo = new Echo({
         broadcaster: "reverb",
