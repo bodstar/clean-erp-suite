@@ -3,6 +3,7 @@ import type {
   Product, ProductCategory, SDOrder, SDOrderSummary,
   UnregisteredCustomer, SDScope, SDDriver, SDRoute,
   SDRouteSummary, RouteOptimisedBy, RouteStopStatus,
+  DispatchMapDriver,
 } from "@/types/sd";
 import {
   demoProducts,
@@ -338,4 +339,37 @@ export async function updateRouteStopStatus(
 ): Promise<void> {
   if (DEMO_MODE) return;
   await api.post(`/sd/routes/${routeId}/stops/${stopId}/status`, { status });
+}
+
+// ─── Dispatch Map ───────────────────────────────────────────────────────────
+
+export async function getDispatchMapDrivers(
+  scope?: SDScope
+): Promise<DispatchMapDriver[]> {
+  if (DEMO_MODE) {
+    return filterByScope([
+      {
+        driver_id: 1, driver_name: 'Emmanuel Tetteh',
+        vehicle_type: 'Pickup Truck', vehicle_plate: 'GR-1234-21',
+        status: 'on_delivery' as const,
+        current_lat: demoDrivers[0].current_lat!, current_lng: demoDrivers[0].current_lng!,
+        last_location_at: new Date().toISOString(),
+        active_route_id: 1,
+        current_order_id: 2, current_order_no: 'SD-2026-00002',
+        current_destination: 'Tema Station, Accra',
+        current_destination_lat: 5.6168, current_destination_lng: -0.0165,
+        team_id: 2, team_name: 'Franchise – Accra Central',
+      },
+      {
+        driver_id: 2, driver_name: 'Isaac Owusu',
+        vehicle_type: 'Motorbike', vehicle_plate: 'M-4521-22',
+        status: 'available' as const,
+        current_lat: demoDrivers[1].current_lat!, current_lng: demoDrivers[1].current_lng!,
+        last_location_at: new Date().toISOString(),
+        team_id: 2, team_name: 'Franchise – Accra Central',
+      },
+    ], scope);
+  }
+  const res = await api.get('/sd/map/drivers', { params: scopeParams(scope) });
+  return res.data;
 }
