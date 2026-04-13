@@ -118,7 +118,7 @@ export default function SDRouteCreate() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] gap-4">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center gap-3 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => navigate("/sd/routes")}>
