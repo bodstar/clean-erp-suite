@@ -162,8 +162,7 @@ export default function SDRouteCreate() {
       </div>
 
       {/* Form below map */}
-      <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
-        <div className="flex-1 space-y-4 pr-1">
+      <div className="space-y-4">
           {/* Step 1 — Driver & Date */}
           {step === 1 && (
             <div className="space-y-4">
