@@ -90,19 +90,6 @@ export default function SDMap() {
 
   useEffect(() => { driversRef.current = drivers; }, [drivers]);
 
-  // Permission gate
-  if (!hasPermission("sd.view")) {
-    return (
-      <Card className="flex flex-col items-center justify-center py-20 text-center">
-        <ShieldAlert className="h-10 w-10 text-destructive mb-4" />
-        <h3 className="text-lg font-medium">Access Denied</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          You don&apos;t have permission to view the Dispatch Map.
-        </p>
-      </Card>
-    );
-  }
-
   const isDark = theme === "dark";
   const tileUrl = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -110,6 +97,7 @@ export default function SDMap() {
 
   // Load drivers
   const loadDrivers = useCallback(async () => {
+    if (!hasPermission("sd.view")) return;
     setIsLoading(true);
     try {
       const data = await getDispatchMapDrivers(scope);
@@ -119,7 +107,7 @@ export default function SDMap() {
     } finally {
       setIsLoading(false);
     }
-  }, [scope]);
+  }, [scope, hasPermission]);
 
   useEffect(() => { loadDrivers(); }, [loadDrivers]);
 
