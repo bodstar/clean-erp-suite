@@ -17,6 +17,12 @@ const statusStyles: Record<string, string> = {
   failed: "bg-[hsl(var(--destructive))]/15 text-[hsl(var(--destructive))] border-[hsl(var(--destructive))]/30",
   redeemed: "bg-primary/15 text-primary border-primary/30",
   ended: "bg-muted text-muted-foreground border-border",
+  available: "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] border-[hsl(var(--success))]/30",
+  on_delivery: "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))] border-[hsl(var(--warning))]/30",
+  off_duty: "bg-muted text-muted-foreground border-border",
+  arrived: "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))] border-[hsl(var(--warning))]/30",
+  completed: "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] border-[hsl(var(--success))]/30",
+  skipped: "bg-muted text-muted-foreground border-border",
 };
 
 interface StatusBadgeProps {
