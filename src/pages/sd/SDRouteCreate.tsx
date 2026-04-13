@@ -118,7 +118,7 @@ export default function SDRouteCreate() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] gap-4">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center gap-3 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => navigate("/sd/routes")}>
@@ -162,8 +162,7 @@ export default function SDRouteCreate() {
       </div>
 
       {/* Form below map */}
-      <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
-        <div className="flex-1 space-y-4 pr-1">
+      <div className="space-y-4">
           {/* Step 1 — Driver & Date */}
           {step === 1 && (
             <div className="space-y-4">
@@ -276,7 +275,6 @@ export default function SDRouteCreate() {
               </div>
             </div>
           )}
-        </div>
 
         {/* Navigation buttons */}
         <div className="flex justify-between pt-4 border-t border-border mt-4 shrink-0">
