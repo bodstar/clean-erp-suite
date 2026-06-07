@@ -5,6 +5,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useSDScope } from "@/providers/SDScopeProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { getDispatchMapDrivers } from "@/lib/api/sd";
+import { computeRoute, decodePolyline } from "@/lib/api/googleRoutes";
 import { useSDRealtime } from "@/hooks/useSDRealtime";
 import type { DispatchMapDriver, DriverStatus } from "@/types/sd";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -15,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Locate, RefreshCw, Radio, Truck, ChevronUp, ChevronDown, ShieldAlert,
+  Locate, RefreshCw, Radio, Truck, ChevronUp, ChevronDown, ShieldAlert, Route,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -80,6 +81,16 @@ export default function SDMap() {
   const [selectedDriver, setSelectedDriver] = useState<DispatchMapDriver | null>(null);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [useRoadRoutes, setUseRoadRoutes] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("sd.map.roadRoutes") === "1";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("sd.map.roadRoutes", useRoadRoutes ? "1" : "0");
+    }
+  }, [useRoadRoutes]);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -182,7 +193,9 @@ export default function SDMap() {
 
         const line = L.polyline(
           [[d.current_lat, d.current_lng], [d.current_destination_lat, d.current_destination_lng]],
-          { color: "#f59e0b", weight: 2, dashArray: "6 4", opacity: 0.8 }
+          useRoadRoutes
+            ? { color: "#f59e0b", weight: 4, opacity: 0.9 }
+            : { color: "#f59e0b", weight: 2, dashArray: "6 4", opacity: 0.8 }
         ).addTo(map);
         routeLinesRef.current.set(d.driver_id, line);
 
@@ -194,7 +207,42 @@ export default function SDMap() {
       map.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]), { padding: [40, 40] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverIds, statusFilter]);
+  }, [driverIds, statusFilter, useRoadRoutes]);
+
+  // Fetch road-following polylines from Google Routes API when enabled
+  useEffect(() => {
+    if (!useRoadRoutes) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const filtered = statusFilter === "all"
+      ? drivers
+      : drivers.filter(d => d.status === statusFilter);
+
+    let cancelled = false;
+
+    filtered.forEach(async (d) => {
+      if (!d.current_destination_lat || !d.current_destination_lng) return;
+      try {
+        const res = await computeRoute(
+          { lat: d.current_lat, lng: d.current_lng },
+          [{ lat: d.current_destination_lat, lng: d.current_destination_lng }],
+          false,
+        );
+        if (cancelled) return;
+        const coords = decodePolyline(res.encoded_polyline);
+        const line = routeLinesRef.current.get(d.driver_id);
+        if (line && coords.length > 1) {
+          line.setLatLngs(coords as L.LatLngTuple[]);
+        }
+      } catch {
+        // Silently fall back to straight line already drawn
+      }
+    });
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driverIds, statusFilter, useRoadRoutes]);
 
   // Real-time updates
   const handleDriverLocationUpdate = useCallback((driverId: number, lat: number, lng: number) => {
@@ -215,9 +263,12 @@ export default function SDMap() {
     const line = routeLinesRef.current.get(driverId);
     const driver = driversRef.current.find(d => d.driver_id === driverId);
     if (line && driver?.current_destination_lat) {
-      line.setLatLngs([[lat, lng], [driver.current_destination_lat, driver.current_destination_lng!]]);
+      if (!useRoadRoutes) {
+        line.setLatLngs([[lat, lng], [driver.current_destination_lat, driver.current_destination_lng!]]);
+      }
+      // When road routes are enabled, the line is refreshed by the road-routes effect on the next driver-set change
     }
-  }, []);
+  }, [useRoadRoutes]);
 
   useSDRealtime({
     teamId: currentTeamId ?? 1,
@@ -276,6 +327,18 @@ export default function SDMap() {
               onCheckedChange={setRealtimeEnabled}
             />
           </div>
+        </div>
+        {/* Road routes toggle */}
+        <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
+          <Label htmlFor="road-routes" className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+            <Route className="h-3.5 w-3.5 text-primary" />
+            Road routes (Google)
+          </Label>
+          <Switch
+            id="road-routes"
+            checked={useRoadRoutes}
+            onCheckedChange={setUseRoadRoutes}
+          />
         </div>
         {/* Status filter */}
         <div className="flex gap-1 flex-wrap">
