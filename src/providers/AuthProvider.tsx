@@ -4,7 +4,8 @@ import api from "@/lib/api";
 import type { User, Team, AuthResponse, AuthState } from "@/types/auth";
 import { toast } from "sonner";
 
-import { isDemoMode } from "@/lib/demo-mode";
+// Auth is always demo until the live backend is wired up — independent of the data toggle.
+const AUTH_DEMO = true;
 
 const DEMO_DATA: AuthResponse = {
   token: "demo-token",
@@ -112,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Session bootstrap
   useEffect(() => {
-    if (isDemoMode()) {
+    if (AUTH_DEMO) {
       // Auto-login in demo mode
       setAuth(DEMO_DATA);
       return;
@@ -145,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (isDemoMode()) {
+    if (AUTH_DEMO) {
       setAuth(DEMO_DATA);
       toast.success("Logged in (Demo Mode)");
       return;
@@ -170,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchTeam = async (teamId: number) => {
     setState((s) => ({ ...s, isLoading: true }));
     try {
-      if (isDemoMode()) {
+      if (AUTH_DEMO) {
         const team = DEMO_DATA.teams.find((t) => t.id === teamId);
         localStorage.setItem("clean-team-id", String(teamId));
         setState((s) => ({
