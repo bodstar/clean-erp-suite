@@ -1,0 +1,4 @@
+project_id = "kvexeyzdsqylcjlyrrgu"
+
+[functions.routes-compute]
+verify_jwt = false

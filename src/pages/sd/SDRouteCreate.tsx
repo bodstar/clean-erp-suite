@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronUp, ChevronDown, X, ArrowLeft } from "lucide-react";
+import { ChevronUp, ChevronDown, X, ArrowLeft, Sparkles, Loader2, Clock, Route as RouteIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -14,6 +14,7 @@ import { getDrivers, getSDOrders, createRoute } from "@/lib/api/sd";
 import { toast } from "sonner";
 import RouteCreateMap from "@/components/sd/RouteCreateMap";
 import type { SDDriver, SDOrderSummary } from "@/types/sd";
+import { computeRoute } from "@/lib/api/googleRoutes";
 
 interface StopEntry {
   order_id: number;
@@ -37,6 +38,13 @@ export default function SDRouteCreate() {
   const [orderSearch, setOrderSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Google Routes API result
+  const [routePolyline, setRoutePolyline] = useState<string>("");
+  const [routeDurationSec, setRouteDurationSec] = useState<number | null>(null);
+  const [routeDistanceM, setRouteDistanceM] = useState<number | null>(null);
+  const [isComputingRoute, setIsComputingRoute] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -105,6 +113,74 @@ export default function SDRouteCreate() {
 
   const selectedDriverObj = availableDrivers.find(d => d.id === Number(selectedDriverId));
 
+  /**
+   * Build coord list (driver origin + stops) and call Routes API.
+   * If optimize=true, reorder local `stops` state to match Google's optimal order.
+   */
+  const runCompute = useCallback(async (optimize: boolean) => {
+    if (!selectedDriverObj?.current_lat || !selectedDriverObj?.current_lng) return;
+    const stopCoords = stops
+      .map(s => {
+        const o = confirmedOrders.find(co => co.id === s.order_id);
+        return o?.delivery_lat && o?.delivery_lng
+          ? { order_id: s.order_id, lat: o.delivery_lat, lng: o.delivery_lng }
+          : null;
+      })
+      .filter((v): v is { order_id: number; lat: number; lng: number } => v !== null);
+    if (stopCoords.length < 1) return;
+
+    optimize ? setIsOptimizing(true) : setIsComputingRoute(true);
+    try {
+      const res = await computeRoute(
+        { lat: selectedDriverObj.current_lat, lng: selectedDriverObj.current_lng },
+        stopCoords.map(s => ({ lat: s.lat, lng: s.lng })),
+        optimize,
+      );
+      setRoutePolyline(res.encoded_polyline);
+      setRouteDurationSec(res.duration_seconds);
+      setRouteDistanceM(res.distance_meters);
+
+      // Reorder stops if Google optimized them. optimized_indices applies to
+      // intermediates only (everything except the last stop = destination).
+      if (optimize && res.optimized_indices && res.optimized_indices.length > 0) {
+        const intermediates = stops.slice(0, -1);
+        const destination = stops[stops.length - 1];
+        const reorderedIntermediates = res.optimized_indices.map(i => intermediates[i]);
+        setStops([...reorderedIntermediates, destination]);
+        toast.success("Stops reordered for fastest route");
+      }
+    } catch {
+      toast.error("Could not compute route — check Google Maps connector");
+      setRoutePolyline("");
+      setRouteDurationSec(null);
+      setRouteDistanceM(null);
+    } finally {
+      setIsOptimizing(false);
+      setIsComputingRoute(false);
+    }
+  }, [selectedDriverObj, stops, confirmedOrders]);
+
+  // Auto-recompute (non-optimizing) when driver or stops change
+  useEffect(() => {
+    if (!selectedDriverObj?.current_lat || stops.length === 0) {
+      setRoutePolyline("");
+      setRouteDurationSec(null);
+      setRouteDistanceM(null);
+      return;
+    }
+    const t = setTimeout(() => { void runCompute(false); }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDriverId, stops]);
+
+  const formatDuration = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.round((sec % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m} min`;
+  };
+  const formatDistance = (m: number) =>
+    m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`;
+
   if (!canManage) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -158,8 +234,32 @@ export default function SDRouteCreate() {
           orders={confirmedOrders}
           stops={stops}
           selectedDriverId={selectedDriverId}
+          encodedPolyline={routePolyline}
         />
       </div>
+
+      {/* Route summary (ETA + distance) */}
+      {(routeDurationSec !== null || isComputingRoute) && (
+        <div className="flex items-center gap-4 text-sm rounded-md border border-border bg-muted/40 px-3 py-2 shrink-0">
+          {isComputingRoute ? (
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Computing route...
+            </span>
+          ) : (
+            <>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">{formatDuration(routeDurationSec!)}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <RouteIcon className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">{formatDistance(routeDistanceM!)}</span>
+              </span>
+              <span className="text-xs text-muted-foreground ml-auto">via Google Routes</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Form below map */}
       <div className="space-y-4">
@@ -220,7 +320,23 @@ export default function SDRouteCreate() {
               </div>
               {stops.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Stops ({stops.length})</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Stops ({stops.length})</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void runCompute(true)}
+                      disabled={isOptimizing || stops.length < 2 || !selectedDriverObj?.current_lat}
+                    >
+                      {isOptimizing ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      Optimize order
+                    </Button>
+                  </div>
                   {stops.map((s, i) => (
                     <Card key={s.order_id}>
                       <CardContent className="flex items-center gap-2 py-2 px-3">
