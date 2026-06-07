@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import type { User, Team, AuthResponse, AuthState } from "@/types/auth";
 import { toast } from "sonner";
 
-const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+import { isDemoMode } from "@/lib/demo-mode";
 
 const DEMO_DATA: AuthResponse = {
   token: "demo-token",
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Session bootstrap
   useEffect(() => {
-    if (DEMO_MODE) {
+    if (isDemoMode()) {
       // Auto-login in demo mode
       setAuth(DEMO_DATA);
       return;
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (DEMO_MODE) {
+    if (isDemoMode()) {
       setAuth(DEMO_DATA);
       toast.success("Logged in (Demo Mode)");
       return;
@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchTeam = async (teamId: number) => {
     setState((s) => ({ ...s, isLoading: true }));
     try {
-      if (DEMO_MODE) {
+      if (isDemoMode()) {
         const team = DEMO_DATA.teams.find((t) => t.id === teamId);
         localStorage.setItem("clean-team-id", String(teamId));
         setState((s) => ({

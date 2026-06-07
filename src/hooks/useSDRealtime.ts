@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 
-const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+import { isDemoMode } from "@/lib/demo-mode";
 
 interface UseSDRealtimeOptions {
   teamId: number;
@@ -72,7 +72,7 @@ export function useSDRealtime({ teamId, onDriverLocationUpdate, enabled }: UseSD
   useEffect(() => {
     if (!enabled) return;
 
-    if (DEMO_MODE) {
+    if (isDemoMode()) {
       startSimulation();
     } else {
       startEcho();

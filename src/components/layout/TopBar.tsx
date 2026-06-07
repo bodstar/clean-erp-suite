@@ -20,8 +20,11 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sun, Moon, Bell, User, LogOut, ChevronsUpDown, Menu } from "lucide-react";
+import { Sun, Moon, Bell, User, LogOut, ChevronsUpDown, Menu, FlaskConical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isDemoMode, setDemoMode } from "@/lib/demo-mode";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function TopBar() {
   const { user, teams, currentTeamId, logout, switchTeam } = useAuth();
@@ -31,6 +34,7 @@ export function TopBar() {
 
   const currentTeam = teams.find((t) => t.id === currentTeamId);
   const showTeamSwitcher = teams.length > 1;
+  const demoOn = isDemoMode();
 
   const handleLogout = () => {
     logout();
@@ -119,6 +123,20 @@ export function TopBar() {
 
               <Separator />
 
+              {/* Demo Mode Toggle */}
+              <button
+                onClick={() => setDemoMode(!demoOn)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-accent"
+              >
+                <span className="flex items-center gap-3">
+                  <FlaskConical className="h-4 w-4" />
+                  Demo data
+                </span>
+                <Switch checked={demoOn} />
+              </button>
+
+              <Separator />
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent text-destructive"
@@ -183,6 +201,25 @@ export function TopBar() {
         )}
         <span className="sr-only">Toggle theme</span>
       </Button>
+
+      {/* Demo Mode Toggle */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={demoOn ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setDemoMode(!demoOn)}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <FlaskConical className="h-3.5 w-3.5" />
+            Demo
+            <Switch checked={demoOn} className="ml-1 pointer-events-none" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {demoOn ? "Demo data ON — click to use live backend" : "Demo data OFF — click to load mock data"}
+        </TooltipContent>
+      </Tooltip>
 
       {/* Notifications */}
       <Button variant="ghost" size="icon" className="h-8 w-8 relative">

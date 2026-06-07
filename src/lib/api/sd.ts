@@ -16,7 +16,7 @@ import {
   demoRouteDetails,
 } from "@/lib/api/sd-demo";
 
-const DEMO_MODE = !import.meta.env.VITE_API_BASE_URL;
+import { isDemoMode } from "@/lib/demo-mode";
 
 // ─── Scope helpers ───────────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ export async function getProducts(
   params?: Record<string, unknown>,
   scope?: SDScope
 ): Promise<{ data: Product[]; total: number }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     let filtered = [...demoProducts];
     if (params?.search) {
       const q = String(params.search).toLowerCase();
@@ -81,7 +81,7 @@ export async function computeItemPrice(
   quantity: number,
   _partnerId?: number
 ): Promise<{ computed_unit_price: number; tier_applied: boolean; loyalty_discount_applied: boolean }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const product = demoProducts.find((p) => p.id === productId);
     const base = product?.franchisee_unit_price ?? product?.base_unit_price ?? 0;
     const tier_applied = quantity >= 50;
@@ -102,7 +102,7 @@ export async function getUnregisteredCustomers(
   params?: Record<string, unknown>,
   scope?: SDScope
 ): Promise<{ data: UnregisteredCustomer[]; total: number }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     let filtered = filterByScope([...demoUnregisteredCustomers], scope);
     if (params?.search) {
       const q = String(params.search).toLowerCase();
@@ -120,7 +120,7 @@ export async function getUnregisteredCustomers(
 export async function createUnregisteredCustomer(
   data: Partial<UnregisteredCustomer>
 ): Promise<UnregisteredCustomer> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     return {
       ...data,
       id: Date.now(),
@@ -138,7 +138,7 @@ export async function getSDOrders(
   params?: Record<string, unknown>,
   scope?: SDScope
 ): Promise<{ data: SDOrderSummary[]; total: number }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     let filtered = filterByScope([...demoOrders], scope);
     if (params?.status && params.status !== "all") {
       filtered = filtered.filter((o) => o.status === params.status);
@@ -170,7 +170,7 @@ export async function getSDOrders(
 }
 
 export async function getSDOrder(id: number): Promise<SDOrder> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const detail = demoOrderDetails[id];
     if (detail) return detail;
     const summary = demoOrders.find((o) => o.id === id);
@@ -185,7 +185,7 @@ export async function createSDOrder(
   data: Partial<SDOrder>,
   scope?: SDScope
 ): Promise<SDOrder> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     return {
       ...data,
       id: Date.now(),
@@ -207,7 +207,7 @@ export async function updateSDOrderStatus(
   status: string,
   notes?: string
 ): Promise<void> {
-  if (DEMO_MODE) return;
+  if (isDemoMode()) return;
   await api.post(`/sd/orders/${id}/status`, { status, notes });
 }
 
@@ -217,7 +217,7 @@ export async function getDrivers(
   params?: Record<string, unknown>,
   scope?: SDScope
 ): Promise<{ data: SDDriver[]; total: number }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     let filtered = filterByScope([...demoDrivers], scope);
     if (params?.search) {
       const q = String(params.search).toLowerCase();
@@ -235,7 +235,7 @@ export async function getDrivers(
 }
 
 export async function getDriver(id: number): Promise<SDDriver> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const found = demoDrivers.find(d => d.id === id);
     if (!found) throw new Error('Driver not found');
     return found;
@@ -245,7 +245,7 @@ export async function getDriver(id: number): Promise<SDDriver> {
 }
 
 export async function createDriver(data: Partial<SDDriver>): Promise<SDDriver> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     return { ...data, id: Date.now(), status: 'available' as const, is_available: true,
       team_id: 1, created_at: new Date().toISOString() } as SDDriver;
   }
@@ -254,7 +254,7 @@ export async function createDriver(data: Partial<SDDriver>): Promise<SDDriver> {
 }
 
 export async function updateDriver(id: number, data: Partial<SDDriver>): Promise<SDDriver> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const found = demoDrivers.find(d => d.id === id) ?? ({} as SDDriver);
     return { ...found, ...data };
   }
@@ -263,12 +263,12 @@ export async function updateDriver(id: number, data: Partial<SDDriver>): Promise
 }
 
 export async function toggleDriverAvailability(id: number): Promise<void> {
-  if (DEMO_MODE) return;
+  if (isDemoMode()) return;
   await api.post(`/sd/drivers/${id}/toggle-availability`);
 }
 
 export async function assignDriver(orderId: number, driverId: number): Promise<void> {
-  if (DEMO_MODE) return;
+  if (isDemoMode()) return;
   await api.post(`/sd/orders/${orderId}/assign-driver`, { driver_id: driverId });
 }
 
@@ -278,7 +278,7 @@ export async function getRoutes(
   params?: Record<string, unknown>,
   scope?: SDScope
 ): Promise<{ data: SDRouteSummary[]; total: number }> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     let filtered = filterByScope([...demoRoutes], scope);
     if (params?.status && params.status !== 'all') {
       filtered = filtered.filter(r => r.status === params.status);
@@ -293,7 +293,7 @@ export async function getRoutes(
 }
 
 export async function getRoute(id: number): Promise<SDRoute> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const detail = demoRouteDetails[id];
     if (detail) return detail;
     const summary = demoRoutes.find(r => r.id === id);
@@ -309,7 +309,7 @@ export async function createRoute(data: {
   date: string;
   stops: { order_id: number; sequence: number }[];
 }, scope?: SDScope): Promise<SDRoute> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     return { id: Date.now(), driver_id: data.driver_id, driver_name: 'Demo Driver',
       driver_vehicle: 'Vehicle', team_id: 1, status: 'draft', date: data.date,
       optimised_by: 'manual', stop_count: data.stops.length, completed_stops: 0,
@@ -320,7 +320,7 @@ export async function createRoute(data: {
 }
 
 export async function optimiseRoute(id: number): Promise<SDRoute> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     const route = await getRoute(id);
     const optimised = { ...route,
       optimised_by: 'system' as RouteOptimisedBy,
@@ -337,7 +337,7 @@ export async function updateRouteStopStatus(
   stopId: number,
   status: RouteStopStatus
 ): Promise<void> {
-  if (DEMO_MODE) return;
+  if (isDemoMode()) return;
   await api.post(`/sd/routes/${routeId}/stops/${stopId}/status`, { status });
 }
 
@@ -346,7 +346,7 @@ export async function updateRouteStopStatus(
 export async function getDispatchMapDrivers(
   scope?: SDScope
 ): Promise<DispatchMapDriver[]> {
-  if (DEMO_MODE) {
+  if (isDemoMode()) {
     return filterByScope([
       {
         driver_id: 1, driver_name: 'Emmanuel Tetteh',
