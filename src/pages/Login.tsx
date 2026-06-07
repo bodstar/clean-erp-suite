@@ -5,14 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { isDemoMode, setDemoMode } from "@/lib/demo-mode";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const demoOn = isDemoMode();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +87,17 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
+        <div className="mt-4 flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
+          <span className="flex items-center gap-2 text-sm text-muted-foreground">
+            <FlaskConical className="h-4 w-4" />
+            Demo data {demoOn ? "ON" : "OFF"}
+          </span>
+          <Switch
+            checked={demoOn}
+            onCheckedChange={(v) => setDemoMode(Boolean(v))}
+            aria-label="Toggle demo data"
+          />
+        </div>
       </div>
     </div>
   );
