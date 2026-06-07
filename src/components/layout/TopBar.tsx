@@ -20,8 +20,11 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sun, Moon, Bell, User, LogOut, ChevronsUpDown, Menu } from "lucide-react";
+import { Sun, Moon, Bell, User, LogOut, ChevronsUpDown, Menu, FlaskConical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isDemoMode, setDemoMode } from "@/lib/demo-mode";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function TopBar() {
   const { user, teams, currentTeamId, logout, switchTeam } = useAuth();
@@ -31,6 +34,7 @@ export function TopBar() {
 
   const currentTeam = teams.find((t) => t.id === currentTeamId);
   const showTeamSwitcher = teams.length > 1;
+  const demoOn = isDemoMode();
 
   const handleLogout = () => {
     logout();
@@ -115,6 +119,20 @@ export function TopBar() {
               >
                 <User className="h-4 w-4" />
                 Profile
+              </button>
+
+              <Separator />
+
+              {/* Demo Mode Toggle */}
+              <button
+                onClick={() => setDemoMode(!demoOn)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-accent"
+              >
+                <span className="flex items-center gap-3">
+                  <FlaskConical className="h-4 w-4" />
+                  Demo data
+                </span>
+                <Switch checked={demoOn} />
               </button>
 
               <Separator />
