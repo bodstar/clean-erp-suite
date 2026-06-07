@@ -202,6 +202,25 @@ export function TopBar() {
         <span className="sr-only">Toggle theme</span>
       </Button>
 
+      {/* Demo Mode Toggle */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={demoOn ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setDemoMode(!demoOn)}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <FlaskConical className="h-3.5 w-3.5" />
+            Demo
+            <Switch checked={demoOn} className="ml-1 pointer-events-none" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {demoOn ? "Demo data ON — click to use live backend" : "Demo data OFF — click to load mock data"}
+        </TooltipContent>
+      </Tooltip>
+
       {/* Notifications */}
       <Button variant="ghost" size="icon" className="h-8 w-8 relative">
         <Bell className="h-4 w-4" />
