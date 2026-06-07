@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { SDDriver, SDOrderSummary } from "@/types/sd";
+import { decodePolyline } from "@/lib/api/googleRoutes";
 
 interface StopEntry {
   order_id: number;
@@ -15,6 +16,8 @@ interface RouteCreateMapProps {
   orders: SDOrderSummary[];
   stops: StopEntry[];
   selectedDriverId: string;
+  /** Optional Google encoded polyline; when present, drawn instead of the dashed straight line. */
+  encodedPolyline?: string;
 }
 
 const ACCRA_CENTER: [number, number] = [5.6037, -0.1870];
@@ -24,6 +27,7 @@ export default function RouteCreateMap({
   orders,
   stops,
   selectedDriverId,
+  encodedPolyline,
 }: RouteCreateMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -134,8 +138,18 @@ export default function RouteCreateMap({
       bounds.push([o.delivery_lat, o.delivery_lng]);
     });
 
-    // Draw route line through stops in order
-    if (stops.length >= 2) {
+    // Draw route line: real road polyline if available, else dashed straight line through stops
+    if (encodedPolyline) {
+      const coords = decodePolyline(encodedPolyline) as L.LatLngExpression[];
+      if (coords.length >= 2) {
+        routeLineRef.current = L.polyline(coords, {
+          color: "hsl(221 83% 53%)",
+          weight: 4,
+          opacity: 0.85,
+        }).addTo(map);
+        coords.forEach((c) => bounds.push(c));
+      }
+    } else if (stops.length >= 2) {
       const lineCoords: L.LatLngExpression[] = [];
       // If a driver is selected, start from driver position
       const selectedDriver = drivers.find(
@@ -167,7 +181,7 @@ export default function RouteCreateMap({
         maxZoom: 14,
       });
     }
-  }, [drivers, orders, stops, selectedDriverId]);
+  }, [drivers, orders, stops, selectedDriverId, encodedPolyline]);
 
   return (
     <div
