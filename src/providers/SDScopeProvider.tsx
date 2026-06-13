@@ -15,7 +15,7 @@ interface SDScopeContextType {
 const SDScopeContext = createContext<SDScopeContextType | undefined>(undefined);
 
 export function SDScopeProvider({ children }: { children: React.ReactNode }) {
-  const { hasPermission, currentTeamId } = useAuth();
+  const { hasPermission, currentTeamId, isLoading } = useAuth();
   const canUseGlobalScope = hasPermission("sd.hq.global_view");
 
   const [scopeMode, _setScopeMode] = useState<ScopeMode>(() => {
@@ -38,11 +38,12 @@ export function SDScopeProvider({ children }: { children: React.ReactNode }) {
   }, [scopeMode]);
 
   useEffect(() => {
+    if (isLoading) return;
     if (!canUseGlobalScope && scopeMode !== "current") {
       _setScopeMode("current");
       setTargetTeamId(null);
     }
-  }, [canUseGlobalScope, scopeMode, setTargetTeamId]);
+  }, [canUseGlobalScope, scopeMode, setTargetTeamId, isLoading]);
 
   const setScopeMode = useCallback(
     (mode: ScopeMode) => {
