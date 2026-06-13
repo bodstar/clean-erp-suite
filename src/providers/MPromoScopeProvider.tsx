@@ -14,7 +14,7 @@ interface MPromoScopeContextType {
 const MPromoScopeContext = createContext<MPromoScopeContextType | undefined>(undefined);
 
 export function MPromoScopeProvider({ children }: { children: React.ReactNode }) {
-  const { hasPermission, currentTeamId } = useAuth();
+  const { hasPermission, currentTeamId, isLoading } = useAuth();
   const canUseGlobalScope = hasPermission("mpromo.hq.global_view");
 
   const [scopeMode, _setScopeMode] = useState<ScopeMode>(() => {
@@ -38,11 +38,12 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
 
   // Force back to "current" if user loses global_view (e.g. team switch)
   useEffect(() => {
+    if (isLoading) return;
     if (!canUseGlobalScope && scopeMode !== "current") {
       _setScopeMode("current");
       setTargetTeamId(null);
     }
-  }, [canUseGlobalScope, scopeMode, setTargetTeamId]);
+  }, [canUseGlobalScope, scopeMode, setTargetTeamId, isLoading]);
 
   const setScopeMode = useCallback(
     (mode: ScopeMode) => {
