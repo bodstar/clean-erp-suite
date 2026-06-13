@@ -63,15 +63,19 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
     (mode: ScopeMode) => {
       if (!canUseGlobalScope && mode !== "current") {
         _setScopeMode("current");
+        localStorage.setItem(SHARED_SCOPE_MODE_KEY, "current");
+        localStorage.setItem("mpromo.scopeMode", "current");
         return;
       }
       _setScopeMode(mode);
+      localStorage.setItem(SHARED_SCOPE_MODE_KEY, mode);
+      localStorage.setItem("mpromo.scopeMode", mode);
       // Auto-select current team when entering "target" mode without a selection
       if (mode === "target" && !targetTeamId && currentTeamId) {
         setTargetTeamId(currentTeamId);
       }
     },
-    [canUseGlobalScope, targetTeamId, currentTeamId]
+    [canUseGlobalScope, targetTeamId, currentTeamId, setTargetTeamId]
   );
 
   const scope: MPromoScope = {
