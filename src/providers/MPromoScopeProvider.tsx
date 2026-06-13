@@ -17,8 +17,24 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
   const { hasPermission, currentTeamId } = useAuth();
   const canUseGlobalScope = hasPermission("mpromo.hq.global_view");
 
-  const [scopeMode, _setScopeMode] = useState<ScopeMode>("current");
-  const [targetTeamId, setTargetTeamId] = useState<number | null>(null);
+  const [scopeMode, _setScopeMode] = useState<ScopeMode>(() => {
+    const v = localStorage.getItem("mpromo.scopeMode");
+    return (v === "all" || v === "target" || v === "current") ? v : "current";
+  });
+  const [targetTeamId, _setTargetTeamId] = useState<number | null>(() => {
+    const v = localStorage.getItem("mpromo.targetTeamId");
+    return v ? Number(v) : null;
+  });
+
+  const setTargetTeamId = useCallback((id: number | null) => {
+    _setTargetTeamId(id);
+    if (id == null) localStorage.removeItem("mpromo.targetTeamId");
+    else localStorage.setItem("mpromo.targetTeamId", String(id));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("mpromo.scopeMode", scopeMode);
+  }, [scopeMode]);
 
   // Force back to "current" if user loses global_view (e.g. team switch)
   useEffect(() => {
@@ -26,7 +42,7 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
       _setScopeMode("current");
       setTargetTeamId(null);
     }
-  }, [canUseGlobalScope, scopeMode]);
+  }, [canUseGlobalScope, scopeMode, setTargetTeamId]);
 
   const setScopeMode = useCallback(
     (mode: ScopeMode) => {

@@ -18,15 +18,31 @@ export function SDScopeProvider({ children }: { children: React.ReactNode }) {
   const { hasPermission, currentTeamId } = useAuth();
   const canUseGlobalScope = hasPermission("sd.hq.global_view");
 
-  const [scopeMode, _setScopeMode] = useState<ScopeMode>("current");
-  const [targetTeamId, setTargetTeamId] = useState<number | null>(null);
+  const [scopeMode, _setScopeMode] = useState<ScopeMode>(() => {
+    const v = localStorage.getItem("sd.scopeMode");
+    return (v === "all" || v === "target" || v === "current") ? v : "current";
+  });
+  const [targetTeamId, _setTargetTeamId] = useState<number | null>(() => {
+    const v = localStorage.getItem("sd.targetTeamId");
+    return v ? Number(v) : null;
+  });
+
+  const setTargetTeamId = useCallback((id: number | null) => {
+    _setTargetTeamId(id);
+    if (id == null) localStorage.removeItem("sd.targetTeamId");
+    else localStorage.setItem("sd.targetTeamId", String(id));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sd.scopeMode", scopeMode);
+  }, [scopeMode]);
 
   useEffect(() => {
     if (!canUseGlobalScope && scopeMode !== "current") {
       _setScopeMode("current");
       setTargetTeamId(null);
     }
-  }, [canUseGlobalScope, scopeMode]);
+  }, [canUseGlobalScope, scopeMode, setTargetTeamId]);
 
   const setScopeMode = useCallback(
     (mode: ScopeMode) => {
