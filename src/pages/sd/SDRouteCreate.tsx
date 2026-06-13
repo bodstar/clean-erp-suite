@@ -228,7 +228,7 @@ export default function SDRouteCreate() {
       </div>
 
       {/* Map — always on top */}
-      <div className="h-[340px] shrink-0 rounded-lg overflow-hidden border border-border">
+      <div className="relative z-0 isolate h-[340px] shrink-0 rounded-lg overflow-hidden border border-border">
         <RouteCreateMap
           drivers={availableDrivers}
           orders={confirmedOrders}
