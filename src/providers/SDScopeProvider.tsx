@@ -63,14 +63,18 @@ export function SDScopeProvider({ children }: { children: React.ReactNode }) {
     (mode: ScopeMode) => {
       if (!canUseGlobalScope && mode !== "current") {
         _setScopeMode("current");
+        localStorage.setItem(SHARED_SCOPE_MODE_KEY, "current");
+        localStorage.setItem("sd.scopeMode", "current");
         return;
       }
       _setScopeMode(mode);
+      localStorage.setItem(SHARED_SCOPE_MODE_KEY, mode);
+      localStorage.setItem("sd.scopeMode", mode);
       if (mode === "target" && !targetTeamId && currentTeamId) {
         setTargetTeamId(currentTeamId);
       }
     },
-    [canUseGlobalScope, targetTeamId, currentTeamId]
+    [canUseGlobalScope, targetTeamId, currentTeamId, setTargetTeamId]
   );
 
   const scope: SDScope = {
