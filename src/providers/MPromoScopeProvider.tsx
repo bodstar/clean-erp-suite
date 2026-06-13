@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import type { ScopeMode, MPromoScope } from "@/types/mpromo";
 import { useAuth } from "@/providers/AuthProvider";
 
+const SHARED_SCOPE_MODE_KEY = "hq.scopeMode";
+const SHARED_TARGET_TEAM_KEY = "hq.targetTeamId";
+
+/**
+ * @module MPromoScopeProvider
+ * Provides shared HQ scope selection for M-Promo views.
+ */
+
 interface MPromoScopeContextType {
   scopeMode: ScopeMode;
   targetTeamId: number | null;
@@ -18,21 +26,27 @@ export function MPromoScopeProvider({ children }: { children: React.ReactNode })
   const canUseGlobalScope = hasPermission("mpromo.hq.global_view");
 
   const [scopeMode, _setScopeMode] = useState<ScopeMode>(() => {
-    const v = localStorage.getItem("mpromo.scopeMode");
+    const v = localStorage.getItem(SHARED_SCOPE_MODE_KEY) ?? localStorage.getItem("mpromo.scopeMode");
     return (v === "all" || v === "target" || v === "current") ? v : "current";
   });
   const [targetTeamId, _setTargetTeamId] = useState<number | null>(() => {
-    const v = localStorage.getItem("mpromo.targetTeamId");
+    const v = localStorage.getItem(SHARED_TARGET_TEAM_KEY) ?? localStorage.getItem("mpromo.targetTeamId");
     return v ? Number(v) : null;
   });
 
   const setTargetTeamId = useCallback((id: number | null) => {
     _setTargetTeamId(id);
-    if (id == null) localStorage.removeItem("mpromo.targetTeamId");
-    else localStorage.setItem("mpromo.targetTeamId", String(id));
+    if (id == null) {
+      localStorage.removeItem(SHARED_TARGET_TEAM_KEY);
+      localStorage.removeItem("mpromo.targetTeamId");
+    } else {
+      localStorage.setItem(SHARED_TARGET_TEAM_KEY, String(id));
+      localStorage.setItem("mpromo.targetTeamId", String(id));
+    }
   }, []);
 
   useEffect(() => {
+    localStorage.setItem(SHARED_SCOPE_MODE_KEY, scopeMode);
     localStorage.setItem("mpromo.scopeMode", scopeMode);
   }, [scopeMode]);
 
